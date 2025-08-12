@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-ui
+  namespace: portfolio
+  labels: { app: portfolio-ui }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: portfolio-ui } }
+  template:
+    metadata:
+      labels: { app: portfolio-ui }
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/shadow-link-industries/portfolio-ui:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: VITE_API_BASE_URL
+              value: "/api"
+          ports:
+            - containerPort: 5173
+          readinessProbe:
+            httpGet: { path: "/", port: 5173 }
+            initialDelaySeconds: 8
+          livenessProbe:
+            httpGet: { path: "/", port: 5173 }
+            initialDelaySeconds: 15
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits:   { cpu: "300m", memory: "512Mi" }

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-api
+  namespace: portfolio
+  labels: { app: portfolio-api }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: portfolio-api } }
+  template:
+    metadata:
+      labels: { app: portfolio-api }
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/shadow-link-industries/portfolio-api:local
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef: { name: portfolio-config }
+            - secretRef: { name: portfolio-secrets }
+          ports:
+            - containerPort: 8000
+          args: ["uvicorn","main:app","--host","0.0.0.0","--port","8000","--workers","1"]
+          readinessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests: { cpu: "200m", memory: "512Mi" }
+            limits:   { cpu: "1",    memory: "2Gi" }
+          volumeMounts:
+            - name: chroma
+              mountPath: /app/models/chroma
+            - name: media
+              mountPath: /app/media
+      initContainers:
+        - name: seed-rag
+          image: ghcr.io/shadow-link-industries/portfolio-api:local
+          imagePullPolicy: IfNotPresent
+          command: ["python","preprocess.py"]
+          envFrom:
+            - configMapRef: { name: portfolio-config }
+          volumeMounts:
+            - name: chroma
+              mountPath: /app/models/chroma
+      volumes:
+        - name: chroma
+          persistentVolumeClaim:
+            claimName: chroma-pvc
+        - name: media
+          emptyDir: {}
