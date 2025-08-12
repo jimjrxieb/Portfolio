@@ -12,9 +12,11 @@ A local-first avatar + RAG platform optimized for Azure VM B2s (2 vCPU / 4 GB RA
 
 ## Quick Start
 
+### Docker Compose (Simple)
+
 ```bash
 # Clone and enter directory
-git clone <repo-url>
+git clone https://github.com/jimjrxieb/Portfolio.git
 cd Portfolio
 
 # Start services
@@ -26,6 +28,32 @@ docker compose exec api python preprocess.py
 # Open browser
 open http://localhost:5173
 ```
+
+### Kubernetes (Local)
+
+**One-command deploy:**
+```bash
+./deploy-local-k8s.sh
+```
+
+**Or step-by-step:**
+```bash
+# KIND (recommended)
+make deploy-kind
+open http://portfolio.localtest.me
+
+# OR Minikube
+make deploy-minikube
+echo "$(minikube ip) portfolio.localtest.me" | sudo tee -a /etc/hosts
+open http://portfolio.localtest.me
+```
+
+**Kubernetes Features:**
+- Auto-ingestion of persona/talktrack data via initContainer
+- Health checks and resource limits
+- Persistent storage for ChromaDB
+- Ingress with `portfolio.localtest.me` hostname
+- Production-ready manifests with kustomize
 
 ## Configuration
 
@@ -80,6 +108,45 @@ python main.py
 cd ui
 npm install
 npm run dev
+```
+
+## Kubernetes Management
+
+**Useful commands:**
+```bash
+# Check status
+make status
+kubectl -n portfolio get pods,svc,ing
+
+# View logs
+make logs-kind  # or logs-minikube
+kubectl -n portfolio logs -l app=portfolio-api --tail=50
+
+# Port forward (if ingress issues)
+make port-forward
+# UI: http://localhost:5173, API: http://localhost:8000
+
+# Cleanup
+make clean-kind  # or clean-minikube
+```
+
+**Troubleshooting:**
+- **Pods stuck in Pending**: Check `kubectl describe pvc -n portfolio` for storage issues
+- **503 errors**: Wait for pods to be Ready: `kubectl -n portfolio get pods`
+- **No ingress**: Use `make port-forward` as fallback
+- **OOM issues**: Reduce model to OpenAI mode or increase resource limits
+
+**Directory structure:**
+```
+k8s/
+├── base/              # Base Kubernetes manifests
+│   ├── namespace.yaml
+│   ├── configmap.yaml
+│   ├── deployment-api.yaml
+│   └── ingress.yaml
+└── overlays/
+    └── local/         # Local development overlay
+        └── kustomization.yaml
 ```
 
 Built with FastAPI, React, ChromaDB, and Transformers.
