@@ -1,4 +1,8 @@
-import { Page } from '@playwright/test';
+import { Page, Locator } from "@playwright/test";
+
+export function byDev(page: Page, name: string): Locator {
+  return page.locator(`[data-dev="${name}"]`);
+}
 
 export async function hookConsoleAndNetwork(page: Page) {
   page.on('console', (msg) => {
