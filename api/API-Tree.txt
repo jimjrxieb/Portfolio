@@ -1,0 +1,33 @@
+.
+├── API-Tree.txt
+├── Dockerfile
+├── engines
+│   ├── __init__.py
+│   ├── avatar_engine.py
+│   ├── llm_engine.py
+│   ├── rag_engine.py
+│   └── speech_engine.py
+├── ingest.py
+├── llm_client.py
+├── main.py
+├── mcp_adapter.py
+├── mcp_client.py
+├── mcp_server.py
+├── mcp_server_standalone.py
+├── preprocess.py
+├── rag.py
+├── requirements.txt
+├── routes_actions.py
+├── routes_avatar.py
+├── routes_chat.py
+├── routes_health.py
+├── routes_uploads.py
+├── schemas.py
+├── scripts
+│   └── ingest.py
+├── services
+│   ├── did.py
+│   └── elevenlabs.py
+└── settings.py
+
+3 directories, 27 files
