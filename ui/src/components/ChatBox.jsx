@@ -24,7 +24,11 @@ export default function ChatBox({ placeholder }) {
         })
       });
 
-      if (!res.ok) throw new Error('Network response was not ok');
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        console.error('Chat error', res.status, txt);
+        throw new Error(`Chat failed: ${res.status} - ${txt || 'Unknown error'}`);
+      }
 
       const reader = res.body.getReader();
       let fullResponse = '';
@@ -54,7 +58,7 @@ export default function ChatBox({ placeholder }) {
 
   return (
     <div className="panel">
-      <h3>Ask James</h3>
+      <h3>Ask Me</h3>
       <form onSubmit={handleSubmit}>
         <input
           type="text"

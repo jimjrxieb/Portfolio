@@ -81,16 +81,31 @@ class RAGEngine:
             return []
 
 def format_prompt(question: str, contexts: List[Dict]) -> str:
-    """Format the prompt for interview-style responses"""
-    ctx = "\n\n".join([f"[{i+1}] {c['metadata'].get('title','')} ({c['metadata'].get('source','')}):\n{c['text']}"
-                       for i,c in enumerate(contexts)])
-    return (
-      "You are a friendly, concise interview assistant representing James.\n"
-      "Use ONLY the context for facts; if unsure, say so. Prefer bullet points. Cite [1],[2] when using context.\n\n"
-      f"Context:\n{ctx}\n\n"
-      f"Interviewer asks: {question}\n\n"
-      "Answer (brief first, then specifics):"
+    """Format the prompt for Jimmie Coleman persona"""
+    SYSTEM = (
+        "You are the Jimmie Coleman avatar. Be concise, friendly, and practical. "
+        "Use the provided context chunks as primary ground truth. PRIORITIZE CURRENT FACTS over legacy content. "
+        "If unsure, say what you'd try next."
     )
+    
+    joined = "\n\n---\n\n".join([c['text'] for c in contexts])
+    return f"""{SYSTEM}
+
+[Context]
+{joined}
+
+[User question]
+{question}
+
+[Instructions]
+- CURRENT FOCUS: Prioritize current work (RAG, LangGraph, RPA, MCP, Jade @ ZRS) over historical projects
+- DEVOPS: Lead with GitHub Actions + Azure Pipelines; mention Jenkins as legacy/learning experience only
+- AI/ML: Emphasize production RAG systems, HuggingFace ecosystem, enterprise automation
+- TOOLS: Current stack - GitHub Actions, Azure DevOps, Kubernetes, HuggingFace, LangGraph, MCP
+- MODEL: This runs Qwen2.5-1.5B-Instruct (HuggingFace) + ChromaDB RAG for resource efficiency
+- If repo access questions: explain clone vs fork and PR etiquette
+- Keep answers focused and practical unless asked for detail
+"""
 
 # Global instance
 _rag_engine = None

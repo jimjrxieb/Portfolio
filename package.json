@@ -1,0 +1,40 @@
+{
+  "name": "portfolio-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "docker-compose up --build -d",
+    "dev:ui": "cd ui && npm run dev",
+    "dev:api": "cd api && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "build": "docker-compose build",
+    "test": "python test_golden_answers.py",
+    "lint": "npm run lint:ui && npm run lint:api",
+    "lint:ui": "cd ui && npm run lint",
+    "lint:api": "cd api && python -m flake8 . --max-line-length=88 --extend-ignore=E203,W503",
+    "format": "npm run format:ui && npm run format:api",
+    "format:ui": "cd ui && npm run format",
+    "format:api": "cd api && python -m black . --line-length=88",
+    "security": "npm run security:ui && npm run security:api",
+    "security:ui": "cd ui && npm audit --audit-level=moderate",
+    "security:api": "cd api && safety check",
+    "pre-push": "npm run lint && npm run format && npm run security",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "ui/**/*.{js,jsx,ts,tsx}": [
+      "cd ui && npm run lint -- --fix",
+      "cd ui && npm run format"
+    ],
+    "api/**/*.py": [
+      "cd api && python -m black --line-length=88",
+      "cd api && python -m flake8 --max-line-length=88 --extend-ignore=E203,W503"
+    ]
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.12"
+  }
+}

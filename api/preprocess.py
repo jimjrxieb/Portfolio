@@ -22,14 +22,26 @@ def yaml_doc(path, tag="persona"):
 
 def seed():
     docs=[]
+    print(f"Looking for documents in: {DATA}")
+    
+    # Ingest knowledge files
+    for md in glob.glob(os.path.join(DATA,"knowledge","**","*.md"), recursive=True):
+        print(f"Found knowledge file: {md}")
+        docs += md_chunks(md,"knowledge")
+        
+    # Ingest persona files if they exist
     for y in glob.glob(os.path.join(DATA,"personas","*.yaml")):
+        print(f"Found persona file: {y}")
         docs += yaml_doc(y,"persona")
-    for md in glob.glob(os.path.join(DATA,"talktrack","*.md")):
-        docs += md_chunks(md,"talktrack")
-    # Optional: project README
-    readme=os.path.join(ROOT,"..","README.md")
-    if os.path.exists(readme): docs += md_chunks(readme,"project")
-    return ingest(docs)
+        
+    print(f"Total documents to ingest: {len(docs)}")
+    if docs:
+        result = ingest(docs)
+        print(f"Successfully ingested {result} documents")
+        return result
+    else:
+        print("No documents found to ingest")
+        return 0
 
 if __name__=="__main__":
     print({"ingested": seed()})
