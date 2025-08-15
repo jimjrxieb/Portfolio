@@ -1,0 +1,17 @@
+# Apply with: kubectl -n portfolio patch deploy portfolio-api --patch-file k8s/patch-poststart.yaml
+spec:
+  template:
+    spec:
+      containers:
+      - name: api
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-lc", "python ingest.py || true"]
+        env:
+        - name: SENTENCE_TRANSFORMERS_HOME
+          value: "/data/cache"
+        - name: TRANSFORMERS_CACHE  
+          value: "/data/cache"
+        - name: HF_HOME
+          value: "/data/cache"

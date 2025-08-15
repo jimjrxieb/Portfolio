@@ -1,0 +1,11 @@
+cloudflare:
+  tunnelName: "linkops-portfolio"
+  tunnelId: "d0709abc-cbd6-46ba-9047-8a81b2859014"
+  secretName: "cloudflared-cloudflare-tunnel"
+  ingress:
+    - hostname: linksmlm.com
+      path: /api/*
+      service: http://portfolio-api.portfolio.svc.cluster.local:80
+    - hostname: linksmlm.com
+      service: http://portfolio-ui.portfolio.svc.cluster.local:80
+    - service: http_status:404

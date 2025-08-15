@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: cloudflared
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+      - name: cloudflared
+        image: cloudflare/cloudflared:latest
+        args:
+        - tunnel
+        - run
+        - --token
+        - "eyJhIjoiMjFhNWIyNzhmOGU1NTA2NzhlMGIyYThjNmZiNWE5M2EiLCJ0IjoiZDA3MDlhYmMtY2JkNi00NmJhLTkwNDctOGE4MWIyODU5MDE0IiwicyI6IlpUTTJORGczTURndFpUQm1ZeTAwTldNMExUZ3lOemt0Tm1ZM056a3hZVE0wTnpVNCJ9"
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: 2000
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi

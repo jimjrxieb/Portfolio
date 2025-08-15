@@ -14,6 +14,7 @@ build/
 .env.local
 .env.production
 *.log
+.env
 
 # Model files and data
 models/chroma/
