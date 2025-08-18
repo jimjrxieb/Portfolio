@@ -1,0 +1,98 @@
+{{- if .Values.chroma.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "portfolio.fullname" . }}-chroma
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "portfolio.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: chroma
+  template:
+    metadata:
+      labels:
+        {{- include "portfolio.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: chroma
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: chroma
+          image: "{{ .Values.chroma.image.repository }}:{{ .Values.chroma.image.tag }}"
+          imagePullPolicy: {{ .Values.chroma.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.chroma.service.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: {{ .Values.chroma.service.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: {{ .Values.chroma.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          {{- if .Values.chroma.persistence.enabled }}
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /chroma/chroma
+          {{- end }}
+      {{- if .Values.chroma.persistence.enabled }}
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: {{ include "portfolio.fullname" . }}-chroma
+      {{- end }}
+---
+{{- if .Values.chroma.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "portfolio.fullname" . }}-chroma
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.chroma.persistence.size }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "portfolio.fullname" . }}-chroma
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.chroma.service.port }}
+      targetPort: {{ .Values.chroma.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "portfolio.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+{{- end }}
