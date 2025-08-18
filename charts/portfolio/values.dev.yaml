@@ -47,3 +47,5 @@ env:
     # Disable heavy AI features for lean dev
     TTS_ENGINE: "disabled"
     AVATAR_ENGINE: "disabled"
+    # Strict CORS for production
+    CORS_ORIGINS: "https://linksmlm.com"
