@@ -1,0 +1,52 @@
+# Development Values for KinD
+# Lower resources and dev-specific configurations
+
+# Development resource limits
+resources:
+  api:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  ui:
+    requests:
+      cpu: "25m"
+      memory: "64Mi"
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+
+# Development ingress host
+ingress:
+  host: portfolio.localtest.me
+  tls: false
+
+# Development environment variables
+env:
+  api:
+    LLM_PROVIDER: "openai"
+    LLM_MODEL: "gpt-4o-mini"
+    DEBUG_MODE: "true"
+    CORS_ALLOW_ORIGINS: "*"
+  ui:
+    VITE_API_BASE_URL: "http://portfolio.localtest.me/api"
+
+# Reduced persistence for development
+persistence:
+  size: 5Gi
+
+chroma:
+  persistence:
+    size: 2Gi
+
+# Faster probe timings for development
+probes:
+  api:
+    readinessProbe:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+    livenessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 20
