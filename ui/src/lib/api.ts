@@ -41,7 +41,7 @@ export async function talkAvatar(payload: {
   text: string;
   voice?: string; // server decides default if omitted
 }): Promise<{ url: string }> {
-  const r = await fetch(`${API_BASE}/api/actions/avatar/talk`, {
+  const r = await fetch(`${API_BASE}/api/avatar/talk`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)

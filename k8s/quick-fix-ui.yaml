@@ -1,0 +1,187 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-ui-quick
+  namespace: portfolio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-ui-quick
+  template:
+    metadata:
+      labels:
+        app: portfolio-ui-quick
+    spec:
+      containers:
+      - name: ui
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: ui-content
+          mountPath: /usr/share/nginx/html
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+      initContainers:
+      - name: build-ui
+        image: node:18-alpine
+        workingDir: /app
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          echo "Building UI with fixed API endpoint..."
+          apk add --no-cache git
+          git clone https://github.com/shadow-link-industries/Portfolio.git /tmp/repo || echo "Using local files"
+          
+          mkdir -p /app/ui
+          cat > /app/ui/package.json << 'EOF'
+          {
+            "name": "portfolio-ui",
+            "private": true,
+            "version": "0.0.0",
+            "type": "module",
+            "scripts": {
+              "dev": "vite",
+              "build": "vite build",
+              "preview": "vite preview"
+            },
+            "dependencies": {
+              "react": "^18.2.0",
+              "react-dom": "^18.2.0"
+            },
+            "devDependencies": {
+              "@types/react": "^18.2.43",
+              "@types/react-dom": "^18.2.17",
+              "@vitejs/plugin-react": "^4.2.1",
+              "tailwindcss": "^3.4.0",
+              "vite": "^5.0.8"
+            }
+          }
+          EOF
+          
+          cat > /app/ui/.env << 'EOF'
+          VITE_API_BASE=https://linksmlm.com
+          EOF
+          
+          cd /app/ui
+          npm install
+          
+          mkdir -p src/lib src/components src/pages
+          
+          cat > src/lib/api.ts << 'EOF'
+          export const API_BASE = import.meta.env.VITE_API_BASE || "";
+          
+          export type ChatRequest = {
+            message: string;
+            namespace?: string;
+            k?: number;
+          };
+          
+          export type ChatResponse = { 
+            answer: string; 
+            citations: any[]; 
+            model: string;
+            follow_up_suggestions: string[];
+            avatar_info: any;
+          };
+          
+          export async function chat(req: ChatRequest, signal?: AbortSignal): Promise<ChatResponse> {
+            const r = await fetch(`${API_BASE}/api/chat`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(req),
+              signal
+            });
+            if (!r.ok) {
+              throw new Error(`Chat failed (${r.status})`);
+            }
+            return r.json();
+          }
+          
+          export async function talkAvatar(payload: {
+            avatar_id: string;
+            text: string;
+          }): Promise<{ url: string }> {
+            const r = await fetch(`${API_BASE}/api/avatar/talk`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            if (!r.ok) {
+              throw new Error(`Avatar talk failed`);
+            }
+            return r.json();
+          }
+          EOF
+          
+          # Copy actual source files if available, otherwise create minimal versions
+          if [ -d "/tmp/repo/ui/src" ]; then
+            cp -r /tmp/repo/ui/src/* src/
+            cp /tmp/repo/ui/index.html .
+            cp /tmp/repo/ui/vite.config.js .
+            cp /tmp/repo/ui/tailwind.config.js .
+          else
+            echo "Creating minimal UI files..."
+            # Create minimal working files here
+          fi
+          
+          npm run build
+          cp -r dist/* /build-output/
+        volumeMounts:
+        - name: ui-content
+          mountPath: /build-output
+      volumes:
+      - name: ui-content
+        emptyDir: {}
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: portfolio
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+        
+        # SPA fallback
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+        
+        # API proxy to avoid CORS
+        location /api/ {
+            proxy_pass http://portfolio-api/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+        
+        location /health {
+            proxy_pass http://portfolio-api/health;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-ui-quick
+  namespace: portfolio
+spec:
+  selector:
+    app: portfolio-ui-quick
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

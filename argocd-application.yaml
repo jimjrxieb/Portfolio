@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: portfolio
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://dev.azure.com/jimmie012506/LinkOps/_git/Portfolio
+    targetRevision: HEAD
+    path: charts/portfolio
+    helm:
+      valueFiles:
+        - values.yaml
+        - values.dev.yaml
+      parameters:
+        - name: image.tag
+          value: "local-dev"
+        - name: ui.image.tag
+          value: "local-dev"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: linkops-portfolio
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
