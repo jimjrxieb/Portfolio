@@ -36,7 +36,7 @@ spec:
             - secretRef: { name: portfolio-secrets }
           ports:
             - containerPort: 8000
-          args: ["uvicorn","main:app","--host","0.0.0.0","--port","8000","--workers","1"]
+          args: ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000","--workers","1"]
           readinessProbe:
             httpGet: { path: /health, port: 8000 }
             initialDelaySeconds: 40
@@ -74,12 +74,16 @@ spec:
               valueFrom: { secretKeyRef: { name: portfolio-secrets, key: ELEVENLABS_DEFAULT_VOICE_ID } }
             - name: DID_API_KEY
               valueFrom: { secretKeyRef: { name: portfolio-secrets, key: DID_API_KEY } }
+            - name: LLM_PROVIDER
+              value: "openai"
             - name: LLM_API_BASE
-              value: "http://llm-gateway.portfolio.svc.cluster.local:8000"
+              value: "https://api.openai.com"
+            - name: LLM_MODEL
+              value: "gpt-4o-mini"
             - name: LLM_API_KEY
-              valueFrom: { secretKeyRef: { name: portfolio-secrets, key: LLM_API_KEY } }
-            - name: LLM_MODEL_ID
-              value: "phi3:latest"
+              valueFrom: { secretKeyRef: { name: portfolio-secrets, key: OPENAI_API_KEY } }
+            - name: CHROMA_URL
+              value: "http://chromadb.portfolio.svc.cluster.local:8000"
       # Temporary: skip init container to get API running
       # initContainers:
       #   - name: seed-rag

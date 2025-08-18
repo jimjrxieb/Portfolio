@@ -24,7 +24,13 @@ export default function ChatBox() {
 
     try {
       const res = await chat({ message: q, namespace: "portfolio", k: 5 }, controller.signal);
-      setHistory(h => [...h, { role: "assistant", text: res.answer, citations: res.citations, model: res.model }]);
+      setHistory(h => [...h, { 
+        role: "assistant", 
+        text: res.answer, 
+        citations: res.citations, 
+        model: res.model,
+        grounded: res.grounded 
+      }]);
     } catch (err) {
       console.error(err);
       setError(err.message || "Chat failed");
@@ -47,13 +53,22 @@ export default function ChatBox() {
             <div className={`inline-block rounded-2xl px-3 py-2 ${m.role === "user" ? "bg-blue-500/10" : "bg-neutral-500/10"}`}>
               <div className="whitespace-pre-wrap">{m.text}</div>
               {m.citations?.length > 0 && (
-                <ul className="mt-2 text-xs opacity-75 list-disc pl-4">
-                  {m.citations.slice(0, 3).map((c, j) => (
-                    <li key={j}>
-                      {c.metadata?.source || c.metadata?.project || "context"} • score {c.score.toFixed(2)}
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-2 text-xs opacity-75">
+                  <div className="font-mono text-green-700 mb-1">📚 Sources:</div>
+                  <ul className="list-disc pl-4 space-y-1">
+                    {m.citations.slice(0, 3).map((c, j) => (
+                      <li key={j} className="break-all">
+                        <span className="font-mono">{c.source}</span>
+                        <span className="ml-2 opacity-60">({c.score?.toFixed(2) || 'N/A'})</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {m.grounded && (
+                    <div className="mt-1 text-green-600 text-[10px]">
+                      ✅ Response grounded in provided context
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -72,11 +87,30 @@ export default function ChatBox() {
         <button
           type="submit"
           disabled={busy}
-          className="rounded-xl px-4 py-2 border hover:bg-black/5 disabled:opacity-50"
+          className="btn-brand disabled:opacity-50"
         >
           {busy ? "Thinking…" : "Ask"}
         </button>
       </form>
+      
+      <div className="text-xs opacity-70">
+        Quick asks: {[
+          "Tell me about Jimmie's DevSecOps experience",
+          "What is LinkOps AI-BOX?",
+          "What technologies does Jimmie use?",
+          "How was the Jenkins CI/CD pipeline structured?",
+          "What security tools were implemented?"
+        ].map((p, i) => (
+          <button 
+            key={i} 
+            className="underline mr-2 hover:opacity-100" 
+            type="button" 
+            onClick={() => setInput(p)}
+          >
+            {p.length > 30 ? p.substring(0, 30) + "..." : p}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

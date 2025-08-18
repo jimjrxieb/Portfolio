@@ -1,7 +1,5 @@
 import base64, httpx
-import sys
-sys.path.append('/app')
-from settings import settings
+from app.settings import settings
 
 DID_TALKS_URL = "https://api.d-id.com/talks"          # REST create
 DID_TALK_STATUS_URL = "https://api.d-id.com/talks/{id}"  # GET status

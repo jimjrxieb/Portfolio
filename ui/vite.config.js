@@ -14,13 +14,13 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     allowedHosts: 'all',
-    // HMR over Cloudflare/HTTPS:
-    hmr: {
-      clientPort: 443,
-      host: 'linksmlm.com',
-      protocol: 'wss'
-    },
-    // Proxy removed - API is served directly through Cloudflare Tunnel
+    // Development configuration - proxy API calls locally
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
   },
   preview: {
     port: 5173,

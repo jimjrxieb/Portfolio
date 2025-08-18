@@ -14,3 +14,16 @@ body.debug [data-dev] { outline: 1px dashed magenta; }
     box-shadow: 0 0 16px rgba(0,168,107,.35); 
   } 
 }
+
+/* Brand utility classes */
+:root { 
+  --brand: #00A36C; 
+}
+
+.btn-brand { 
+  @apply bg-[#00A36C] text-white hover:bg-[#07885a] rounded-xl px-3 py-2; 
+}
+
+.chip-brand { 
+  @apply bg-[#e6faf2] text-[#0b6d4a] rounded-lg px-2 py-1 text-xs; 
+}

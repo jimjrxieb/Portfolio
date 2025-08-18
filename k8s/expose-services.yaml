@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-ui-external
+  namespace: portfolio
+spec:
+  type: NodePort
+  selector:
+    app: portfolio-ui
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080
+    
+---
+apiVersion: v1
+kind: Service  
+metadata:
+  name: portfolio-api-external
+  namespace: portfolio
+spec:
+  type: NodePort
+  selector:
+    app: portfolio-api-quick
+  ports:
+  - port: 80
+    targetPort: 8000
+    nodePort: 30081

@@ -1,6 +1,6 @@
-import ChatBox from "../components/ChatBox";
-import AvatarPanel from "../components/AvatarPanel";
-import Projects from "../components/Projects";
+import AvatarPanel from "../components/AvatarPanel.tsx";
+import ChatPanel from "../components/ChatPanel.tsx";
+import Projects from "../components/Projects.tsx";
 
 export default function Landing() {
   return (
@@ -8,7 +8,7 @@ export default function Landing() {
       <div className="space-y-4">
         <AvatarPanel />
         <div className="rounded-2xl border p-3">
-          <ChatBox />
+          <ChatPanel />
         </div>
       </div>
       <div className="space-y-4">

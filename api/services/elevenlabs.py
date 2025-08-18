@@ -1,7 +1,5 @@
 import uuid, os, httpx
-import sys
-sys.path.append('/app')
-from settings import settings
+from app.settings import settings
 
 ELEVEN_TTS_URL_TMPL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
 

@@ -1,7 +1,24 @@
-# Development Values for KinD
-# Lower resources and dev-specific configurations
+# Development overrides for local KinD deployment
+# Used by Azure DevOps pipeline for direct deployment
 
-# Development resource limits
+# Image Configuration (set by pipeline)
+image:
+  repository: ghcr.io/jimjrxieb/portfolio-api  # Override by pipeline
+  tag: "main-dev"  # Override by pipeline
+  pullPolicy: IfNotPresent
+
+ui:
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-ui  # Override by pipeline
+    tag: "main-dev"  # Override by pipeline
+    pullPolicy: IfNotPresent
+
+# Local development settings for Cloudflare Tunnel
+ingress:
+  host: linksmlm.com  # Matches Cloudflare tunnel hostname
+  tls: false  # Cloudflare handles TLS
+
+# Reduced resources for laptop development
 resources:
   api:
     requests:
@@ -12,41 +29,21 @@ resources:
       memory: "1Gi"
   ui:
     requests:
-      cpu: "25m"
-      memory: "64Mi"
-    limits:
-      cpu: "100m"
+      cpu: "50m"
       memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
 
-# Development ingress host
-ingress:
-  host: portfolio.localtest.me
-  tls: false
+# Skip heavy components for lean development
+chroma:
+  enabled: false  # Disable until needed
 
-# Development environment variables
+# Environment overrides for development
 env:
   api:
-    LLM_PROVIDER: "openai"
-    LLM_MODEL: "gpt-4o-mini"
     DEBUG_MODE: "true"
-    CORS_ALLOW_ORIGINS: "*"
-  ui:
-    VITE_API_BASE_URL: "http://portfolio.localtest.me/api"
-
-# Reduced persistence for development
-persistence:
-  size: 5Gi
-
-chroma:
-  persistence:
-    size: 2Gi
-
-# Faster probe timings for development
-probes:
-  api:
-    readinessProbe:
-      initialDelaySeconds: 20
-      periodSeconds: 10
-    livenessProbe:
-      initialDelaySeconds: 30
-      periodSeconds: 20
+    LOG_LEVEL: "DEBUG"
+    # Disable heavy AI features for lean dev
+    TTS_ENGINE: "disabled"
+    AVATAR_ENGINE: "disabled"

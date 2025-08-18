@@ -1,152 +1,336 @@
-# James Portfolio - Interview Ready MVP
+# Portfolio Platform - AI-Powered Interview Assistant
 
-A local-first avatar + RAG platform optimized for Azure VM B2s (2 vCPU / 4 GB RAM).
+## 🎯 Overview
 
-## Features
+**Clean, organized codebase for Jimmie's AI-powered portfolio platform**. Features Sheyla, an Indian AI avatar (based on mother) who conducts technical interviews and presents project information through natural conversation.
 
-- **Local LLM**: Qwen/Qwen2.5-1.5B-Instruct for efficient inference on 4GB RAM
-- **RAG System**: ChromaDB with persona + talktrack data for grounded responses
-- **Interview Ready**: Optimized prompts for professional interview scenarios
-- **Modular Engines**: LLM, RAG, Avatar, and Speech engines with local/cloud options
-- **Docker Optimized**: Memory limits and single worker configuration for B2s VM
+### Key Features
+- 🤖 **Sheyla AI Avatar**: Professional Indian lady voice with conversational interview capabilities
+- 💬 **Intelligent Chat**: RAG-powered responses about projects and technical experience  
+- 📱 **Simple Layout**: Avatar/chat on left, projects showcase on right
+- ☸️ **Production Ready**: Kubernetes deployment with proper resource management
+- 🔄 **Local + Cloud**: Local LLM with OpenAI GPT-4o mini fallback
 
-## Quick Start
+---
 
-### Docker Compose (Simple)
+## 📁 Clean Architecture
 
-```bash
-# Clone and enter directory
-git clone https://github.com/jimjrxieb/Portfolio.git
-cd Portfolio
-
-# Start services
-docker compose up --build -d
-
-# Ingest persona/talktrack data
-docker compose exec api python preprocess.py
-
-# Open browser
-open http://localhost:5173
+```
+Portfolio/
+├── chat/                   # 🗣️ SHEYLA'S PERSONALITY & RESPONSES
+│   ├── engines/
+│   │   └── conversation_engine.py   # Sheyla's conversation logic
+│   └── data/
+│       ├── sheyla_personality.md    # Sheyla's character and speaking style
+│       └── interview_qa.md          # Pre-written Q&A for interviews
+│
+├── api/                    # 🔧 BACKEND SERVICES (How frontend talks to backend)
+│   ├── main.py             # FastAPI entry point
+│   ├── settings.py         # Centralized configuration
+│   ├── routes/             # API endpoints
+│   │   ├── chat.py         # Chat with Sheyla
+│   │   ├── avatar.py       # Avatar creation/playback
+│   │   └── health.py       # System health checks
+│   ├── engines/            # Core processing
+│   │   ├── rag_engine.py   # Knowledge retrieval
+│   │   ├── llm_engine.py   # LLM integration
+│   │   └── avatar_engine.py # Avatar generation
+│   └── services/           # External integrations
+│       ├── elevenlabs.py   # Text-to-speech
+│       └── did.py          # Video avatar creation
+│
+├── rag/                    # 📚 RAG KNOWLEDGE MANAGEMENT
+│   ├── notebooks/          # Jupyter notebooks for RAG experiments
+│   └── data/               # Knowledge base documents
+│
+├── ui/                     # 🎨 SINGLE TRUTH FRONTEND
+│   ├── src/
+│   │   ├── components/     # React components (TypeScript)
+│   │   │   ├── AvatarPanel.tsx    # Sheyla avatar interface (LEFT SIDE)
+│   │   │   ├── ChatPanel.tsx      # Chat with Sheyla (LEFT SIDE)
+│   │   │   └── Projects.tsx       # Project showcase (RIGHT SIDE)
+│   │   ├── pages/
+│   │   │   └── Landing.jsx        # Main page layout
+│   │   └── services/
+│   │       └── api.ts             # API client for backend
+│   └── vite.config.js      # Development proxy configuration
+│
+├── data/                   # 📄 CENTRALIZED DATA
+│   ├── knowledge/          # RAG knowledge base
+│   ├── personas/           # Avatar configurations
+│   └── vectors/            # Vector database storage
+│
+└── k8s/                    # ☸️ KUBERNETES DEPLOYMENT
+    ├── base/               # Base manifests
+    └── overlays/           # Environment-specific configs
 ```
 
-### Kubernetes (Local)
+---
 
-**One-command deploy:**
+## 🚀 Quick Start
+
+### 1. Development Setup
 ```bash
+# Start the full stack locally
+docker-compose up
+
+# UI available at: http://localhost:5173
+# API available at: http://localhost:8000
+# API docs at: http://localhost:8000/docs
+```
+
+### 2. Kubernetes Deployment  
+```bash
+# Deploy to local Kubernetes
 ./deploy-local-k8s.sh
+
+# Or use Make targets
+make deploy-kind     # KIND cluster
+make deploy-minikube # Minikube cluster
 ```
 
-**Or step-by-step:**
+### 3. Test Sheyla's Responses
 ```bash
-# KIND (recommended)
-make deploy-kind
-open http://portfolio.localtest.me
+# Chat with Sheyla directly
+curl -X POST http://localhost:8000/api/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{"message": "Tell me about LinkOps AI-BOX"}'
 
-# OR Minikube
-make deploy-minikube
-echo "$(minikube ip) portfolio.localtest.me" | sudo tee -a /etc/hosts
-open http://portfolio.localtest.me
+# Get quick prompts
+curl http://localhost:8000/api/chat/prompts
 ```
 
-**Kubernetes Features:**
-- Auto-ingestion of persona/talktrack data via initContainer
-- Health checks and resource limits
-- Persistent storage for ChromaDB
-- Ingress with `portfolio.localtest.me` hostname
-- Production-ready manifests with kustomize
+---
 
-## Configuration
+## 🗣️ Sheyla Avatar Configuration
 
-See `.env` file for configuration options:
+### Personality
+- **Name**: Sheyla (based on mother)
+- **Heritage**: Indian professional
+- **Voice**: Warm, clear, technically competent
+- **Role**: Portfolio representative and technical interviewer
 
-- **LLM_ENGINE**: `local` (default) or `openai`
-- **LLM_MODEL**: `Qwen/Qwen2.5-1.5B-Instruct` (4GB RAM optimized)
-- **EMBED_MODEL**: `sentence-transformers/all-MiniLM-L6-v2`
+### Key Talking Points
+1. **LinkOps AI-BOX**: Conversational AI for property management
+2. **LinkOps Afterlife**: Open-source digital legacy platform  
+3. **Technical Expertise**: DevSecOps + AI/ML combination
+4. **Business Value**: Practical solutions with measurable ROI
 
-For higher quality responses, uncomment OpenAI settings in `.env`.
+### Interview Q&A Coverage
+- Technical background and expertise
+- Project deep-dives with business impact
+- Architecture and scalability discussions
+- Problem-solving approach and methodology
 
-## Interview Questions
+---
 
-Try these prompts:
-- "Tell me about yourself"
-- "What's your DevOps experience?"
-- "Explain your AI/ML background"
-- "Tell me about the Afterlife project"
+## 🎨 UI Components (Single Truth)
 
-## API Endpoints
+### Left Side - Avatar & Chat
+- **AvatarPanel.tsx**: Sheyla's intro and avatar display
+- **ChatPanel.tsx**: Conversational interface with Sheyla
+- **Features**: Session management, follow-up suggestions, citations
 
-- `GET /health` - System health check
-- `POST /chat` - Chat with RAG-grounded responses
-- `POST /avatar` - Generate avatar video (stub)
-- `POST /speech` - Text-to-speech (stub)
-- `GET /build-info` - Build information
+### Right Side - Projects  
+- **Projects.tsx**: Showcase of LinkOps AI-BOX and Afterlife
+- **Data Source**: `ui/src/data/knowledge/jimmie/projects.json`
+- **Features**: Project descriptions, tech stacks, demo links
 
-## Memory Optimization
+### Layout Logic
+```jsx
+// Landing.jsx - Main layout
+<div className="grid md:grid-cols-2 gap-4">
+  <div className="space-y-4">
+    <AvatarPanel />        {/* Sheyla introduction */}
+    <ChatPanel />          {/* Chat with Sheyla */}
+  </div>
+  <div className="space-y-4">
+    <Projects />           {/* Project showcase */}
+  </div>
+</div>
+```
 
-- API service: 2GB limit, 1GB reservation
-- UI service: 512MB limit, 256MB reservation
-- Single worker configuration for uvicorn
-- ChromaDB persistent storage in `/app/models/chroma`
+---
 
-## Security Features
+## 🔧 API Endpoints
 
-- Environment variable isolation
-- Secure secret management
-- CORS configuration
-- Health check endpoints
-- Resource limits
-
-## Development
-
+### Chat API
 ```bash
-# API development
-cd api
-pip install -r requirements.txt
-python main.py
-
-# UI development  
-cd ui
-npm install
-npm run dev
+POST /api/chat              # Chat with Sheyla
+GET  /api/chat/prompts      # Get conversation starters
+GET  /api/chat/health       # Chat service health
 ```
 
-## Kubernetes Management
-
-**Useful commands:**
+### Avatar API  
 ```bash
-# Check status
-make status
-kubectl -n portfolio get pods,svc,ing
-
-# View logs
-make logs-kind  # or logs-minikube
-kubectl -n portfolio logs -l app=portfolio-api --tail=50
-
-# Port forward (if ingress issues)
-make port-forward
-# UI: http://localhost:5173, API: http://localhost:8000
-
-# Cleanup
-make clean-kind  # or clean-minikube
+POST /api/avatar/create     # Create custom avatar
+POST /api/avatar/talk       # Generate avatar speech
+GET  /api/assets/{file}     # Serve avatar assets
 ```
 
-**Troubleshooting:**
-- **Pods stuck in Pending**: Check `kubectl describe pvc -n portfolio` for storage issues
-- **503 errors**: Wait for pods to be Ready: `kubectl -n portfolio get pods`
-- **No ingress**: Use `make port-forward` as fallback
-- **OOM issues**: Reduce model to OpenAI mode or increase resource limits
-
-**Directory structure:**
-```
-k8s/
-├── base/              # Base Kubernetes manifests
-│   ├── namespace.yaml
-│   ├── configmap.yaml
-│   ├── deployment-api.yaml
-│   └── ingress.yaml
-└── overlays/
-    └── local/         # Local development overlay
-        └── kustomization.yaml
+### Health & Debug
+```bash
+GET  /health                # Overall system health
+GET  /api/health/detailed   # Detailed service status
 ```
 
-Built with FastAPI, React, ChromaDB, and Transformers.
+---
+
+## 📚 RAG Knowledge Management
+
+### Knowledge Sources
+```
+data/knowledge/jimmie/
+├── 01-bio.md               # Personal background
+├── 02-devops.md            # DevSecOps experience  
+├── 03-aiml.md              # AI/ML expertise
+├── 04-projects.md          # Project details
+├── 05-faq.md               # Common interview Q&A
+├── 06-jade.md              # LinkOps AI-BOX specifics
+├── 07-current-context.md   # Current work focus
+└── 08-sheyla-avatar-context.md # Avatar personality
+```
+
+### RAG Ingestion
+```bash
+# Ingest knowledge base
+kubectl exec deploy/portfolio-api -- python scripts/ingest.py
+
+# Verify ingestion
+curl http://localhost:8000/api/rag/health
+```
+
+---
+
+## ☸️ Kubernetes Configuration
+
+### Resource Allocation (4GB VM Optimized)
+```yaml
+# API Service
+resources:
+  requests: { cpu: "200m", memory: "512Mi" }
+  limits:   { cpu: "1",    memory: "2Gi" }
+
+# UI Service  
+resources:
+  requests: { cpu: "100m", memory: "256Mi" }
+  limits:   { cpu: "500m", memory: "512Mi" }
+```
+
+### Services Deployed
+- **portfolio-api**: FastAPI backend with health checks
+- **portfolio-ui**: React frontend with Nginx
+- **chromadb**: Vector database for RAG
+- **ollama**: Local LLM server (optional)
+
+---
+
+## 🔄 LLM Configuration
+
+### Primary: Local Efficiency
+```bash
+LLM_PROVIDER=ollama
+LLM_MODEL=qwen/qwen2.5-1.5b-instruct  # 4GB RAM optimized
+LLM_API_BASE=http://ollama:11434
+```
+
+### Fallback: Cloud Reliability  
+```bash
+LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o-mini                  # Fast, cost-effective
+LLM_API_BASE=https://api.openai.com
+LLM_API_KEY=sk-proj-your-key-here
+```
+
+### Configuration Switch
+```bash
+# Switch to OpenAI fallback
+kubectl set env deploy/portfolio-api \\
+  LLM_PROVIDER=openai \\
+  LLM_MODEL=gpt-4o-mini \\
+  LLM_API_KEY=$OPENAI_API_KEY
+```
+
+---
+
+## 🧪 Testing & Validation
+
+### API Testing
+```bash
+# Health checks
+curl http://localhost:8000/health
+
+# Chat functionality  
+curl -X POST http://localhost:8000/api/chat \\
+  -d '{"message": "What is LinkOps AI-BOX?"}'
+
+# Avatar functionality
+curl http://localhost:8000/api/avatar/health
+```
+
+### E2E Testing
+```bash
+# Playwright tests
+cd ui && npm run test:e2e
+
+# Golden answer validation
+python test_golden_answers.py
+```
+
+---
+
+## 📖 Documentation for Mentors
+
+### Code Quality Features
+- ✅ **Clean Architecture**: Microservice-style organization
+- ✅ **Comprehensive Documentation**: Every component documented
+- ✅ **Type Safety**: TypeScript frontend, Pydantic backend
+- ✅ **Testing**: E2E tests + golden answer validation
+- ✅ **Production Ready**: Resource limits, health checks, monitoring
+
+### Key Review Areas
+1. **API Structure**: `api/` - Clean FastAPI with proper separation
+2. **Chat Logic**: `chat/` - Sheyla's personality and conversation engine
+3. **UI Components**: `ui/src/components/` - Single truth components
+4. **RAG Implementation**: `api/engines/rag_engine.py` - Vector search
+5. **Deployment**: `k8s/` - Production-ready manifests
+
+### Business Value Demonstration
+- **LinkOps AI-BOX**: Property management automation with real ROI
+- **Technical Expertise**: DevSecOps + AI/ML combination
+- **Cost Optimization**: 4GB RAM deployment strategy
+- **Practical AI**: Solutions that businesses can actually use
+
+---
+
+## 🔗 Project Links
+
+- **Live Demo**: https://demo.linksmlm.com
+- **GitHub**: https://github.com/jimjrxieb/shadow-link-industries
+- **LinkOps Afterlife**: https://github.com/jimjrxieb/LinkOps-Afterlife
+
+---
+
+## 💼 Interview Scenarios
+
+### Technical Deep-Dive
+Ask Sheyla: *"How is the LinkOps AI-BOX architected?"*
+- RAG architecture explanation
+- Local LLM deployment strategy
+- Kubernetes resource optimization
+
+### Business Impact  
+Ask Sheyla: *"What's the ROI of these solutions?"*
+- Property management time savings (10-15 hours/week)
+- Cost analysis and payback period
+- Target market and customer validation
+
+### Problem-Solving
+Ask Sheyla: *"What's the biggest technical challenge solved?"*
+- 4GB RAM constraint optimization
+- Local-first with cloud fallbacks
+- Production deployment strategies
+
+---
+
+**Ready for technical interviews with a clean, documented, production-ready codebase that demonstrates real business value.**
