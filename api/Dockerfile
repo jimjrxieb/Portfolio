@@ -4,13 +4,34 @@ FROM python:3.11-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# System deps minimal  
-RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential \
- && rm -rf /var/lib/apt/lists/*
+# System deps minimal with --mount cache  
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies first for layer caching
+# Install dependencies in layers for better caching
+# Layer 1: Core FastAPI dependencies (change rarely)
+COPY api/requirements-base.txt /app/requirements-base.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r /app/requirements-base.txt
+
+# Layer 2: External services (change occasionally)  
+COPY api/requirements-external.txt /app/requirements-external.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /app/requirements-external.txt
+
+# Layer 3: Heavy ML dependencies (change rarely but big downloads)
+COPY api/requirements-ml.txt /app/requirements-ml.txt  
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /app/requirements-ml.txt
+
+# Layer 4: Legacy requirements (for compatibility)
 COPY api/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /app/requirements.txt
 
 # --- Final runtime image ---
 FROM python:3.11-slim AS run
