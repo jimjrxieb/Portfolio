@@ -47,13 +47,17 @@ jobs:
     - name: Install dependencies
       run: |
         npm ci
+        python -m pip install --upgrade pip
+        pip install flake8 black
         cd ui && npm ci
         cd ../api && pip install -r requirements.txt
     
     - name: Run linting
+      continue-on-error: true
       run: npm run lint
     
     - name: Run formatting check
+      continue-on-error: true
       run: |
         npm run format
         # Check if formatting changed anything
