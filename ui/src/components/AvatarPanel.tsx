@@ -8,11 +8,11 @@ export default function AvatarPanel() {
   const [speaking, setSpeaking] = useState(false);
   const [speechUrl, setSpeechUrl] = useState<string>("");
   
-  // Default Sheyla avatar info
+  // Default Gojo avatar info
   const defaultAvatar = {
-    name: "Sheyla",
-    locale: "en-IN",
-    description: "Professional Indian lady with warm, simple voice"
+    name: "Gojo",
+    locale: "en-US", 
+    description: "Professional male with white hair and crystal blue eyes, confident voice"
   };
 
   async function onUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -42,8 +42,8 @@ export default function AvatarPanel() {
     setSpeaking(true);
     try {
       if (!avatarId) {
-        // Fallback: Show that Sheyla would speak this text
-        alert(`Sheyla (${defaultAvatar.locale}): "${text}"`);
+        // Fallback: Show that Gojo would speak this text
+        alert(`Gojo (${defaultAvatar.locale}): "${text}"`);
         setSpeechUrl(""); // No audio in demo mode
       } else {
         const res = await talkAvatar({ avatar_id: avatarId, text });
@@ -51,7 +51,7 @@ export default function AvatarPanel() {
       }
     } catch (err: any) {
       // Demo fallback: Show text that would be spoken
-      alert(`Sheyla (${defaultAvatar.locale}): "${text}"`);
+      alert(`Gojo (${defaultAvatar.locale}): "${text}"`);
       setSpeechUrl("");
     } finally {
       setSpeaking(false);
@@ -81,20 +81,20 @@ export default function AvatarPanel() {
           {photoUrl ? (
             <img src={photoUrl} alt="avatar" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-xs opacity-60">Default Sheyla</span>
+            <span className="text-xs opacity-60">Default Gojo</span>
           )}
         </div>
         <div className="space-y-2">
         <button
           className="border rounded px-3 py-1"
-          onClick={() => onTalk("Hello! I'm Sheyla, and I'd love to tell you about Jimmie and his innovative AI projects. Jimmie creates solutions that make property management effortless through conversational AI.")}
+          onClick={() => onTalk("Hello! I'm Gojo, and I'm excited to tell you about Jimmie Coleman and his current venture. Jimmie is raising funding for LinkOps AI-BOX - a revolutionary plug-and-play AI system designed for companies hesitant about cloud-based AI due to security concerns.")}
           disabled={speaking}
         >
           ▶️ Play Introduction
         </button>
         <button
           className="border rounded px-3 py-1"
-          onClick={() => onTalk("Tell me about LinkOps AI-BOX and how it helps property managers with their daily tasks.")}
+          onClick={() => onTalk("Tell me about LinkOps AI-BOX and how the dual-speed CI/CD workflow enables instant knowledge updates for enterprise AI deployments.")}
           disabled={speaking}
         >
           🎬 Ask About Projects
