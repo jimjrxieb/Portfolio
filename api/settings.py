@@ -2,6 +2,7 @@
 API Settings Configuration
 Centralized configuration management for all services
 """
+
 import os
 from pathlib import Path
 from typing import Optional
@@ -23,19 +24,23 @@ LLM_API_BASE = os.getenv("LLM_API_BASE", "https://api.openai.com")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
 
-# RAG Configuration  
+# RAG Configuration
 RAG_NAMESPACE = os.getenv("RAG_NAMESPACE", "portfolio")
 CHROMA_URL = os.getenv("CHROMA_URL", "http://localhost:8000")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 
 # Avatar and Speech Services
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
-ELEVENLABS_DEFAULT_VOICE_ID = os.getenv("ELEVENLABS_DEFAULT_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")  # Sheyla's voice
+ELEVENLABS_DEFAULT_VOICE_ID = os.getenv(
+    "ELEVENLABS_DEFAULT_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"
+)  # Sheyla's voice
 DID_API_KEY = os.getenv("DID_API_KEY", "")
 
 # Default Avatar Configuration (Gojo)
 DEFAULT_AVATAR_NAME = "Gojo"
-DEFAULT_AVATAR_DESCRIPTION = "Professional male with white hair and crystal blue eyes, confident voice"
+DEFAULT_AVATAR_DESCRIPTION = (
+    "Professional male with white hair and crystal blue eyes, confident voice"
+)
 DEFAULT_AVATAR_LOCALE = "en-US"
 
 # API Configuration
@@ -67,6 +72,7 @@ FOCUS AREAS:
 TONE: Confident, professional, technically excellent. Always provide specific examples and demonstrate real expertise.
 """
 
+
 # Utility functions
 def get_llm_headers() -> dict:
     """Get headers for LLM API calls"""
@@ -74,6 +80,7 @@ def get_llm_headers() -> dict:
     if LLM_API_KEY:
         headers["Authorization"] = f"Bearer {LLM_API_KEY}"
     return headers
+
 
 def is_service_enabled(service: str) -> bool:
     """Check if external service is enabled"""
@@ -85,6 +92,7 @@ def is_service_enabled(service: str) -> bool:
         return LLM_PROVIDER == "openai" and bool(LLM_API_KEY)
     return False
 
+
 # Configuration summary for health checks
 CONFIG_SUMMARY = {
     "llm_provider": LLM_PROVIDER,
@@ -94,6 +102,6 @@ CONFIG_SUMMARY = {
     "services_enabled": {
         "elevenlabs": is_service_enabled("elevenlabs"),
         "did": is_service_enabled("did"),
-        "openai_fallback": is_service_enabled("openai")
-    }
+        "openai_fallback": is_service_enabled("openai"),
+    },
 }
