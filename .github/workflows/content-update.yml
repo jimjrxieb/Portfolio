@@ -1,4 +1,4 @@
-name: Content Update - Knowledge Base Sync
+name: Content Deploy - Fast Knowledge Update
 
 on:
   push:
@@ -8,49 +8,134 @@ on:
       - 'chat/data/**'
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: shadow-link-industries/portfolio
+  REGISTRY: docker.io
+  IMAGE_NAME: linksrobot/portfolio
 
 jobs:
-  content-notify:
+  content-deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
         
-    - name: Content Update Notification
+    - name: Content Update Analysis
+      id: changes
       run: |
         echo "📝 Knowledge Base Content Updated!"
         echo "================================="
         echo ""
-        echo "Updated files:"
-        git diff --name-only HEAD~1 HEAD | grep -E "(data/knowledge/|chat/data/)" || echo "  No content files changed"
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep -E "(data/knowledge/|chat/data/)" || echo "")
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
         echo ""
-        echo "🎯 To apply these updates to linksmlm.com:"
-        echo "   1. The CI/CD pipeline will build new images with this content"
-        echo "   2. Pull the latest images to your local cluster:"
-        echo "      docker pull linksrobot/portfolio-api:latest"
-        echo "      docker pull linksrobot/portfolio-ui:latest"
-        echo "   3. Update local deployment:"
-        echo "      ./scripts/deploy-from-registry.sh latest"
-        echo ""
-        echo "📋 Expected Changes:"
-        echo "   • Avatar: Sheyla → Gojo (white hair, crystal blue eyes)"
-        echo "   • Updated DevOps experience with CI/CD innovation"
-        echo "   • LinkOps AI-BOX funding and ZRS client information"
-        echo ""
-        echo "🔗 Verify at: https://linksmlm.com after local deployment"
         
-    - name: Deployment Summary
+        # Check for Gojo transformation
+        if echo "$CHANGED_FILES" | grep -q "gojo"; then
+          echo "🤖 Gojo avatar transformation detected"
+          echo "gojo-transform=true" >> $GITHUB_OUTPUT
+        fi
+        
+        if echo "$CHANGED_FILES" | grep -q "01-bio.md"; then
+          echo "📋 Biography updates detected"
+          echo "bio-update=true" >> $GITHUB_OUTPUT
+        fi
+        
+        if echo "$CHANGED_FILES" | grep -q "personality"; then
+          echo "🎭 Personality changes detected"
+          echo "personality-update=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: linksrobot
+        password: ${{ secrets.DOCKER_CRED }}
+
+    - name: Update Content in Registry Images
+      env:
+        IMAGE_TAG: latest
       run: |
-        echo "🎉 Content update complete!"
-        echo "🌐 Live at: https://linksmlm.com"
-        echo "🤖 Sheyla now has updated information about:"
-        echo "  • LinkOps AI-BOX funding status"
-        echo "  • ZRS Management client details"
-        echo "  • Updated technical experience"
-        echo "  • Current DevSecOps practices"
+        echo "🔄 Updating content in existing images..."
+        
+        # Pull latest API image
+        docker pull ${REGISTRY}/${IMAGE_NAME}-api:${IMAGE_TAG}
+        
+        # Create temporary container to update content
+        CONTAINER_ID=$(docker create ${REGISTRY}/${IMAGE_NAME}-api:${IMAGE_TAG})
+        
+        # Copy updated knowledge base
+        docker cp data/ ${CONTAINER_ID}:/app/data/
+        docker cp chat/ ${CONTAINER_ID}:/app/chat/
+        
+        # Commit updated container as new image
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-8)
+        NEW_TAG="content-${SHORT_SHA}"
+        docker commit ${CONTAINER_ID} ${REGISTRY}/${IMAGE_NAME}-api:${NEW_TAG}
+        docker tag ${REGISTRY}/${IMAGE_NAME}-api:${NEW_TAG} ${REGISTRY}/${IMAGE_NAME}-api:latest
+        
+        # Push updated images
+        docker push ${REGISTRY}/${IMAGE_NAME}-api:${NEW_TAG}
+        docker push ${REGISTRY}/${IMAGE_NAME}-api:latest
+        
+        # Cleanup
+        docker rm ${CONTAINER_ID}
+        
+        echo "✅ Content updated in registry"
+        echo "new-tag=${NEW_TAG}" >> $GITHUB_ENV
+
+    - name: Create Deployment Instructions
+      run: |
+        echo "🚀 Fast Content Deployment Ready!"
+        echo "================================="
         echo ""
-        echo "💬 Test it: Ask Sheyla 'Tell me about LinkOps AI-BOX'"
+        echo "📦 Updated images available:"
+        echo "  API: ${REGISTRY}/${IMAGE_NAME}-api:${{ env.new-tag }}"
+        echo "  API: ${REGISTRY}/${IMAGE_NAME}-api:latest"
+        echo ""
+        echo "🎯 To deploy to local cluster (serving linksmlm.com):"
+        echo "  ./scripts/deploy-from-registry.sh latest"
+        echo ""
+        echo "🔧 Or manual deployment:"
+        echo "  docker pull ${REGISTRY}/${IMAGE_NAME}-api:latest"
+        echo "  kind load docker-image ${REGISTRY}/${IMAGE_NAME}-api:latest --name portfolio-local"
+        echo "  helm upgrade portfolio ./charts/portfolio -f charts/portfolio/values.dev.yaml"
+        echo ""
+        
+        if [ "${{ steps.changes.outputs.gojo-transform }}" = "true" ]; then
+          echo "🤖 Gojo Transformation:"
+          echo "  • Avatar changed: Sheyla → Gojo"
+          echo "  • Visual: White hair, crystal blue eyes"
+          echo "  • Voice: Professional male tone"
+        fi
+        
+        if [ "${{ steps.changes.outputs.bio-update }}" = "true" ]; then
+          echo "📋 Biography Updates:"
+          echo "  • LinkOps AI-BOX funding information"
+          echo "  • ZRS Management client details"
+          echo "  • Updated technical experience"
+        fi
+        
+        echo ""
+        echo "⚡ Fast deployment: ~2 minutes vs ~10 minutes full build"
+        echo "🌐 Test at: https://linksmlm.com after deployment"
+
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: content-deploy
+    if: always()
+    
+    steps:
+    - name: Deployment Status
+      run: |
+        if [ "${{ needs.content-deploy.result }}" = "success" ]; then
+          echo "✅ Content deployment succeeded!"
+          echo "🎉 Gojo is ready with updated knowledge"
+          echo "💬 Test command: Ask 'Tell me about LinkOps AI-BOX'"
+        else
+          echo "❌ Content deployment failed"
+          echo "🔧 Check workflow logs and retry"
+        fi
