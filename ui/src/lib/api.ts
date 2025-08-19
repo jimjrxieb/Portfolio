@@ -1,4 +1,4 @@
-export const API_BASE = import.meta.env.VITE_API_BASE || "";
+export const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 export type ChatRequest = {
   message: string;
@@ -7,15 +7,26 @@ export type ChatRequest = {
   filters?: Record<string, unknown>;
 };
 
-export type Citation = { text: string; score: number; metadata?: Record<string, unknown> };
-export type ChatResponse = { answer: string; citations: Citation[]; model: string };
+export type Citation = {
+  text: string;
+  score: number;
+  metadata?: Record<string, unknown>;
+};
+export type ChatResponse = {
+  answer: string;
+  citations: Citation[];
+  model: string;
+};
 
-export async function chat(req: ChatRequest, signal?: AbortSignal): Promise<ChatResponse> {
+export async function chat(
+  req: ChatRequest,
+  signal?: AbortSignal
+): Promise<ChatResponse> {
   const r = await fetch(`${API_BASE}/api/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
-    signal
+    signal,
   });
   if (!r.ok) {
     const detail = await safeJson(r);
@@ -24,10 +35,12 @@ export async function chat(req: ChatRequest, signal?: AbortSignal): Promise<Chat
   return r.json();
 }
 
-export async function makeAvatar(form: FormData): Promise<{ avatar_id: string }> {
+export async function makeAvatar(
+  form: FormData
+): Promise<{ avatar_id: string }> {
   const r = await fetch(`${API_BASE}/api/actions/avatar/create`, {
-    method: "POST",
-    body: form
+    method: 'POST',
+    body: form,
   });
   if (!r.ok) {
     const detail = await safeJson(r);
@@ -42,9 +55,9 @@ export async function talkAvatar(payload: {
   voice?: string; // server decides default if omitted
 }): Promise<{ url: string }> {
   const r = await fetch(`${API_BASE}/api/avatar/talk`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
   });
   if (!r.ok) {
     const detail = await safeJson(r);
@@ -54,5 +67,9 @@ export async function talkAvatar(payload: {
 }
 
 async function safeJson(r: Response) {
-  try { return await r.json(); } catch { return await r.text(); }
+  try {
+    return await r.json();
+  } catch {
+    return await r.text();
+  }
 }

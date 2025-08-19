@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 import torch
 import threading

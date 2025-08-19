@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Golden Set Evaluation for Portfolio RAG System
-Phase 6 - Quality assurance with curated test cases
+Phase 6 - Quality assurance with curated test cases + anti-hallucination validation
 """
 
 import requests
 import json
 import sys
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Gojo Golden Set - Avatar Interview Questions (Must Pass >90%)
 GOJO_GOLDEN_SET = [
@@ -104,7 +104,31 @@ NEGATIVE_TESTS = [
     }
 ]
 
-def test_golden_answer(response_data: Dict, test_case: Dict) -> Dict:
+def validate_response_safety(response_text: str, question: str, api_url: str) -> Optional[Dict]:
+    """Use the validation API to check response safety"""
+    try:
+        response = requests.post(
+            f"{api_url}/api/validation/validate",
+            json={
+                "response_text": response_text,
+                "question": question,
+                "context_sources": []
+            },
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"⚠️ Validation API error: {response.status_code}")
+            return None
+            
+    except Exception as e:
+        print(f"⚠️ Validation API failed: {e}")
+        return None
+
+
+def test_golden_answer(response_data: Dict, test_case: Dict, api_url: str = "http://localhost:8000") -> Dict:
     """Test a golden set response"""
     answer = response_data.get("answer", "")
     citations = response_data.get("citations", [])
@@ -116,8 +140,29 @@ def test_golden_answer(response_data: Dict, test_case: Dict) -> Dict:
         "passed": True,
         "issues": [],
         "score": 0,
-        "max_score": 4
+        "max_score": 5,  # Updated to include validation score
+        "validation_result": None
     }
+    
+    # Run anti-hallucination validation
+    validation_data = validate_response_safety(answer, test_case["question"], api_url)
+    if validation_data:
+        result["validation_result"] = validation_data
+        
+        # Add validation score
+        if validation_data.get("anti_hallucination_passed", False):
+            result["score"] += 1
+        else:
+            result["passed"] = False
+            result["issues"].append(f"Anti-hallucination failed: {validation_data.get('safety_flags', [])}")
+            
+        # Add validation issues to main issues list
+        val_issues = validation_data.get("issues", [])
+        if val_issues:
+            result["issues"].extend([f"Validation: {issue}" for issue in val_issues])
+    else:
+        # If validation fails, don't penalize but note it
+        result["issues"].append("Validation API unavailable")
     
     # 1. Check if grounded
     if grounded:
@@ -234,7 +279,7 @@ def run_golden_tests(api_url: str = "http://localhost:8000") -> bool:
                 continue
                 
             data = response.json()
-            result = test_golden_answer(data, test_case)
+            result = test_golden_answer(data, test_case, api_url)
             golden_results.append(result)
             
             status = "✅ PASS" if result["passed"] else "❌ FAIL"

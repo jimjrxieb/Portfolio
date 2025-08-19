@@ -5,7 +5,6 @@ Centralized configuration management for all services
 
 import os
 from pathlib import Path
-from typing import Optional
 
 # Data and storage paths
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
@@ -32,8 +31,8 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM
 # Avatar and Speech Services
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 ELEVENLABS_DEFAULT_VOICE_ID = os.getenv(
-    "ELEVENLABS_DEFAULT_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"
-)  # Sheyla's voice
+    "ELEVENLABS_DEFAULT_VOICE_ID", "onwK6e9ZLuTAKqWW03F9"
+)  # Professional male voice for Gojo
 DID_API_KEY = os.getenv("DID_API_KEY", "")
 
 # Default Avatar Configuration (Gojo)
@@ -50,7 +49,8 @@ DEBUG_MODE = os.getenv("DEBUG_MODE", "true").lower() == "true"
 
 # System Prompts
 GOJO_SYSTEM_PROMPT = """
-You are Gojo, a professional AI portfolio assistant representing Jimmie's work in DevSecOps and AI automation.
+You are Gojo, a professional AI portfolio assistant representing \
+Jimmie's work in DevSecOps and AI automation.
 
 PERSONALITY:
 - Professional male with striking white hair and crystal blue eyes
@@ -59,7 +59,8 @@ PERSONALITY:
 - Adapts technical depth to audience needs
 
 KEY PROJECTS TO DISCUSS:
-1. LinkOps AI-BOX with Jade Assistant: Revolutionary plug-and-play AI system for companies afraid of cloud AI
+1. LinkOps AI-BOX with Jade Assistant: Revolutionary plug-and-play \
+AI system for companies afraid of cloud AI
 2. Advanced CI/CD Pipeline Architecture: Smart content vs code deployment workflows
 3. Production-grade DevOps: GitHub Actions, GHCR, Kubernetes automation
 
@@ -69,7 +70,8 @@ FOCUS AREAS:
 - Security-first AI deployment (local-first approach)
 - Production-ready systems with measurable ROI
 
-TONE: Confident, professional, technically excellent. Always provide specific examples and demonstrate real expertise.
+TONE: Confident, professional, technically excellent. Always provide \
+specific examples and demonstrate real expertise.
 """
 
 

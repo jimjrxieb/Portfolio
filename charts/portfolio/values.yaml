@@ -73,11 +73,46 @@ containerSecurityContext:
   runAsNonRoot: true
   runAsUser: 10001
   runAsGroup: 10001
-  readOnlyRootFilesystem: false  # API needs write for ChromaDB
+  readOnlyRootFilesystem: false  # API needs write for ChromaDB and temp files
   allowPrivilegeEscalation: false
+  privileged: false
   capabilities:
     drop:
       - ALL
+    add: []  # No additional capabilities needed
+  seccompProfile:
+    type: RuntimeDefault
+  seLinuxOptions:
+    type: container_t
+
+# Network Policy Configuration
+networkPolicy:
+  enabled: true
+  ingressNamespace: "ingress-nginx"  # Adjust based on your ingress controller
+
+# Pod Security Standards (K8s 1.23+)
+podSecurityStandards:
+  enabled: true
+  enforce: "restricted"
+  audit: "restricted"
+  warn: "restricted"
+  useCustomPolicy: false  # Use PSS instead of PSP
+
+# Resource Limits (Security)
+resourceQuotas:
+  enabled: true
+  hard:
+    requests.cpu: "2"
+    requests.memory: "4Gi"
+    limits.cpu: "4"
+    limits.memory: "8Gi"
+    persistentvolumeclaims: "2"
+
+# Security Scanning
+securityScanning:
+  enabled: true
+  admissionController: true
+  runtime: true
 
 # Health Probes
 probes:

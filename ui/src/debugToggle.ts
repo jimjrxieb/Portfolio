@@ -1,1 +1,1 @@
-export const toggleDebug = () => document.body.classList.toggle('debug')
+export const toggleDebug = () => document.body.classList.toggle('debug');

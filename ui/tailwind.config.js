@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        jade: { 
+        jade: {
           50: '#e6faf2',
           100: '#c0f0db',
           200: '#96e5c3',
@@ -16,13 +16,13 @@ export default {
           700: '#07885a',
           800: '#0b6d4a',
           900: '#0c5a3e',
-          DEFAULT: '#00A86B', 
-          light: '#33B98D'
+          DEFAULT: '#00A86B',
+          light: '#33B98D',
         },
         // Gojo color palette
         crystal: {
           50: '#f0f9ff',
-          100: '#e0f2fe', 
+          100: '#e0f2fe',
           200: '#bae6fd',
           300: '#7dd3fc',
           400: '#38bdf8',
@@ -31,12 +31,12 @@ export default {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
-          DEFAULT: '#0ea5e9'
+          DEFAULT: '#0ea5e9',
         },
         gold: {
           50: '#fffbeb',
           100: '#fef3c7',
-          200: '#fde68a', 
+          200: '#fde68a',
           300: '#fcd34d',
           400: '#fbbf24',
           500: '#f59e0b',
@@ -44,7 +44,7 @@ export default {
           700: '#b45309',
           800: '#92400e',
           900: '#78350f',
-          DEFAULT: '#f59e0b'
+          DEFAULT: '#f59e0b',
         },
         ink: '#0A0A0A',
         snow: '#FAFAFA',
@@ -58,12 +58,13 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        'ink-gradient': 'radial-gradient(600px 300px at 10% 10%, rgba(0,168,107,0.12), transparent 60%)',
+        'ink-gradient':
+          'radial-gradient(600px 300px at 10% 10%, rgba(0,168,107,0.12), transparent 60%)',
       },
       backdropBlur: {
         xs: '2px',
-      }
+      },
     },
   },
   plugins: [],
-}
+};

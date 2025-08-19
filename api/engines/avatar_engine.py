@@ -12,11 +12,15 @@ class AvatarEngine:
     def generate_video(self, script: str, image_path: Optional[str] = None) -> str:
         """Generate avatar video (stub implementation for now)"""
         logger.info(
-            f"Avatar engine: {self.engine}, generating video for script: {script[:50]}..."
+            f"Avatar engine: {self.engine}, generating video for "
+            f"script: {script[:50]}..."
         )
 
         # For now, return a placeholder response
-        return "data:text/plain;base64,VGhpcyBpcyBhIHBsYWNlaG9sZGVyIGZvciBhdmF0YXIgdmlkZW8="
+        return (
+            "data:text/plain;base64,"
+            "VGhpcyBpcyBhIHBsYWNlaG9sZGVyIGZvciBhdmF0YXIgdmlkZW8="
+        )
 
     def get_status(self) -> dict:
         """Get avatar engine status"""

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from app.settings import settings
-import httpx
 
 router = APIRouter(prefix="/api/debug", tags=["debug"])
 
@@ -80,7 +79,7 @@ def state():
                     resp_data = response.json()
                     if "usage" in resp_data:
                         out["llm_usage"] = resp_data["usage"]
-                except:
+                except Exception:
                     pass
             else:
                 out["llm_error"] = (
