@@ -4,9 +4,9 @@
 
 set -e
 
-# Configuration
-REGISTRY="ghcr.io"
-IMAGE_NAME="shadow-link-industries/portfolio"
+# Configuration  
+REGISTRY="docker.io"
+IMAGE_NAME="linksrobot/portfolio"
 NAMESPACE="portfolio"
 
 # Get image tag from argument or latest
