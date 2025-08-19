@@ -12,9 +12,6 @@ on:
       - 'docker-compose.yml'
       - 'package*.json'
       - 'requirements.txt'
-    paths-ignore:
-      - 'data/knowledge/**'
-      - 'chat/data/**'
   pull_request:
     branches: [ main ]
 
