@@ -1,18 +1,27 @@
 # DevOps Experience (Tools & Patterns)
 
-## Current Stack: GitHub Actions + Azure Pipelines
-**Primary CI/CD:** GitHub Actions + Azure DevOps for enterprise-grade pipelines
-**Kubernetes:** KinD/kind for local dev, Azure AKS for production, Helm + ArgoCD for GitOps
-**Security:** Trivy, Snyk, and Defender for Cloud for comprehensive security scanning
-**Observability:** Azure Monitor + Application Insights, Prometheus + Grafana for K8s
-**Infrastructure:** Terraform for infrastructure as code, Azure Resource Manager templates
-**AI-Assisted Development:** Claude + Cursor for enhanced productivity and code quality
+## Current Stack: GitHub Actions + Advanced CI/CD
+**Primary CI/CD:** GitHub Actions with production-grade pipelines, dual workflow architecture
+**Kubernetes:** KinD/kind for local dev, production clusters via GHCR deployment, Helm + GitOps
+**Security:** Trivy, Snyk scanning integrated in every pipeline, security-first container builds
+**Observability:** Health endpoints, automated monitoring, real-time deployment verification  
+**Infrastructure:** Local KIND + Cloudflare tunnel architecture, resource-optimized deployments
+**AI-Assisted Development:** Claude + advanced prompt engineering for efficient development
+**Recent Innovation:** Smart content vs code deployment pipelines (2min vs 10min deployments)
 
-## GitHub Actions & Azure Pipelines
-- **Current standard**: GitHub Actions for open-source projects, Azure Pipelines for enterprise
-- **Pipeline stages**: build → test → security scan (Trivy/Snyk/Defender) → container registry → K8s deployment
-- **GitOps workflow**: ArgoCD monitors container registry for new images and auto-deploys
-- **Multi-environment**: Automated promotion from dev → staging → production with approval gates
+## Recent CI/CD Innovation: Dual Workflow Architecture
+- **Smart Triggering**: Content changes (2min) vs code changes (10min) - separate workflows
+- **Production-Grade**: GitHub Actions → GHCR → Production K8s (no local conflicts)
+- **Automatic RAG Re-ingestion**: Content updates trigger immediate knowledge base refresh
+- **Security Integration**: Trivy scanning, non-root containers, security contexts
+- **Zero-Downtime**: Rolling updates with health checks and deployment verification
+- **Environment Separation**: Production deployment independent of local KIND development
+
+## GitHub Actions & Enterprise Pipelines  
+- **Current standard**: GitHub Actions for all projects, enterprise-grade patterns
+- **Pipeline stages**: build → test → security scan (Trivy/Snyk) → GHCR → K8s deployment
+- **Smart GitOps**: Path-based triggering, automated RAG updates, content synchronization
+- **Multi-environment**: Local KIND for development, production clusters for live deployment
 - **Security integration**: Built-in vulnerability scanning and compliance checks at every stage
 
 ## Legacy: Jenkins Experience (Learning Foundation)

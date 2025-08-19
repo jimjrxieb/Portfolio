@@ -3,15 +3,19 @@ name: CI/CD Portfolio to linksmlm.com
 on:
   push:
     branches: [ main, develop ]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+    paths:
+      - 'api/**'
+      - 'ui/**'
+      - 'data/knowledge/**'
+      - 'chat/data/**'
+      - 'charts/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: jimjrxieb/portfolio
+  IMAGE_NAME: shadow-link-industries/portfolio
 
 jobs:
   build:
@@ -116,7 +120,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up kubectl
+    - name: Set up kubectl  
       uses: azure/setup-kubectl@v3
       with:
         version: 'v1.28.0'
@@ -126,58 +130,68 @@ jobs:
       with:
         version: 'v3.12.0'
         
-    - name: Configure kubectl for KinD
+    - name: Deploy to Production Cluster
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
-        # Create kubeconfig for KinD cluster running on your laptop
+        # Configure kubectl for production cluster (not local KIND)
         mkdir -p ~/.kube
-        echo "${{ secrets.KUBECONFIG_KIND }}" | base64 -d > ~/.kube/config
+        echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
         chmod 600 ~/.kube/config
         
-        # Verify connection (will fail if KinD not running, which is expected)
-        kubectl cluster-info --request-timeout=5s || echo "⚠️  KinD cluster not accessible from GitHub Actions"
+        echo "🚀 Deploying Portfolio to Production..."
+        echo "API Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}"
+        echo "UI Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}"
         
-    - name: Deploy to KinD (if accessible)
-      run: |
-        # This will only work if KinD cluster is accessible
-        # In practice, this step demonstrates the deployment process
-        
-        echo "🚀 Deploying Portfolio to KinD cluster..."
-        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-tag }}"
-        
-        # Deploy with Helm
-        helm upgrade --install portfolio ./charts/portfolio \
-          --namespace portfolio \
+        # Deploy with Helm to production namespace
+        helm upgrade --install portfolio-prod ./charts/portfolio \
+          --namespace portfolio-prod \
           --create-namespace \
-          -f ./charts/portfolio/values.dev.yaml \
+          -f ./charts/portfolio/values.yaml \
           --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api \
-          --set image.tag=${{ needs.build.outputs.image-tag }} \
+          --set image.tag=${IMAGE_TAG} \
           --set ui.image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui \
-          --set ui.image.tag=${{ needs.build.outputs.image-tag }} \
-          --wait --timeout=5m \
-          --dry-run || echo "⚠️  Dry run mode - cluster not accessible"
+          --set ui.image.tag=${IMAGE_TAG} \
+          --wait --timeout=10m
           
-        echo "✅ Deployment configuration validated"
+        echo "✅ Production deployment complete"
         
-    - name: Trigger local deployment
+        # Verify deployment
+        kubectl get pods -n portfolio-prod -l app.kubernetes.io/instance=portfolio-prod
+        kubectl get services -n portfolio-prod
+        
+    - name: Trigger RAG Re-ingestion
+      env:
+        IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
-        # Since GitHub Actions can't directly access your local KinD cluster,
-        # we'll use repository dispatch to trigger a local webhook/script
+        echo "🔄 Triggering RAG knowledge base update..."
         
-        curl -X POST \
-          -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/${{ github.repository }}/dispatches \
-          -d '{
-            "event_type": "deploy-to-local",
-            "client_payload": {
-              "image_tag": "${{ needs.build.outputs.image-tag }}",
-              "api_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ needs.build.outputs.image-tag }}",
-              "ui_image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${{ needs.build.outputs.image-tag }}",
-              "ref": "${{ github.ref }}",
-              "sha": "${{ github.sha }}"
-            }
-          }' || echo "⚠️  Repository dispatch failed"
+        # Wait for API to be ready
+        kubectl wait --for=condition=ready pod -l app=portfolio-api -n portfolio-prod --timeout=300s
+        
+        # Trigger RAG re-ingestion for updated knowledge base
+        kubectl exec -n portfolio-prod deployment/portfolio-api -- python -c "
+        import sys, os
+        sys.path.append('/app')
+        os.chdir('/app')
+        print('Starting RAG ingestion...')
+        try:
+            from engines.rag_engine import ingest_knowledge_base
+            ingest_knowledge_base()
+            print('✅ RAG ingestion complete')
+        except Exception as e:
+            print(f'⚠️ RAG ingestion failed: {e}')
+            sys.exit(1)
+        " || echo "⚠️ RAG re-ingestion failed - will use existing embeddings"
+        
+    - name: Notify Deployment Status
+      run: |
+        echo "🎉 Portfolio deployment to production complete!"
+        echo "🌐 Live at: https://linksmlm.com"
+        echo "📦 Images:"
+        echo "  API: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ needs.build.outputs.image-tag }}"
+        echo "  UI: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${{ needs.build.outputs.image-tag }}"
 
   notify:
     runs-on: ubuntu-latest

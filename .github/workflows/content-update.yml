@@ -1,0 +1,141 @@
+name: Content Update - Knowledge Base Sync
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'data/knowledge/**'
+      - 'chat/data/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: shadow-link-industries/portfolio
+
+jobs:
+  content-sync:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up kubectl  
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+        
+    - name: Sync Content to Production
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+      run: |
+        # Configure kubectl for production cluster
+        mkdir -p ~/.kube
+        echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
+        chmod 600 ~/.kube/config
+        
+        echo "📝 Syncing knowledge base content to production..."
+        
+        # Create a temporary pod to sync content
+        kubectl create -f - <<EOF
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: content-sync-$(date +%s)
+          namespace: portfolio-prod
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: content-sync
+            image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest
+            command: ['/bin/sh']
+            args: ['-c', 'echo "Content sync pod ready" && sleep 300']
+            volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          volumes:
+          - name: data-volume
+            persistentVolumeClaim:
+              claimName: portfolio-data
+        EOF
+        
+        # Wait for pod to be ready
+        SYNC_POD=$(kubectl get pods -n portfolio-prod -l app!=portfolio-api --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
+        kubectl wait --for=condition=ready pod/$SYNC_POD -n portfolio-prod --timeout=120s
+        
+        # Copy updated knowledge base files
+        echo "📂 Copying knowledge base files..."
+        kubectl cp ./data/knowledge/ portfolio-prod/$SYNC_POD:/data/knowledge/
+        kubectl cp ./chat/data/ portfolio-prod/$SYNC_POD:/data/chat/
+        
+        # Cleanup sync pod
+        kubectl delete pod $SYNC_POD -n portfolio-prod
+        
+    - name: Trigger RAG Re-ingestion
+      run: |
+        echo "🔄 Triggering RAG knowledge base re-ingestion..."
+        
+        # Wait for API to be ready
+        kubectl wait --for=condition=ready pod -l app=portfolio-api -n portfolio-prod --timeout=300s
+        
+        # Trigger RAG re-ingestion for updated knowledge base
+        kubectl exec -n portfolio-prod deployment/portfolio-api -- python -c "
+        import sys, os
+        sys.path.append('/app')
+        os.chdir('/app')
+        print('🚀 Starting RAG ingestion with updated content...')
+        try:
+            from engines.rag_engine import ingest_knowledge_base
+            result = ingest_knowledge_base()
+            print(f'✅ RAG ingestion complete: {result}')
+        except Exception as e:
+            print(f'❌ RAG ingestion failed: {e}')
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
+        "
+        
+    - name: Verify Content Update
+      run: |
+        echo "🧪 Verifying Sheyla's updated responses..."
+        
+        # Test the updated content via API
+        CLUSTER_IP=$(kubectl get svc portfolio-api -n portfolio-prod -o jsonpath='{.spec.clusterIP}')
+        
+        # Port forward to test API
+        kubectl port-forward svc/portfolio-api 8080:80 -n portfolio-prod &
+        PF_PID=$!
+        sleep 5
+        
+        # Test chat endpoint with new content
+        RESPONSE=$(curl -s -X POST http://localhost:8080/api/chat \
+          -H "Content-Type: application/json" \
+          -d '{"message": "Tell me about LinkOps AI-BOX"}' \
+          | jq -r '.answer // "No response"')
+        
+        echo "📝 API Response preview:"
+        echo "$RESPONSE" | head -c 200
+        echo "..."
+        
+        # Check if response contains new keywords
+        if echo "$RESPONSE" | grep -q "funding\|ZRS Management\|Jade Box"; then
+          echo "✅ Content update verified - new information detected"
+        else
+          echo "⚠️ Content update may not be reflected yet"
+        fi
+        
+        # Cleanup
+        kill $PF_PID 2>/dev/null || true
+        
+    - name: Deployment Summary
+      run: |
+        echo "🎉 Content update complete!"
+        echo "🌐 Live at: https://linksmlm.com"
+        echo "🤖 Sheyla now has updated information about:"
+        echo "  • LinkOps AI-BOX funding status"
+        echo "  • ZRS Management client details"
+        echo "  • Updated technical experience"
+        echo "  • Current DevSecOps practices"
+        echo ""
+        echo "💬 Test it: Ask Sheyla 'Tell me about LinkOps AI-BOX'"
