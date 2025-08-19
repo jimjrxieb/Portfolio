@@ -15,7 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: shadow-link-industries/portfolio
+  IMAGE_NAME: jimjrxieb/portfolio
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
       security-events: write
     
     outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
+      image-tag: ${{ steps.meta.outputs.image-tag }}
       image-digest: ${{ steps.build.outputs.digest }}
       
     steps:
@@ -123,22 +123,24 @@ jobs:
     - name: Log in to Docker Hub (for local cluster pulls)
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USER || 'linksrobot' }}
-        password: ${{ secrets.DOCKER_CRED || 'dckr_pat_v9iATzfkAgms5H_Lxv-2568ARLw' }}
+        username: linksrobot
+        password: ${{ secrets.DOCKER_CRED }}
         
-    - name: Push images to Docker Hub for local access
+    - name: Pull and retag images for Docker Hub
       env:
         IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
-        echo "🐳 Tagging and pushing images to Docker Hub for local cluster access..."
+        echo "🐳 Pulling from GHCR and pushing to Docker Hub for local cluster access..."
         
-        # Tag and push API image
+        # Pull from GHCR and push to Docker Hub - API
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}
         docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG} linksrobot/portfolio-api:${IMAGE_TAG}
         docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG} linksrobot/portfolio-api:latest
         docker push linksrobot/portfolio-api:${IMAGE_TAG}
         docker push linksrobot/portfolio-api:latest
         
-        # Tag and push UI image  
+        # Pull from GHCR and push to Docker Hub - UI
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}
         docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG} linksrobot/portfolio-ui:${IMAGE_TAG}
         docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG} linksrobot/portfolio-ui:latest
         docker push linksrobot/portfolio-ui:${IMAGE_TAG}
