@@ -6,12 +6,15 @@ import os, uuid, shutil, imghdr
 
 router = APIRouter(prefix="/api", tags=["uploads"])
 
+
 class UploadResponse(BaseModel):
     url: AnyHttpUrl
+
 
 def _public_upload_url(local_path: str) -> str:
     rel = os.path.relpath(local_path, settings.DATA_DIR).replace(os.path.sep, "/")
     return f"{settings.PUBLIC_BASE_URL}/{rel}"
+
 
 @router.post("/upload/image", response_model=UploadResponse)
 async def upload_image(file: UploadFile = File(...)):
@@ -21,7 +24,9 @@ async def upload_image(file: UploadFile = File(...)):
     out_dir = os.path.join(settings.DATA_DIR, "uploads", "images")
     os.makedirs(out_dir, exist_ok=True)
     uid = uuid.uuid4().hex
-    safe_name = "".join(c for c in file.filename if c.isalnum() or c in (".", "_", "-"))[:100]
+    safe_name = "".join(
+        c for c in file.filename if c.isalnum() or c in (".", "_", "-")
+    )[:100]
     out_path = os.path.join(out_dir, f"{uid}_{safe_name}")
 
     with open(out_path, "wb") as f:

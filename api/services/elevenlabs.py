@@ -3,8 +3,14 @@ from app.settings import settings
 
 ELEVEN_TTS_URL_TMPL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
 
-async def synthesize_tts_mp3(text: str, voice_id: str, model_id: str = "eleven_monolingual_v1",
-                             stability: float = 0.3, similarity_boost: float = 0.75) -> str:
+
+async def synthesize_tts_mp3(
+    text: str,
+    voice_id: str,
+    model_id: str = "eleven_monolingual_v1",
+    stability: float = 0.3,
+    similarity_boost: float = 0.75,
+) -> str:
     """
     Returns a local file path to the saved MP3 under /data/uploads/audio/{uuid}.mp3.
     """
@@ -23,8 +29,8 @@ async def synthesize_tts_mp3(text: str, voice_id: str, model_id: str = "eleven_m
         "model_id": model_id,
         "voice_settings": {
             "stability": stability,
-            "similarity_boost": similarity_boost
-        }
+            "similarity_boost": similarity_boost,
+        },
     }
     url = ELEVEN_TTS_URL_TMPL.format(voice_id=voice_id)
 
