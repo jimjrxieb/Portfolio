@@ -6,10 +6,15 @@ on:
     paths:
       - 'api/**'
       - 'ui/**'
+      - 'charts/**'
+      - '.github/workflows/main.yml'
+      - 'Dockerfile*'
+      - 'docker-compose.yml'
+      - 'package*.json'
+      - 'requirements.txt'
+    paths-ignore:
       - 'data/knowledge/**'
       - 'chat/data/**'
-      - 'charts/**'
-      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
 
