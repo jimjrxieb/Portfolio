@@ -1,4 +1,4 @@
-name: CI/CD Portfolio to linksmlm.com
+name: main.yml
 
 on:
   push:
