@@ -1,8 +1,8 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
+COPY ui/package*.json ./
 RUN npm ci
-COPY . .
+COPY ui/ .
 RUN npm run build
 
 FROM nginx:alpine
