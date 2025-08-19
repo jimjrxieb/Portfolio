@@ -76,7 +76,7 @@ class RAGEngine:
             version_id = f"v{timestamp}"
 
         collection_name = f"{self.namespace}_{version_id}"
-        new_collection = self.client.get_or_create_collection(collection_name)
+        self.client.get_or_create_collection(collection_name)
 
         logger.info(f"Created new RAG version: {collection_name}")
         return collection_name
