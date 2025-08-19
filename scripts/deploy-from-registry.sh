@@ -6,7 +6,7 @@ set -e
 
 # Configuration
 REGISTRY="ghcr.io"
-IMAGE_NAME="jimjrxieb/portfolio"
+IMAGE_NAME="shadow-link-industries/portfolio"
 NAMESPACE="portfolio"
 
 # Get image tag from argument or latest
@@ -61,6 +61,22 @@ echo "✅ Deployment completed"
 echo "🔍 Verifying deployment..."
 kubectl -n ${NAMESPACE} rollout status deploy/portfolio-api --timeout=300s
 kubectl -n ${NAMESPACE} rollout status deploy/portfolio-ui --timeout=300s
+
+# Trigger RAG re-ingestion for updated knowledge base
+echo "🔄 Triggering RAG knowledge base re-ingestion..."
+sleep 10  # Wait for API to be fully ready
+kubectl exec -n ${NAMESPACE} deployment/portfolio-api -- python -c "
+import sys, os
+sys.path.append('/app')
+os.chdir('/app')
+print('Starting RAG ingestion with updated knowledge base...')
+try:
+    from engines.rag_engine import ingest_knowledge_base
+    ingest_knowledge_base()
+    print('✅ RAG ingestion complete - Sheyla now has updated responses')
+except Exception as e:
+    print(f'⚠️ RAG ingestion failed: {e}')
+" 2>/dev/null || echo "⚠️ RAG re-ingestion failed - using existing embeddings"
 
 echo ""
 echo "📊 Deployment Status:"
