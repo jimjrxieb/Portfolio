@@ -120,78 +120,52 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up kubectl  
-      uses: azure/setup-kubectl@v3
+    - name: Log in to Docker Hub (for local cluster pulls)
+      uses: docker/login-action@v3
       with:
-        version: 'v1.28.0'
+        username: ${{ secrets.DOCKER_USER || 'linksrobot' }}
+        password: ${{ secrets.DOCKER_CRED || 'dckr_pat_v9iATzfkAgms5H_Lxv-2568ARLw' }}
         
-    - name: Set up Helm
-      uses: azure/setup-helm@v3
-      with:
-        version: 'v3.12.0'
-        
-    - name: Deploy to Production Cluster
-      env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
-        IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
-      run: |
-        # Configure kubectl for production cluster (not local KIND)
-        mkdir -p ~/.kube
-        echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
-        chmod 600 ~/.kube/config
-        
-        echo "🚀 Deploying Portfolio to Production..."
-        echo "API Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}"
-        echo "UI Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}"
-        
-        # Deploy with Helm to production namespace
-        helm upgrade --install portfolio-prod ./charts/portfolio \
-          --namespace portfolio-prod \
-          --create-namespace \
-          -f ./charts/portfolio/values.yaml \
-          --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api \
-          --set image.tag=${IMAGE_TAG} \
-          --set ui.image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui \
-          --set ui.image.tag=${IMAGE_TAG} \
-          --wait --timeout=10m
-          
-        echo "✅ Production deployment complete"
-        
-        # Verify deployment
-        kubectl get pods -n portfolio-prod -l app.kubernetes.io/instance=portfolio-prod
-        kubectl get services -n portfolio-prod
-        
-    - name: Trigger RAG Re-ingestion
+    - name: Push images to Docker Hub for local access
       env:
         IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
-        echo "🔄 Triggering RAG knowledge base update..."
+        echo "🐳 Tagging and pushing images to Docker Hub for local cluster access..."
         
-        # Wait for API to be ready
-        kubectl wait --for=condition=ready pod -l app=portfolio-api -n portfolio-prod --timeout=300s
+        # Tag and push API image
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG} linksrobot/portfolio-api:${IMAGE_TAG}
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG} linksrobot/portfolio-api:latest
+        docker push linksrobot/portfolio-api:${IMAGE_TAG}
+        docker push linksrobot/portfolio-api:latest
         
-        # Trigger RAG re-ingestion for updated knowledge base
-        kubectl exec -n portfolio-prod deployment/portfolio-api -- python -c "
-        import sys, os
-        sys.path.append('/app')
-        os.chdir('/app')
-        print('Starting RAG ingestion...')
-        try:
-            from engines.rag_engine import ingest_knowledge_base
-            ingest_knowledge_base()
-            print('✅ RAG ingestion complete')
-        except Exception as e:
-            print(f'⚠️ RAG ingestion failed: {e}')
-            sys.exit(1)
-        " || echo "⚠️ RAG re-ingestion failed - will use existing embeddings"
+        # Tag and push UI image  
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG} linksrobot/portfolio-ui:${IMAGE_TAG}
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG} linksrobot/portfolio-ui:latest
+        docker push linksrobot/portfolio-ui:${IMAGE_TAG}
+        docker push linksrobot/portfolio-ui:latest
         
-    - name: Notify Deployment Status
+        echo "✅ Images available for local deployment pull"
+        
+    - name: Create deployment instructions
+      env:
+        IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
-        echo "🎉 Portfolio deployment to production complete!"
-        echo "🌐 Live at: https://linksmlm.com"
-        echo "📦 Images:"
-        echo "  API: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ needs.build.outputs.image-tag }}"
-        echo "  UI: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${{ needs.build.outputs.image-tag }}"
+        echo "🚀 Production Deployment Instructions"
+        echo "====================================="
+        echo ""
+        echo "Images built and available:"
+        echo "  API: linksrobot/portfolio-api:${IMAGE_TAG}"
+        echo "  UI: linksrobot/portfolio-ui:${IMAGE_TAG}"
+        echo ""
+        echo "To deploy to local cluster serving linksmlm.com:"
+        echo "  docker pull linksrobot/portfolio-api:latest"
+        echo "  docker pull linksrobot/portfolio-ui:latest"
+        echo ""
+        echo "Or use deployment script:"
+        echo "  ./scripts/deploy-from-registry.sh latest"
+        echo ""
+        echo "🎯 This workflow builds images but doesn't deploy automatically"
+        echo "   since linksmlm.com uses local cluster + Cloudflare tunnel"
 
   notify:
     runs-on: ubuntu-latest
