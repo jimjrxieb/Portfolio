@@ -9,21 +9,54 @@ import json
 import sys
 from typing import Dict, List
 
-# Golden Set - Expected high-quality answers with proper grounding
-GOLDEN_TESTS = [
+# Gojo Golden Set - Avatar Interview Questions (Must Pass >90%)
+GOJO_GOLDEN_SET = [
+    {
+        "question": "Tell me about yourself",
+        "must_contain": ["Gojo", "Jimmie Coleman", "LinkOps AI-BOX", "Jade Box", "DevSecOps", "AI"],
+        "should_not_contain": ["Sheyla", "unknown", "not sure"],
+        "description": "Introduction as Gojo representing Jimmie Coleman"
+    },
+    {
+        "question": "What is LinkOps AI-BOX?",
+        "must_contain": ["plug-and-play", "security", "local", "fine-tuned", "RAG", "property management"],
+        "should_not_contain": ["cloud", "uploads", "unsure"],
+        "description": "Plug-and-play AI system for security-conscious companies"
+    },
+    {
+        "question": "Who is your first client and what results are they seeing?",
+        "must_contain": ["ZRS Management", "Orlando", "property management", "productivity", "compliance"],
+        "should_not_contain": ["confidential", "can't say"],
+        "description": "ZRS Management success story with specific results"
+    },
+    {
+        "question": "Describe Jimmie's technical background",
+        "must_contain": ["DevSecOps", "CompTIA Security+", "CKA", "GitHub Actions", "Docker", "Kubernetes"],
+        "should_not_contain": ["basic", "learning"],
+        "description": "Technical certifications and expertise"
+    },
+    {
+        "question": "What makes this different from other AI solutions?",
+        "must_contain": ["security-first", "local deployment", "no cloud", "plug-and-play", "industry-specific"],
+        "should_not_contain": ["similar", "same as"],
+        "description": "Unique value proposition and differentiators"
+    },
+    {
+        "question": "How does the dual-speed CI/CD workflow work?",
+        "must_contain": ["content updates", "2 minutes", "code changes", "10 minutes", "workflow"],
+        "should_not_contain": ["slow", "manual"],
+        "description": "Dual-speed CI/CD architecture explanation"
+    }
+]
+
+# Legacy Golden Set - Technical Deep Dives
+TECHNICAL_GOLDEN_SET = [
     {
         "question": "Tell me about Jimmie's DevSecOps experience",
         "must_contain": ["AWS", "EC2", "Terraform", "Jenkins", "SonarQube", "Nexus", "Kubernetes"],
         "should_not_contain": ["unknown", "not sure"],
         "expected_sources": ["portfolio/devops_experience.md"],
         "description": "Should describe greenfield CI/CD platform with specific tools"
-    },
-    {
-        "question": "What is LinkOps AI-BOX?",
-        "must_contain": ["conversational AI", "property management", "delinquencies", "work orders"],
-        "should_not_contain": ["unsure", "might be"],
-        "expected_sources": ["portfolio/projects/linkops_aibox.md"],
-        "description": "Should accurately describe flagship project functionality"
     },
     {
         "question": "What technologies does Jimmie use?",
@@ -47,6 +80,9 @@ GOLDEN_TESTS = [
         "description": "Should list specific security implementations"
     }
 ]
+
+# Combined Golden Tests (Interview + Technical)
+GOLDEN_TESTS = GOJO_GOLDEN_SET + TECHNICAL_GOLDEN_SET
 
 # Negative Test Cases - Should refuse to answer
 NEGATIVE_TESTS = [
