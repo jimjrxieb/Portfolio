@@ -1,29 +1,33 @@
 /* data-dev:styles-entry-css */
-@import "tailwindcss";
+@import 'tailwindcss';
 @import './debug.css';
 
 /* Debug outlines to help Claude target components */
-body.debug [data-dev] { outline: 1px dashed magenta; }
+body.debug [data-dev] {
+  outline: 1px dashed magenta;
+}
 
 /* Visual proof Tailwind is active */
-[data-dev="portfolio-root"] { background: #0A0A0A; }
+[data-dev='portfolio-root'] {
+  background: #0a0a0a;
+}
 
 /* Jade glow utility */
-@layer utilities { 
-  .jade-glow { 
-    box-shadow: 0 0 16px rgba(0,168,107,.35); 
-  } 
+@layer utilities {
+  .jade-glow {
+    box-shadow: 0 0 16px rgba(0, 168, 107, 0.35);
+  }
 }
 
 /* Brand utility classes */
-:root { 
-  --brand: #00A36C; 
+:root {
+  --brand: #00a36c;
 }
 
-.btn-brand { 
-  @apply bg-[#00A36C] text-white hover:bg-[#07885a] rounded-xl px-3 py-2; 
+.btn-brand {
+  @apply bg-[#00A36C] text-white hover:bg-[#07885a] rounded-xl px-3 py-2;
 }
 
-.chip-brand { 
-  @apply bg-[#e6faf2] text-[#0b6d4a] rounded-lg px-2 py-1 text-xs; 
+.chip-brand {
+  @apply bg-[#e6faf2] text-[#0b6d4a] rounded-lg px-2 py-1 text-xs;
 }

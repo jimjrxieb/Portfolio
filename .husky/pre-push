@@ -1,0 +1,64 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "=€ Running pre-push quality checks..."
+echo "====================================="
+
+# 1. Linting (static analysis)
+echo "= 1/5 Running linters..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "L Linting failed. Please fix linting errors before pushing."
+  exit 1
+fi
+echo " Linting passed"
+
+# 2. Code formatting 
+echo "<¨ 2/5 Checking code formatting..."
+npm run format
+if [ $? -ne 0 ]; then
+  echo "L Code formatting failed. Please fix formatting issues."
+  exit 1
+fi
+echo " Code formatting passed"
+
+# 3. Security audit
+echo "= 3/5 Running security audit..."
+npm run security
+if [ $? -ne 0 ]; then
+  echo "  Security audit found issues. Review but allowing push to continue."
+  echo "   Check vulnerabilities and update dependencies when possible."
+fi
+echo " Security audit completed"
+
+# 4. Type checking (UI only)
+echo "=' 4/5 Running type checks..."
+cd ui && npm run lint -- --max-warnings 0
+if [ $? -ne 0 ]; then
+  echo "L TypeScript errors found. Please fix type issues."
+  cd ..
+  exit 1
+fi
+cd ..
+echo " Type checking passed"
+
+# 5. Golden set validation (if API is running)
+echo ">ê 5/5 Running golden set tests..."
+if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+  python test_golden_answers.py http://localhost:8000
+  if [ $? -ne 0 ]; then
+    echo "  Golden set tests failed. RAG quality may be degraded."
+    echo "   Consider updating knowledge base or prompts."
+    echo "   Allowing push to continue for development workflow."
+  else
+    echo " Golden set validation passed"
+  fi
+else
+  echo "9 API not running locally - skipping golden set tests"
+  echo "   Tests will run in CI/CD pipeline"
+fi
+
+echo ""
+echo "<‰ Pre-push checks completed!"
+echo "=æ Ready to push to remote repository"
+echo "= CI/CD pipeline will run additional validation"

@@ -2,7 +2,10 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel, AnyHttpUrl
 from app.settings import settings
-import os, uuid, shutil, imghdr
+import os
+import uuid
+import shutil
+import imghdr
 
 router = APIRouter(prefix="/api", tags=["uploads"])
 

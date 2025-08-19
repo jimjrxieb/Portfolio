@@ -13,13 +13,16 @@
       ],
       "use_cases": [
         "Delinquency management and automated notice sending",
-        "Work order tracking and vendor coordination", 
+        "Work order tracking and vendor coordination",
         "Payment processing and scheduling optimization",
         "Instant property portfolio insights and reporting"
       ],
       "links": [
-        {"label": "GitHub", "href": "https://github.com/jimjrxieb/shadow-link-industries"},
-        {"label": "Live Demo", "href": "https://demo.linksmlm.com"}
+        {
+          "label": "GitHub",
+          "href": "https://github.com/jimjrxieb/shadow-link-industries"
+        },
+        { "label": "Live Demo", "href": "https://demo.linksmlm.com" }
       ]
     },
     {
@@ -32,8 +35,11 @@
         "Bring-your-own-keys; runs offline with fallbacks"
       ],
       "links": [
-        {"label": "GitHub", "href": "https://github.com/jimjrxieb/LinkOps-Afterlife"},
-        {"label": "Create Your Avatar", "href": "https://demo.linksmlm.com"}
+        {
+          "label": "GitHub",
+          "href": "https://github.com/jimjrxieb/LinkOps-Afterlife"
+        },
+        { "label": "Create Your Avatar", "href": "https://demo.linksmlm.com" }
       ]
     }
   ]

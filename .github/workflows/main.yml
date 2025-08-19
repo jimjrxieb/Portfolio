@@ -175,6 +175,10 @@ jobs:
         image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ needs.build.outputs.image-tag }}'
         format: 'sarif'
         output: 'api-trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        vuln-type: 'os,library'
+        scanners: 'vuln,secret,config'
+        timeout: '10m0s'
         
     - name: Upload API Trivy scan results
       uses: github/codeql-action/upload-sarif@v3
@@ -190,6 +194,10 @@ jobs:
         image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${{ needs.build.outputs.image-tag }}'
         format: 'sarif'
         output: 'ui-trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        vuln-type: 'os,library'
+        scanners: 'vuln,secret,config'
+        timeout: '10m0s'
         
     - name: Upload UI Trivy scan results
       uses: github/codeql-action/upload-sarif@v3

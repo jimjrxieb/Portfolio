@@ -1,7 +1,12 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
+
+# Copy package files for better layer caching
 COPY ui/package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit
+
+# Copy source files and build
 COPY ui/ .
 RUN npm run build
 

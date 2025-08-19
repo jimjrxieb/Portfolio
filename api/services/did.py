@@ -1,4 +1,5 @@
-import base64, httpx
+import base64
+import httpx
 from app.settings import settings
 
 DID_TALKS_URL = "https://api.d-id.com/talks"  # REST create

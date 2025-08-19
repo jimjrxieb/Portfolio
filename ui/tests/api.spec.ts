@@ -19,10 +19,15 @@ test('Chat endpoint responds', async ({ request }) => {
   expect(body.answer && body.answer.length > 5).toBeTruthy();
 });
 
-test('Upload image → avatar talk (skips if keys not present)', async ({ request }, testInfo) => {
+test('Upload image → avatar talk (skips if keys not present)', async ({
+  request,
+}, testInfo) => {
   // Skip if envs not set
   if (!process.env.DID_API_KEY || !process.env.ELEVENLABS_API_KEY) {
-    test.skip(true, 'D-ID/ElevenLabs keys not set in env → skipping avatar test');
+    test.skip(
+      true,
+      'D-ID/ElevenLabs keys not set in env → skipping avatar test'
+    );
   }
 
   const fixture = testInfo.project.name.includes('chromium')
@@ -52,7 +57,10 @@ test('Upload image → avatar talk (skips if keys not present)', async ({ reques
     const s = await request.get(`${apiBase}/api/avatar/talk/${t.talk_id}`);
     expect(s.ok()).toBeTruthy();
     const body = await s.json();
-    if (body.result_url) { resultUrl = body.result_url; break; }
+    if (body.result_url) {
+      resultUrl = body.result_url;
+      break;
+    }
     await new Promise(res => setTimeout(res, 1500));
   }
   expect(resultUrl, 'D-ID never returned a result_url').toBeTruthy();

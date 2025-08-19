@@ -42,8 +42,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
  && rm -rf /var/lib/apt/lists/*
 
-# Non-root user for security
-RUN useradd -u 10001 -m -r appuser
+# Non-root user for security with hardened settings
+RUN useradd -u 10001 -m -r -s /sbin/nologin -c "Application User" appuser && \
+    mkdir -p /home/appuser && \
+    chown appuser:appuser /home/appuser
 
 # Copy Python dependencies from builder
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
@@ -58,11 +60,29 @@ ENV DEFAULT_INTRO=/app/assets/default_intro.mp3
 ENV DATA_DIR=/data
 ENV PYTHONPATH=/app
 
-# Create data directory with proper permissions
-RUN mkdir -p /data/uploads/audio /data/assets && \
-    chown -R appuser:appuser /data /app
+# Create data directory with proper permissions and security hardening
+RUN mkdir -p /data/uploads/audio /data/assets /tmp/app && \
+    chown -R appuser:appuser /data /app /tmp/app && \
+    chmod -R 750 /data /app && \
+    chmod 1777 /tmp/app
 
+# Security: Remove unnecessary packages and files
+RUN apt-get remove --purge -y curl && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Switch to non-root user
 USER appuser
+
+# Set secure working directory
+WORKDIR /app
+
+# Security labels
+LABEL security.scan="enabled" \
+      security.non-root="true" \
+      security.capabilities="none"
+
 EXPOSE 8000
 
 # Health check using Python instead of curl for smaller image

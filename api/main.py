@@ -8,8 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 import os
-import time
-from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -18,6 +16,8 @@ from routes.chat import router as chat_router
 from routes.avatar import router as avatar_router
 from routes.health import router as health_router
 from routes.uploads import router as uploads_router
+from routes.rag import router as rag_router
+from routes.validation import router as validation_router
 
 # Create FastAPI app
 app = FastAPI(
@@ -129,6 +129,8 @@ app.include_router(health_router, prefix="/api", tags=["health"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(avatar_router, prefix="/api", tags=["avatar"])
 app.include_router(uploads_router, prefix="/api", tags=["uploads"])
+app.include_router(rag_router, prefix="/api/rag", tags=["rag"])
+app.include_router(validation_router, prefix="/api/validation", tags=["validation"])
 
 
 # Root endpoint

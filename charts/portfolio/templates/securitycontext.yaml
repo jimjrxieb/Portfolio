@@ -1,0 +1,114 @@
+{{- if .Values.securityScanning.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "portfolio.fullname" . }}-security-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+data:
+  security-policy.yaml: |
+    apiVersion: kyverno.io/v1
+    kind: ClusterPolicy
+    metadata:
+      name: {{ include "portfolio.fullname" . }}-security-policy
+    spec:
+      validationFailureAction: enforce
+      background: true
+      rules:
+      - name: check-security-context
+        match:
+          any:
+          - resources:
+              kinds:
+              - Pod
+              namespaces:
+              - {{ .Release.Namespace }}
+        validate:
+          message: "Security context must be configured"
+          pattern:
+            spec:
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: ">0"
+              containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                  readOnlyRootFilesystem: "false"  # Allow for our use case
+                  runAsNonRoot: true
+      
+      - name: disallow-privileged
+        match:
+          any:
+          - resources:
+              kinds:
+              - Pod
+              namespaces:
+              - {{ .Release.Namespace }}
+        validate:
+          message: "Privileged containers are not allowed"
+          pattern:
+            spec:
+              containers:
+              - securityContext:
+                  privileged: "false"
+      
+      - name: require-resource-limits
+        match:
+          any:
+          - resources:
+              kinds:
+              - Pod
+              namespaces:
+              - {{ .Release.Namespace }}
+        validate:
+          message: "Resource limits are required"
+          pattern:
+            spec:
+              containers:
+              - resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+
+  falco-rules.yaml: |
+    - rule: Detect privileged container
+      desc: Detect privileged container in portfolio namespace
+      condition: >
+        k8s_audit and ka.verb=create and ka.target.pod 
+        and ka.target.ns={{ .Release.Namespace }}
+        and container and container.privileged=true
+      output: >
+        Privileged container created (user=%ka.user.name verb=%ka.verb 
+        pod=%ka.target.pod container=%container.name)
+      priority: CRITICAL
+
+    - rule: Detect capability additions
+      desc: Detect containers with added capabilities
+      condition: >
+        k8s_audit and ka.verb=create and ka.target.pod
+        and ka.target.ns={{ .Release.Namespace }}
+        and container and container.cap_add exists
+      output: >
+        Container with added capabilities (user=%ka.user.name verb=%ka.verb 
+        pod=%ka.target.pod container=%container.name caps=%container.cap_add)
+      priority: WARNING
+
+    - rule: Detect write to sensitive directories
+      desc: Detect writes to sensitive directories
+      condition: >
+        open_write and container.ns={{ .Release.Namespace }}
+        and (fd.name startswith /etc or fd.name startswith /root
+        or fd.name startswith /var/run or fd.name startswith /usr/bin)
+      output: >
+        Write to sensitive directory (user=%user.name command=%proc.cmdline 
+        file=%fd.name container=%container.name)
+      priority: HIGH
+{{- end }}

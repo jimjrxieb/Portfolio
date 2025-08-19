@@ -1,0 +1,84 @@
+{{- if .Values.podSecurityStandards.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    pod-security.kubernetes.io/enforce: {{ .Values.podSecurityStandards.enforce }}
+    pod-security.kubernetes.io/audit: {{ .Values.podSecurityStandards.audit }}
+    pod-security.kubernetes.io/warn: {{ .Values.podSecurityStandards.warn }}
+    {{- include "portfolio.labels" . | nindent 4 }}
+---
+{{- if and .Values.podSecurityStandards.enabled .Values.podSecurityStandards.useCustomPolicy }}
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ include "portfolio.fullname" . }}-psp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 10000
+        max: 65535
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 10000
+        max: 65535
+  readOnlyRootFilesystem: false  # API needs write access for ChromaDB
+  seccomp:
+    rule: 'MustRunAs'
+    allowedProfiles:
+      - 'runtime/default'
+      - 'docker/default'
+  forbiddenSysctls:
+    - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "portfolio.fullname" . }}-psp-user
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - policy
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+  resourceNames:
+  - {{ include "portfolio.fullname" . }}-psp
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "portfolio.fullname" . }}-psp-binding
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "portfolio.fullname" . }}-psp-user
+subjects:
+- kind: ServiceAccount
+  name: {{ include "portfolio.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

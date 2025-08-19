@@ -7,21 +7,17 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
-import httpx
-import json
 
 # Import our clean modules
 from settings import (
     LLM_PROVIDER,
-    LLM_API_BASE,
     LLM_MODEL,
-    LLM_API_KEY,
-    SHEYLA_SYSTEM_PROMPT,
+    GOJO_SYSTEM_PROMPT,
     RAG_NAMESPACE,
-    get_llm_headers,
 )
 from engines.rag_engine import RAGEngine
 from engines.llm_engine import LLMEngine
+from routes.validation import validate_response, ValidationRequest
 
 # Import Sheyla's conversation engine
 import sys
@@ -128,10 +124,31 @@ async def chat_with_sheyla(request: ChatRequest):
             # Fallback to direct LLM call
             response_text = await _fallback_llm_response(request.message, rag_results)
 
-        # Step 3: Get follow-up suggestions
+        # Step 3: Validate response for hallucinations and grounding
+        context_sources = [citation.source for citation in citations]
+        try:
+            validation_result = await validate_response(ValidationRequest(
+                response_text=response_text,
+                question=request.message,
+                context_sources=context_sources
+            ))
+            
+            # If validation fails critically, use a safer fallback response
+            if not validation_result.is_valid and validation_result.confidence_score < 0.3:
+                response_text = (
+                    "I need to stay grounded in the information I have about Jimmie's work. "
+                    "Could you ask me something more specific about LinkOps AI-BOX, "
+                    "his DevSecOps experience, or the ZRS Management project?"
+                )
+                
+        except Exception as e:
+            print(f"Validation error: {e}")
+            # Continue without validation if it fails
+
+        # Step 4: Get follow-up suggestions
         follow_up_suggestions = conversation_engine.get_follow_up_suggestions(context)
 
-        # Step 4: Prepare response
+        # Step 5: Prepare response
         return ChatResponse(
             answer=response_text,
             citations=citations,
@@ -139,9 +156,9 @@ async def chat_with_sheyla(request: ChatRequest):
             session_id=session_id,
             follow_up_suggestions=follow_up_suggestions,
             avatar_info={
-                "name": "Sheyla",
-                "locale": "en-IN",
-                "description": "Professional Indian lady with warm, simple voice",
+                "name": "Gojo",
+                "locale": "en-US", 
+                "description": "Professional male with white hair and crystal blue eyes, confident voice",
             },
         )
 
@@ -165,7 +182,7 @@ async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
 
         # Prepare messages for LLM
         messages = [
-            {"role": "system", "content": SHEYLA_SYSTEM_PROMPT},
+            {"role": "system", "content": GOJO_SYSTEM_PROMPT},
             {"role": "user", "content": f"{message}{context_text}"},
         ]
 

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'; // UI (Vite or Service)
-const API_URL  = process.env.API_URL  || 'http://localhost:8001'; // FastAPI (via port-forward)
+const API_URL = process.env.API_URL || 'http://localhost:8001'; // FastAPI (via port-forward)
 
 export default defineConfig({
   testDir: './tests',
@@ -17,9 +17,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 20_000,
     navigationTimeout: 30_000,
-    extraHTTPHeaders: { 'X-Playwright-API-Base': API_URL }
+    extraHTTPHeaders: { 'X-Playwright-API-Base': API_URL },
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 });
