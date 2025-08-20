@@ -6,8 +6,8 @@ echo "====================================="
 
 # 1. Linting (static analysis)
 echo "= 1/5 Running linters..."
-npm run lint
-if [ $? -ne 0 ]; then
+npm run lint || LINT_FAILED=1
+if [ "$LINT_FAILED" = "1" ]; then
   echo "⚠️ Linting issues found but allowing push to continue."
   echo "   CI/CD pipeline will validate and format code automatically."
 fi
@@ -15,8 +15,8 @@ echo " Linting passed"
 
 # 2. Code formatting 
 echo "<� 2/5 Checking code formatting..."
-npm run format
-if [ $? -ne 0 ]; then
+npm run format || FORMAT_FAILED=1
+if [ "$FORMAT_FAILED" = "1" ]; then
   echo "⚠️ Code formatting issues found but allowing push to continue."
   echo "   CI/CD pipeline will auto-format code."
 fi
@@ -33,8 +33,8 @@ echo " Security audit completed"
 
 # 4. Type checking (UI only)
 echo "=' 4/5 Running type checks..."
-cd ui && npm run lint -- --max-warnings 0
-if [ $? -ne 0 ]; then
+cd ui && npm run lint -- --max-warnings 0 || TS_FAILED=1
+if [ "$TS_FAILED" = "1" ]; then
   echo "⚠️ TypeScript issues found but allowing push to continue."
   echo "   CI/CD pipeline will validate types."
 fi
