@@ -25,11 +25,11 @@ export default function IntroModal({ isOpen, onClose }: IntroModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-ink/80 backdrop-blur-sm"
         onClick={handleClose}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-gradient-to-br from-snow via-snow/95 to-crystal-50 rounded-2xl shadow-2xl max-w-md w-full border border-crystal-200">
         {/* Close Button */}
@@ -46,9 +46,7 @@ export default function IntroModal({ isOpen, onClose }: IntroModalProps) {
             <div className="w-16 h-16 rounded-full bg-gradient-to-r from-crystal-400 to-gold-400 flex items-center justify-center mx-auto mb-3">
               <span className="text-ink font-bold text-2xl">G</span>
             </div>
-            <h2 className="text-2xl font-bold text-ink mb-2">
-              Meet Gojo
-            </h2>
+            <h2 className="text-2xl font-bold text-ink mb-2">Meet Gojo</h2>
             <p className="text-crystal-700 text-sm">
               Your AI Portfolio Assistant
             </p>
@@ -62,8 +60,9 @@ export default function IntroModal({ isOpen, onClose }: IntroModalProps) {
                   Original Character Design
                 </h3>
                 <p className="text-crystal-700 text-xs leading-relaxed">
-                  Gojo is an original AI assistant character inspired by anime aesthetics. 
-                  The white hair and blue eyes design is our creative interpretation for this portfolio platform.
+                  Gojo is an original AI assistant character inspired by anime
+                  aesthetics. The white hair and blue eyes design is our
+                  creative interpretation for this portfolio platform.
                 </p>
               </div>
             </div>
@@ -75,8 +74,9 @@ export default function IntroModal({ isOpen, onClose }: IntroModalProps) {
                   Professional Portfolio Assistant
                 </h3>
                 <p className="text-crystal-700 text-xs leading-relaxed">
-                  Ask about Jimmie's DevSecOps experience, LinkOps AI-BOX project, 
-                  or technical expertise in CI/CD, Kubernetes, and AI automation.
+                  Ask about Jimmie's DevSecOps experience, LinkOps AI-BOX
+                  project, or technical expertise in CI/CD, Kubernetes, and AI
+                  automation.
                 </p>
               </div>
             </div>

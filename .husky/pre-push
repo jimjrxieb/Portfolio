@@ -61,3 +61,5 @@ echo ""
 echo "<� Pre-push checks completed!"
 echo "=� Ready to push to remote repository"
 echo "= CI/CD pipeline will run additional validation"
+# Ensure hook exits successfully to allow push
+exit 0
