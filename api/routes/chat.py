@@ -127,20 +127,25 @@ async def chat_with_sheyla(request: ChatRequest):
         # Step 3: Validate response for hallucinations and grounding
         context_sources = [citation.source for citation in citations]
         try:
-            validation_result = await validate_response(ValidationRequest(
-                response_text=response_text,
-                question=request.message,
-                context_sources=context_sources
-            ))
-            
+            validation_result = await validate_response(
+                ValidationRequest(
+                    response_text=response_text,
+                    question=request.message,
+                    context_sources=context_sources,
+                )
+            )
+
             # If validation fails critically, use a safer fallback response
-            if not validation_result.is_valid and validation_result.confidence_score < 0.3:
+            if (
+                not validation_result.is_valid
+                and validation_result.confidence_score < 0.3
+            ):
                 response_text = (
                     "I need to stay grounded in the information I have about Jimmie's work. "
                     "Could you ask me something more specific about LinkOps AI-BOX, "
                     "his DevSecOps experience, or the ZRS Management project?"
                 )
-                
+
         except Exception as e:
             print(f"Validation error: {e}")
             # Continue without validation if it fails
@@ -157,7 +162,7 @@ async def chat_with_sheyla(request: ChatRequest):
             follow_up_suggestions=follow_up_suggestions,
             avatar_info={
                 "name": "Gojo",
-                "locale": "en-US", 
+                "locale": "en-US",
                 "description": "Professional male with white hair and crystal blue eyes, confident voice",
             },
         )

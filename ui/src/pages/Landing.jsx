@@ -146,7 +146,7 @@ export default function Landing() {
       </div>
 
       {/* IP-Safe Intro Modal */}
-      <IntroModal 
+      <IntroModal
         isOpen={showIntroModal}
         onClose={() => setShowIntroModal(false)}
       />
