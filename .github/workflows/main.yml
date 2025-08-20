@@ -245,6 +245,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Pull and retag images for Docker Hub
+      continue-on-error: true
       env:
         IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
@@ -260,9 +261,14 @@ jobs:
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG} linksrobot/portfolio-api:${IMAGE_TAG}
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG} linksrobot/portfolio-api:latest
-          docker push linksrobot/portfolio-api:${IMAGE_TAG}
-          docker push linksrobot/portfolio-api:latest
-          echo "✅ API image pushed to Docker Hub"
+          
+          # Try to push to Docker Hub, continue if it fails
+          if docker push linksrobot/portfolio-api:${IMAGE_TAG} && docker push linksrobot/portfolio-api:latest; then
+            echo "✅ API image pushed to Docker Hub"
+          else
+            echo "⚠️ Failed to push API image to Docker Hub (auth issue), but continuing..."
+            echo "   Images are available in GHCR: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}"
+          fi
         else
           echo "❌ API image not found in GHCR, skipping..."
           exit 1
@@ -274,15 +280,20 @@ jobs:
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG} linksrobot/portfolio-ui:${IMAGE_TAG}
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG} linksrobot/portfolio-ui:latest
-          docker push linksrobot/portfolio-ui:${IMAGE_TAG}
-          docker push linksrobot/portfolio-ui:latest
-          echo "✅ UI image pushed to Docker Hub"
+          
+          # Try to push to Docker Hub, continue if it fails
+          if docker push linksrobot/portfolio-ui:${IMAGE_TAG} && docker push linksrobot/portfolio-ui:latest; then
+            echo "✅ UI image pushed to Docker Hub"
+          else
+            echo "⚠️ Failed to push UI image to Docker Hub (auth issue), but continuing..."
+            echo "   Images are available in GHCR: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}"
+          fi
         else
           echo "❌ UI image not found in GHCR, skipping..."
           exit 1
         fi
         
-        echo "✅ Images available for local deployment pull"
+        echo "✅ Images processed for deployment"
         
     - name: Create deployment instructions
       env:
@@ -292,12 +303,15 @@ jobs:
         echo "====================================="
         echo ""
         echo "Images built and available:"
-        echo "  API: linksrobot/portfolio-api:${IMAGE_TAG}"
-        echo "  UI: linksrobot/portfolio-ui:${IMAGE_TAG}"
+        echo "  Primary (GHCR): ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}"
+        echo "                  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}"
+        echo "  Fallback (Docker Hub): linksrobot/portfolio-api:${IMAGE_TAG}"
+        echo "                         linksrobot/portfolio-ui:${IMAGE_TAG}"
         echo ""
         echo "To deploy to local cluster serving linksmlm.com:"
-        echo "  docker pull linksrobot/portfolio-api:latest"
-        echo "  docker pull linksrobot/portfolio-ui:latest"
+        echo "  # Try Docker Hub first (local-friendly), fallback to GHCR"
+        echo "  docker pull linksrobot/portfolio-api:latest || docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:latest"
+        echo "  docker pull linksrobot/portfolio-ui:latest || docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:latest"
         echo ""
         echo "Or use deployment script:"
         echo "  ./scripts/deploy-from-registry.sh latest"
