@@ -24,8 +24,8 @@ echo " Code formatting passed"
 
 # 3. Security audit
 echo "= 3/5 Running security audit..."
-npm run security
-if [ $? -ne 0 ]; then
+npm run security || SECURITY_FAILED=1
+if [ "$SECURITY_FAILED" = "1" ]; then
   echo "� Security audit found issues. Review but allowing push to continue."
   echo "   Check vulnerabilities and update dependencies when possible."
 fi
