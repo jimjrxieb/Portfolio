@@ -5,9 +5,12 @@ import GojoAvatar3D, { GojoAvatar3DRef } from './GojoAvatar3D';
 export default function AvatarPanel() {
   const [speaking, setSpeaking] = useState(false);
   const [speechUrl, setSpeechUrl] = useState<string>('');
+  const [muted, setMuted] = useState(false);
   const avatarRef = useRef<GojoAvatar3DRef>(null);
 
   async function onTalk(text: string) {
+    if (muted) return; // Don't speak if muted
+    
     setSpeaking(true);
     try {
       // Generate TTS with visemes using our backend
@@ -34,7 +37,9 @@ export default function AvatarPanel() {
         audioArray[i] = audioBytes.charCodeAt(i);
       }
       // Detect audio type from the base64 header or use MP3 as default
-      const audioType = data.audio_base64.startsWith('UklGR') ? 'audio/wav' : 'audio/mp3';
+      const audioType = data.audio_base64.startsWith('UklGR')
+        ? 'audio/wav'
+        : 'audio/mp3';
       const audioBlob = new Blob([audioArray], { type: audioType });
       const audioUrl = URL.createObjectURL(audioBlob);
       setSpeechUrl(audioUrl);
@@ -55,12 +60,25 @@ export default function AvatarPanel() {
     <div className="space-y-4" data-dev="avatar-panel">
       {/* Avatar Info Display */}
       <div className="bg-snow/20 rounded-lg p-3 border border-white/10">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gojo-primary">
-            Avatar: Gojo
-          </span>
-          <span className="text-xs text-gojo-secondary">•</span>
-          <span className="text-xs text-gojo-secondary">3D VRM Model</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gojo-primary">
+              Avatar: Gojo
+            </span>
+            <span className="text-xs text-gojo-secondary">•</span>
+            <span className="text-xs text-gojo-secondary">3D VRM Model</span>
+          </div>
+          <button
+            onClick={() => setMuted(!muted)}
+            className={`p-1 rounded transition-colors ${
+              muted 
+                ? 'text-red-400 hover:text-red-300' 
+                : 'text-gojo-secondary hover:text-gojo-primary'
+            }`}
+            title={muted ? 'Unmute Audio' : 'Mute Audio'}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
         </div>
         <p className="text-xs text-gojo-secondary mt-1">
           Professional male with white hair and crystal blue eyes, confident

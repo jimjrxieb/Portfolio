@@ -3,81 +3,91 @@ import React, { useState } from 'react';
 const featuredProjects = {
   linkops: {
     title: 'LinkOps AI-BOX',
-    description: 'Plug-and-play AI system for enterprise property management',
-    status: 'Active Development',
+    description: 'Enterprise AI deployment platform',
+    status: 'Product Ready',
     icon: '🚀',
     highlights: [
-      'Dual-speed CI/CD (2min content, 10min full)',
-      'RAG-powered Jade Assistant',
-      'Security-first DevSecOps',
-      '>90% golden set accuracy',
+      'Turnkey AI solution for businesses',
+      'Privacy-focused on-premise deployment', 
+      'Dual-speed CI/CD workflows',
+      'Enterprise-grade security & compliance',
+      'Scalable RAG architecture',
+    ],
+  },
+  jade: {
+    title: 'Jade BOX',
+    description: 'AI property management assistant',
+    status: 'ZRS Integration',
+    icon: '🏠',
+    highlights: [
+      'Intelligent property management automation',
+      'Tenant communication & screening',
+      'Maintenance request processing',
+      'Financial reporting & analytics',
+      'Integration with existing property systems',
+    ],
+  },
+  whis: {
+    title: 'WHIS BOX',
+    description: 'SOAR cybersecurity copilot',
+    status: 'Guardpoint Deployment',
+    icon: '🛡️',
+    highlights: [
+      'Security orchestration & automated response',
+      'Splunk & LimaCharlie log analysis',
+      'Threat intelligence integration',
+      'Incident response automation',
+      'Best practice action recommendations',
     ],
   },
   portfolio: {
-    title: '3D Portfolio Platform',
-    description: 'VRM avatar with TTS lip-sync and real-time interaction',
+    title: 'Interactive Portfolio',
+    description: '3D avatar portfolio platform',
     status: 'Live Demo',
     icon: '🎭',
     highlights: [
-      '3D Gojo avatar with VRM',
-      'Azure TTS lip-sync',
-      'Three.js integration',
-      'Real-time viseme mapping',
-    ],
-  },
-  aibox: {
-    title: 'Enterprise AI Framework',
-    description: 'Comprehensive AI infrastructure for business automation',
-    status: 'Production Ready',
-    icon: '🏢',
-    highlights: [
-      'Kubernetes orchestration',
-      'Multi-tenant RAG system',
-      'Advanced monitoring',
-      'Cloud-native architecture',
+      '3D Gojo avatar with VRM technology',
+      'Real-time TTS lip-sync animation',
+      'DevOps & AI/ML showcase',
+      'Modern web technologies (React, Three.js)',
+      'Demonstrates full-stack capabilities',
     ],
   },
 };
 
 const toolCategories = {
   devops: {
-    title: 'DevSecOps Tools',
+    title: 'DevSecOps Stack',
     icon: '🚀',
     tools: [
       {
+        name: 'Docker',
+        description: 'Containerization & microservices',
+        level: 'Advanced',
+      },
+      {
         name: 'Kubernetes',
         description: 'Container orchestration',
-        level: 'Expert',
-      },
-      {
-        name: 'Docker',
-        description: 'Containerization platform',
-        level: 'Expert',
-      },
-      {
-        name: 'Terraform',
-        description: 'Infrastructure as Code',
-        level: 'Expert',
-      },
-      {
-        name: 'Ansible',
-        description: 'Configuration management',
-        level: 'Advanced',
+        level: 'Intermediate',
       },
       {
         name: 'GitHub Actions',
-        description: 'CI/CD automation',
-        level: 'Expert',
-      },
-      {
-        name: 'SonarQube',
-        description: 'Code quality analysis',
+        description: 'CI/CD automation pipelines',
         level: 'Advanced',
       },
-      { name: 'Vault', description: 'Secret management', level: 'Advanced' },
       {
-        name: 'Prometheus',
-        description: 'Monitoring & alerting',
+        name: 'Trivy',
+        description: 'Security vulnerability scanning',
+        level: 'Intermediate',
+      },
+      {
+        name: 'Cloudflare Tunnel',
+        description: 'Secure networking & deployment',
+        level: 'Intermediate',
+      },
+      {
+        name: 'Linting Tools',
+        description: 'Code quality & formatting',
         level: 'Advanced',
       },
     ],
@@ -88,35 +98,29 @@ const toolCategories = {
     tools: [
       {
         name: 'OpenAI GPT-4o',
-        description: 'Large language models',
-        level: 'Expert',
-      },
-      { name: 'ChromaDB', description: 'Vector database', level: 'Expert' },
-      {
-        name: 'LangChain',
-        description: 'LLM application framework',
+        description: 'Large language model integration',
         level: 'Advanced',
       },
+      { name: 'ChromaDB', description: 'Vector database for RAG', level: 'Advanced' },
       {
-        name: 'Jupyter',
-        description: 'Interactive computing',
-        level: 'Expert',
+        name: 'Python',
+        description: 'AI/ML development & automation',
+        level: 'Advanced',
       },
-      { name: 'Python', description: 'ML/AI development', level: 'Expert' },
       {
         name: 'FastAPI',
-        description: 'High-performance APIs',
-        level: 'Expert',
-      },
-      {
-        name: 'RAG Pipelines',
-        description: 'Retrieval-augmented generation',
-        level: 'Expert',
-      },
-      {
-        name: 'Azure Speech',
-        description: 'Text-to-speech services',
+        description: 'High-performance API backends',
         level: 'Advanced',
+      },
+      {
+        name: 'RAG Systems',
+        description: 'Retrieval-augmented generation',
+        level: 'Intermediate',
+      },
+      {
+        name: 'Azure TTS',
+        description: 'Text-to-speech integration',
+        level: 'Intermediate',
       },
     ],
   },
@@ -289,31 +293,34 @@ export default function Projects() {
         ))}
       </div>
 
-      {/* Summary Stats */}
+      {/* Journey & Passion */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
         <h4 className="text-gojo-primary font-semibold mb-3">
-          Methodology Focus
+          Development Journey
         </h4>
+        <div className="text-gojo-secondary text-sm mb-3">
+          4 months of intensive AI & DevOps learning, combining traditional DevOps practices with cutting-edge AI capabilities.
+        </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <div className="text-crystal-400 font-semibold">Security-First</div>
+            <div className="text-crystal-400 font-semibold">Passion-Driven</div>
             <div className="text-gojo-secondary text-xs">
-              DevSecOps practices
+              AI capabilities & innovation
             </div>
           </div>
           <div>
-            <div className="text-gold-400 font-semibold">Automation</div>
-            <div className="text-gojo-secondary text-xs">CI/CD pipelines</div>
+            <div className="text-gold-400 font-semibold">Rapid Learning</div>
+            <div className="text-gojo-secondary text-xs">Modern tech stack</div>
           </div>
           <div>
-            <div className="text-jade-400 font-semibold">Scalability</div>
+            <div className="text-jade-400 font-semibold">Practical Focus</div>
             <div className="text-gojo-secondary text-xs">
-              Cloud-native design
+              Real-world applications
             </div>
           </div>
           <div>
-            <div className="text-crystal-300 font-semibold">Innovation</div>
-            <div className="text-gojo-secondary text-xs">AI/ML integration</div>
+            <div className="text-crystal-300 font-semibold">Integration</div>
+            <div className="text-gojo-secondary text-xs">DevOps + AI/ML</div>
           </div>
         </div>
       </div>
