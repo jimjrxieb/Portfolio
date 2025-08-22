@@ -62,25 +62,41 @@ export const GojoAvatar3D = React.forwardRef<
     const initScene = useCallback(() => {
       if (!containerRef.current) return;
 
-      // Scene setup
+      // Scene setup - Gojo Domain Expansion vibes
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x212121);
+      
+      // Dark purple gradient background (Domain Expansion feel)
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d')!;
+      const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+      gradient.addColorStop(0, '#1a0033'); // Deep purple top
+      gradient.addColorStop(0.5, '#0d001a'); // Darker middle
+      gradient.addColorStop(1, '#000000'); // Black bottom
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 512, 512);
+      
+      const bgTexture = new THREE.CanvasTexture(canvas);
+      scene.background = bgTexture;
       sceneRef.current = scene;
 
-      // Camera setup
+      // Camera setup - closer for Gojo focus
       const camera = new THREE.PerspectiveCamera(
-        30,
+        35,
         containerRef.current.clientWidth / containerRef.current.clientHeight,
         0.1,
         20
       );
-      camera.position.set(0, 1.4, 2.5);
+      camera.position.set(0, 1.5, 2.2);
+      camera.lookAt(0, 1.3, 0);
       cameraRef.current = camera;
 
-      // Renderer setup
+      // Renderer setup with bloom capability
       const renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
+        powerPreference: "high-performance"
       });
       renderer.setSize(
         containerRef.current.clientWidth,
@@ -89,20 +105,28 @@ export const GojoAvatar3D = React.forwardRef<
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.0;
       rendererRef.current = renderer;
 
-      // Lighting setup for avatar
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      // Lighting setup for Gojo aesthetic
+      const ambientLight = new THREE.AmbientLight(0x6666ff, 0.4); // Subtle blue ambient
       scene.add(ambientLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(1, 1, 1);
+      // Main light with blue tint
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+      directionalLight.position.set(0.5, 2, 1);
       directionalLight.castShadow = true;
       scene.add(directionalLight);
 
-      // Key light for face
-      const keyLight = new THREE.DirectionalLight(0xffffff, 0.5);
-      keyLight.position.set(-1, 2, 2);
+      // Blue rim light for "Six Eyes" glow effect
+      const rimLight = new THREE.DirectionalLight(0x00d4ff, 0.6);
+      rimLight.position.set(-1, 1, -1);
+      scene.add(rimLight);
+      
+      // Face key light
+      const keyLight = new THREE.DirectionalLight(0xffffff, 0.4);
+      keyLight.position.set(0, 2, 2);
       scene.add(keyLight);
 
       containerRef.current.appendChild(renderer.domElement);
@@ -114,20 +138,56 @@ export const GojoAvatar3D = React.forwardRef<
     // Load VRM avatar
     const loadAvatar = async () => {
       try {
-        // Since GLTFLoader type issues, we'll create a fallback avatar directly
-        console.log('VRM loader not available, using fallback avatar');
-
-        // Create fallback avatar immediately
-        createFallbackAvatar();
-        setIsLoading(false);
-        onReady?.();
+        // Try to load actual Gojo VRM model
+        const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader');
+        const loader = new GLTFLoader();
+        
+        // Load Gojo VRM from public assets
+        loader.load(
+          '/avatars/gojo.vrm', // You'll need to add the Gojo VRM file here
+          async (gltf) => {
+            try {
+              // Convert GLTF to VRM
+              const vrm = await VRM.from(gltf);
+              
+              // Add to scene
+              if (sceneRef.current) {
+                sceneRef.current.add(vrm.scene);
+                
+                // Position and scale the avatar
+                vrm.scene.position.y = -1;
+                vrm.scene.scale.set(1, 1, 1);
+                
+                // Store VRM reference
+                vrmRef.current = vrm;
+                
+                // Setup viseme mappings for Gojo
+                setupGojoVisemeMapping(vrm);
+                
+                console.log('✅ Gojo VRM loaded successfully');
+                setIsLoading(false);
+                onReady?.();
+              }
+            } catch (vrmError) {
+              console.error('VRM conversion failed:', vrmError);
+              createFallbackAvatar();
+              setIsLoading(false);
+            }
+          },
+          (progress) => {
+            console.log('Loading Gojo VRM:', (progress.loaded / progress.total * 100).toFixed(0) + '%');
+          },
+          (error) => {
+            console.error('Failed to load Gojo VRM:', error);
+            console.log('Using enhanced fallback avatar');
+            createFallbackAvatar();
+            setIsLoading(false);
+          }
+        );
       } catch (err) {
-        console.error('Failed to load avatar:', err);
-        setError('Failed to load Gojo avatar. Using fallback mode.');
-        setIsLoading(false);
-
-        // Create a simple fallback representation
+        console.error('GLTFLoader import failed:', err);
         createFallbackAvatar();
+        setIsLoading(false);
       }
     };
 
@@ -341,17 +401,50 @@ export const GojoAvatar3D = React.forwardRef<
       animateLipSync();
     };
 
-    // Map blendshape names to VRM expressions
+    // Setup Gojo-specific viseme mappings
+    const setupGojoVisemeMapping = (vrm: VRM) => {
+      // Store expression names for Gojo model
+      console.log('Setting up Gojo viseme mappings');
+      
+      // Common VRM expression names that Gojo models use
+      const expressions = vrm.expressionManager;
+      if (expressions) {
+        // Log available expressions for debugging
+        const availableExpressions = Object.keys(expressions.expressionMap || {});
+        console.log('Available Gojo expressions:', availableExpressions);
+      }
+    };
+    
+    // Map blendshape names to VRM expressions (Gojo-optimized)
     const mapToVRMExpression = (shapeName: string): string | null => {
+      // Mapping for typical Gojo VRM models
       const mapping: Record<string, string> = {
-        A: 'aa',
-        I: 'ih',
-        U: 'ou',
-        E: 'ee',
-        O: 'oh',
-        jawOpen: 'jawOpen',
+        // Vowel visemes
+        A: 'aa',      // あ
+        I: 'ih',      // い
+        U: 'ou',      // う
+        E: 'ee',      // え
+        O: 'oh',      // お
+        
+        // Mouth controls
+        jawOpen: 'mouth_open',
+        
+        // Additional expressions for Gojo
+        smile: 'happy',
+        smirk: 'relaxed',
+        serious: 'neutral',
+        
+        // Eye controls (Six Eyes effect)
+        blink: 'blink',
+        blinkLeft: 'blinkLeft', 
+        blinkRight: 'blinkRight',
       };
-      return mapping[shapeName] || null;
+      
+      // Try multiple possible names (VRM models vary)
+      return mapping[shapeName] || 
+             mapping[shapeName.toLowerCase()] || 
+             shapeName.toLowerCase() || 
+             null;
     };
 
     // Reset mouth to neutral position
