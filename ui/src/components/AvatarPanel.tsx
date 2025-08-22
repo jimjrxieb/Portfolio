@@ -17,8 +17,8 @@ export default function AvatarPanel() {
         body: JSON.stringify({
           text,
           voice: 'en-US-DavisNeural',
-          include_visemes: true
-        })
+          include_visemes: true,
+        }),
       });
 
       if (!response.ok) {
@@ -26,14 +26,16 @@ export default function AvatarPanel() {
       }
 
       const data = await response.json();
-      
+
       // Convert base64 audio to blob URL for the audio controls
       const audioBytes = atob(data.audio_base64);
       const audioArray = new Uint8Array(audioBytes.length);
       for (let i = 0; i < audioBytes.length; i++) {
         audioArray[i] = audioBytes.charCodeAt(i);
       }
-      const audioBlob = new Blob([audioArray], { type: 'audio/wav' });
+      // Detect audio type from the base64 header or use MP3 as default
+      const audioType = data.audio_base64.startsWith('UklGR') ? 'audio/wav' : 'audio/mp3';
+      const audioBlob = new Blob([audioArray], { type: audioType });
       const audioUrl = URL.createObjectURL(audioBlob);
       setSpeechUrl(audioUrl);
 
@@ -41,7 +43,6 @@ export default function AvatarPanel() {
       if (avatarRef.current) {
         await avatarRef.current.speak(data);
       }
-
     } catch (err: any) {
       console.error('TTS error:', err);
       alert(`Speech generation failed: ${err.message}`);
@@ -59,22 +60,21 @@ export default function AvatarPanel() {
             Avatar: Gojo
           </span>
           <span className="text-xs text-gojo-secondary">•</span>
-          <span className="text-xs text-gojo-secondary">
-            3D VRM Model
-          </span>
+          <span className="text-xs text-gojo-secondary">3D VRM Model</span>
         </div>
         <p className="text-xs text-gojo-secondary mt-1">
-          Professional male with white hair and crystal blue eyes, confident voice with TTS lip-sync
+          Professional male with white hair and crystal blue eyes, confident
+          voice with TTS lip-sync
         </p>
       </div>
 
       {/* 3D Avatar Display */}
       <div className="w-full h-80 rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-crystal-500/5 to-ink/20">
-        <GojoAvatar3D 
+        <GojoAvatar3D
           ref={avatarRef}
           speaking={speaking}
           onReady={() => console.log('Gojo avatar ready')}
-          onSpeaking={(speaking) => setSpeaking(speaking)}
+          onSpeaking={speaking => setSpeaking(speaking)}
           onAnimationComplete={() => console.log('Animation complete')}
           className="w-full h-full"
         />
@@ -93,7 +93,7 @@ export default function AvatarPanel() {
         >
           {speaking ? '🎤 Speaking...' : '▶️ Play Introduction'}
         </button>
-        
+
         <button
           className="w-full bg-gold-500/20 hover:bg-gold-500/30 text-gojo-primary border border-gold-500/30 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
           onClick={() =>
@@ -105,12 +105,12 @@ export default function AvatarPanel() {
         >
           {speaking ? '🎤 Speaking...' : '🎬 Ask About Projects'}
         </button>
-        
+
         {speechUrl && (
           <div className="mt-3">
-            <audio 
-              controls 
-              src={speechUrl} 
+            <audio
+              controls
+              src={speechUrl}
               className="w-full"
               onEnded={() => {
                 URL.revokeObjectURL(speechUrl);
