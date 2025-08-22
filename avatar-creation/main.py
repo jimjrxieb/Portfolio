@@ -14,6 +14,8 @@ from datetime import datetime
 import openai
 from tts_service_mock import get_tts_service
 import asyncio
+import chromadb
+from chromadb.config import Settings
 
 app = FastAPI(
     title="Gojo 3D Avatar Service",
@@ -37,10 +39,54 @@ GPT_MODEL = os.getenv("GPT_MODEL", "gpt-4o-mini")
 # Initialize TTS Service (real or mock)
 tts_service = get_tts_service()
 
+# Initialize ChromaDB RAG client
+try:
+    chroma_client = chromadb.PersistentClient(
+        path="../data/chroma",
+        settings=Settings(allow_reset=True)
+    )
+    # Try to find the portfolio collection
+    collections = chroma_client.list_collections()
+    collection = None
+    for col in collections:
+        if "portfolio" in col.name and col.count() > 0:
+            collection = col
+            break
+    
+    if not collection:
+        raise Exception("No portfolio collection found")
+    print("✅ ChromaDB RAG system connected successfully")
+except Exception as e:
+    print(f"⚠️ ChromaDB not available: {e}")
+    chroma_client = None
+    collection = None
+
 # Mount static files for avatar assets
 app.mount("/avatars", StaticFiles(directory="avatars"), name="avatars")
 
 # Gojo Character Configuration
+# RAG Query Function
+def query_rag_knowledge(question: str, max_results: int = 3) -> str:
+    """Query the RAG system for relevant knowledge about Jimmie Coleman"""
+    if not collection:
+        return ""
+    
+    try:
+        results = collection.query(
+            query_texts=[question],
+            n_results=max_results,
+            include=["documents", "metadatas"]
+        )
+        
+        if results and results['documents'] and results['documents'][0]:
+            # Combine the relevant documents
+            context_docs = results['documents'][0]
+            return "\n\n".join(context_docs)
+        return ""
+    except Exception as e:
+        print(f"RAG query error: {e}")
+        return ""
+
 GOJO_PERSONALITY = """
 You are Gojo, a professional AI avatar representing Jimmie Coleman's portfolio.
 
@@ -146,31 +192,27 @@ async def get_avatar_status():
 async def chat_with_gojo(request: ChatRequest):
     """Chat with Gojo avatar about Jimmie's experience"""
     
+    # Always use RAG if available, regardless of OpenAI API key
+    rag_context = query_rag_knowledge(request.message)
+    
     if not openai.api_key:
-        # Return a fallback response when API key is not configured
-        fallback_responses = {
-            "devops": "I'm Gojo, representing Jimmie Coleman's portfolio. Jimmie specializes in DevSecOps with advanced CI/CD pipelines, Kubernetes orchestration, and security-first development practices. He's built production-ready infrastructure that reduces deployment time from hours to minutes.",
-            "aiml": "Jimmie has extensive AI/ML experience including RAG system implementation, LLM integration, and machine learning pipeline development. He's currently developing the LinkOps AI-BOX, an offline AI solution running Jade AI Assistant for ZRS Management in Orlando, FL using Phi-3 model with ChromaDB RAG.",
-            "linkops": "The LinkOps AI-BOX is an offline AI solution for clients, starting with ZRS Management in Orlando, FL. It runs Jade AI Assistant using Phi-3 fine-tuned with ZRS policies and housing laws, ChromaDB for RAG, automated onboarding and work order completion, with Giancarlo Esposito style voice synthesis.",
-            "afterlife": "LinkOps Afterlife is an open-source avatar creation platform for preserving memories of loved ones who have passed away. It uses multi-photo upload, voice sampling, personality descriptions, and RAG-powered responses with D-ID API integration and ElevenLabs voice synthesis.",
-            "projects": "Jimmie's key projects include the LinkOps AI-BOX with Jade Assistant for ZRS Management, LinkOps Afterlife open-source avatar platform, and this Portfolio platform featuring microservices architecture with Kubernetes deployment.",
-            "general": "Hello! I'm Gojo, Jimmie Coleman's AI portfolio assistant. I can tell you about his DevSecOps expertise, LinkOps AI-BOX for ZRS Management, LinkOps Afterlife project, or his technical architecture experience. What would you like to know?"
-        }
-        
-        # Simple keyword matching for fallback (order matters - check specific terms first)
-        message_lower = request.message.lower()
-        if any(word in message_lower for word in ['linkops', 'ai-box', 'aibox', 'jade', 'zrs']):
-            response_text = fallback_responses["linkops"]
-        elif any(word in message_lower for word in ['afterlife', 'loved ones', 'memorial']):
-            response_text = fallback_responses["afterlife"]
-        elif any(word in message_lower for word in ['devops', 'cicd', 'ci/cd', 'kubernetes', 'deployment']):
-            response_text = fallback_responses["devops"]
-        elif any(word in message_lower for word in ['ai', 'ml', 'artificial', 'machine', 'learning', 'rag']) and 'linkops' not in message_lower:
-            response_text = fallback_responses["aiml"]
-        elif any(word in message_lower for word in ['project', 'projects']):
-            response_text = fallback_responses["projects"]
+        # Use RAG-enhanced fallback responses when API key is not configured
+        if rag_context:
+            # If we have RAG context, use it to generate a response
+            context_preview = rag_context[:500] + "..." if len(rag_context) > 500 else rag_context
+            
+            # Extract key information from RAG context for smarter responses
+            if "linkops" in rag_context.lower() or "ai-box" in rag_context.lower():
+                response_text = f"Based on Jimmie's portfolio: {context_preview}"
+            elif "devops" in rag_context.lower() or "kubernetes" in rag_context.lower():
+                response_text = f"Regarding Jimmie's DevSecOps expertise: {context_preview}"
+            elif "technologies" in request.message.lower() or "tools" in request.message.lower():
+                response_text = f"Jimmie's technical stack includes: {context_preview}"
+            else:
+                response_text = f"From Jimmie's experience: {context_preview}"
         else:
-            response_text = fallback_responses["general"]
+            # Basic fallback if no RAG context
+            response_text = "Hello! I'm Gojo, Jimmie Coleman's AI portfolio assistant. I can tell you about his DevSecOps expertise, AI/ML projects like LinkOps AI-BOX, or his technical architecture experience. What would you like to know?"
         
         return ChatResponse(
             response=response_text,
@@ -190,6 +232,10 @@ async def chat_with_gojo(request: ChatRequest):
         
         if request.context:
             system_prompt += f"\nADDITIONAL CONTEXT: {request.context}"
+            
+        # Add RAG context if available
+        if rag_context:
+            system_prompt += f"\nRELEVANT PORTFOLIO KNOWLEDGE:\n{rag_context}\n\nUse this knowledge to provide accurate, detailed responses about Jimmie's experience."
         
         # Call OpenAI API
         response = openai.chat.completions.create(
