@@ -58,25 +58,18 @@ class MockTTSService:
             # Create WAV file header + audio data
             samples = int(duration_ms * sample_rate / 1000)
             
-            # Generate a speech-like tone pattern (multiple frequencies)
+            # Generate simple notification instead of weird speech sounds
             audio_samples = []
-            for i in range(samples):
+            notification_duration = min(1.0, duration_ms / 1000)  # Max 1 second
+            actual_samples = int(notification_duration * sample_rate)
+            
+            for i in range(actual_samples):
                 t = i / sample_rate
                 
-                # Create speech-like modulated tone
-                base_freq = 150 + 50 * math.sin(t * 2)  # Voice fundamental frequency
-                formant1 = 800 + 200 * math.sin(t * 3)  # First formant
-                formant2 = 1200 + 300 * math.sin(t * 4)  # Second formant
-                
-                # Mix frequencies to create voice-like sound
-                amplitude = 0.15
-                sample1 = math.sin(2 * math.pi * base_freq * t)
-                sample2 = 0.3 * math.sin(2 * math.pi * formant1 * t)
-                sample3 = 0.2 * math.sin(2 * math.pi * formant2 * t)
-                
-                # Add envelope for natural sound
-                envelope = math.exp(-t * 0.5) if t < 1.0 else 0.8
-                final_sample = envelope * amplitude * (sample1 + sample2 + sample3)
+                # Simple pleasant notification tone (like a soft chime)
+                freq = 800  # Single clean frequency
+                envelope = math.sin(t * math.pi / notification_duration)  # Natural fade in/out
+                final_sample = envelope * 0.2 * math.sin(2 * math.pi * freq * t)  # Quieter
                 
                 # Convert to 16-bit integer
                 int_sample = int(max(-32767, min(32767, final_sample * 32767)))
@@ -93,7 +86,7 @@ class MockTTSService:
             
             wav_data = wav_header + audio_data
             audio_base64 = base64.b64encode(wav_data).decode('utf-8')
-            print("🎵 Generated speech-like audio tone")
+            print("🔔 Generated notification chime (TTS not available)")
             
         except Exception as e:
             print(f"⚠️ Audio generation failed: {e}, using minimal tone")
