@@ -21,10 +21,10 @@ const ChatBoxFixed: React.FC = () => {
 
   const quickPrompts = [
     "Tell me about Jimmie's DevSecOps experience",
-    "What is LinkOps AI-BOX?", 
-    "What technologies does Jimmie use?",
-    "How was the CI/CD pipeline built?",
-    "What security tools were implemented?"
+    'What is LinkOps AI-BOX?',
+    'What technologies does Jimmie use?',
+    'How was the CI/CD pipeline built?',
+    'What security tools were implemented?',
   ];
 
   const sendMessage = async (text: string) => {
@@ -34,7 +34,7 @@ const ChatBoxFixed: React.FC = () => {
       id: Date.now() + '-user',
       text: text.trim(),
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -50,35 +50,36 @@ const ChatBoxFixed: React.FC = () => {
         },
         body: JSON.stringify({
           message: text.trim(),
-          audience_type: 'general'
-        })
+          audience_type: 'general',
+        }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ detail: 'Unknown error' }));
         throw new Error(errorData.detail || `HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       const gojoMessage: ChatMessage = {
         id: Date.now() + '-gojo',
         text: data.response || "I'm having trouble responding right now.",
         sender: 'gojo',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, gojoMessage]);
-
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
-      
+
       // Add error message to chat
       const errorMessage: ChatMessage = {
         id: Date.now() + '-error',
         text: `Sorry—something went wrong reaching my brain.\n${err instanceof Error ? err.message : 'Unknown error'}`,
         sender: 'gojo',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -102,11 +103,13 @@ const ChatBoxFixed: React.FC = () => {
         {messages.length === 0 && (
           <div className="text-center text-gray-500 py-8">
             <p>👋 Hi! I'm Gojo, Jimmie's AI assistant.</p>
-            <p className="text-sm mt-1">Ask me about his DevSecOps or AI/ML work...</p>
+            <p className="text-sm mt-1">
+              Ask me about his DevSecOps or AI/ML work...
+            </p>
           </div>
         )}
-        
-        {messages.map((msg) => (
+
+        {messages.map(msg => (
           <div
             key={msg.id}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -125,7 +128,7 @@ const ChatBoxFixed: React.FC = () => {
             </div>
           </div>
         ))}
-        
+
         {loading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">
@@ -141,7 +144,9 @@ const ChatBoxFixed: React.FC = () => {
       {/* Error Display */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p className="text-sm"><strong>Error:</strong> {error}</p>
+          <p className="text-sm">
+            <strong>Error:</strong> {error}
+          </p>
         </div>
       )}
 
@@ -168,7 +173,7 @@ const ChatBoxFixed: React.FC = () => {
           <input
             type="text"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={e => setMessage(e.target.value)}
             placeholder="Ask about my AI/ML or DevSecOps work..."
             disabled={loading}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"

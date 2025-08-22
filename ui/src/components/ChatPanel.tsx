@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ChatBox from './ChatBox';
+import ChatBoxFixed from './ChatBoxFixed';
 import { API_BASE } from '../lib/api';
 
 export default function ChatPanel() {
@@ -13,7 +13,15 @@ export default function ChatPanel() {
   useEffect(() => {
     fetch(`${API_BASE}/health`)
       .then(r => r.json())
-      .then(data => setHealth(data))
+      .then(data => {
+        // Map backend health response to expected format
+        setHealth({
+          llm_model: data.model || 'gpt-4o-mini',
+          llm_provider: 'openai',
+          rag_namespace: 'portfolio',
+          status: data.status,
+        });
+      })
       .catch(console.error);
   }, []);
 
@@ -30,7 +38,7 @@ export default function ChatPanel() {
           {health?.status === 'healthy' ? '✅ RAG Active' : '⚠️ Degraded'}
         </span>
       </div>
-      <ChatBox />
+      <ChatBoxFixed />
     </div>
   );
 }
