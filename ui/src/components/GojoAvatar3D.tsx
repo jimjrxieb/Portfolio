@@ -191,41 +191,67 @@ export const GojoAvatar3D = React.forwardRef<
       }
     };
 
-    // Create improved fallback avatar that looks more like a character
+    // Create improved Gojo programmatic avatar
     const createFallbackAvatar = () => {
       if (!sceneRef.current) return;
 
-      // Gojo character representation
-      const group = new THREE.Group();
+      // Create anime-style Gojo
+      const gojo = new THREE.Group();
 
-      // Head (skin tone)
-      const headGeometry = new THREE.SphereGeometry(0.25, 32, 32);
-      const headMaterial = new THREE.MeshLambertMaterial({ color: 0xfdbcb4 }); // Skin tone
-      const head = new THREE.Mesh(headGeometry, headMaterial);
-      head.position.y = 1.4;
-      group.add(head);
+      // Create toon gradient for anime shading
+      const colors = new Uint8Array([0, 127, 255]);
+      const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+      gradientMap.needsUpdate = true;
 
-      // Hair (spiky white hair - multiple spheres for spiky effect)
-      const hairMaterial = new THREE.MeshLambertMaterial({ color: 0xf8f9fa });
-      
-      // Main hair mass
-      const hairGeometry = new THREE.SphereGeometry(0.28, 16, 16);
-      const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-      hair.position.y = 1.55;
-      group.add(hair);
-      
-      // Hair spikes
-      for (let i = 0; i < 6; i++) {
-        const spike = new THREE.SphereGeometry(0.08, 8, 8);
-        const spikeMesh = new THREE.Mesh(spike, hairMaterial);
-        const angle = (i / 6) * Math.PI * 2;
-        spikeMesh.position.set(
-          Math.cos(angle) * 0.25,
-          1.65 + Math.random() * 0.1,
-          Math.sin(angle) * 0.25
-        );
-        group.add(spikeMesh);
+      // Head with anime proportions (slightly elongated)
+      const headGeometry = new THREE.BoxGeometry(0.4, 0.5, 0.35, 2, 2, 2);
+      // Round the edges
+      headGeometry.translate(0, 0, 0.05);
+      const positions = headGeometry.attributes.position;
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const y = positions.getY(i);
+        const z = positions.getZ(i);
+        const distance = Math.sqrt(x * x + y * y * 0.7);
+        if (distance > 0.18) {
+          positions.setX(i, x * 0.85);
+          positions.setZ(i, z * 0.9);
+        }
       }
+      
+      const headMaterial = new THREE.MeshToonMaterial({ 
+        color: 0xFFE4D6,
+        gradientMap: gradientMap
+      });
+      const head = new THREE.Mesh(headGeometry, headMaterial);
+      head.position.y = 1.6;
+      gojo.add(head);
+
+      // Create signature Gojo spiky white hair
+      const hairMaterial = new THREE.MeshToonMaterial({ 
+        color: 0xF8F8FF,
+        gradientMap: gradientMap
+      });
+      
+      // Multiple hair spikes for anime look
+      const spikeData = [
+        { pos: [0, 1.95, 0], scale: [0.35, 0.35, 0.3], rot: [0, 0, 0] },
+        { pos: [-0.15, 1.9, 0.05], scale: [0.2, 0.3, 0.2], rot: [0, 0, -0.3] },
+        { pos: [0.15, 1.9, 0.05], scale: [0.2, 0.3, 0.2], rot: [0, 0, 0.3] },
+        { pos: [0, 2.0, -0.1], scale: [0.25, 0.25, 0.2], rot: [-0.2, 0, 0] },
+        { pos: [-0.1, 1.92, -0.12], scale: [0.15, 0.25, 0.15], rot: [-0.3, -0.2, -0.2] },
+        { pos: [0.1, 1.92, -0.12], scale: [0.15, 0.25, 0.15], rot: [-0.3, 0.2, 0.2] },
+        { pos: [-0.08, 1.88, 0.12], scale: [0.18, 0.22, 0.15], rot: [0.2, -0.1, -0.15] },
+        { pos: [0.08, 1.88, 0.12], scale: [0.18, 0.22, 0.15], rot: [0.2, 0.1, 0.15] },
+      ];
+      
+      spikeData.forEach(spike => {
+        const geometry = new THREE.ConeGeometry(...spike.scale.slice(0, 2), 5);
+        const mesh = new THREE.Mesh(geometry, hairMaterial);
+        mesh.position.set(...spike.pos);
+        mesh.rotation.set(...spike.rot);
+        gojo.add(mesh);
+      });
 
       // Eyes (bright blue/white glow effect)
       const eyeMaterial = new THREE.MeshBasicMaterial({ 
@@ -236,12 +262,14 @@ export const GojoAvatar3D = React.forwardRef<
       
       const eyeGeometry = new THREE.SphereGeometry(0.04, 16, 16);
       const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-      leftEye.position.set(-0.08, 1.42, 0.22);
-      group.add(leftEye);
+      leftEye.position.set(-0.08, 1.62, 0.15);
+      leftEye.scale.set(1.2, 0.7, 1); // Anime eye shape
+      gojo.add(leftEye);
 
       const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-      rightEye.position.set(0.08, 1.42, 0.22);
-      group.add(rightEye);
+      rightEye.position.set(0.08, 1.62, 0.15);
+      rightEye.scale.set(1.2, 0.7, 1); // Anime eye shape
+      gojo.add(rightEye);
 
       // Eye glow effect
       const glowMaterial = new THREE.MeshBasicMaterial({ 
@@ -253,33 +281,43 @@ export const GojoAvatar3D = React.forwardRef<
       
       const leftGlow = new THREE.Mesh(glowGeometry, glowMaterial);
       leftGlow.position.copy(leftEye.position);
-      group.add(leftGlow);
+      gojo.add(leftGlow);
       
       const rightGlow = new THREE.Mesh(glowGeometry, glowMaterial);
       rightGlow.position.copy(rightEye.position);
-      group.add(rightGlow);
+      gojo.add(rightGlow);
 
-      // Mouth (small dark line)
-      const mouthGeometry = new THREE.BoxGeometry(0.08, 0.01, 0.01);
+      // Mouth (anime style line)
+      const mouthGeometry = new THREE.BoxGeometry(0.06, 0.008, 0.01);
       const mouthMaterial = new THREE.MeshLambertMaterial({ color: 0x2d3748 });
       const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
-      mouth.position.set(0, 1.32, 0.23);
-      group.add(mouth);
+      mouth.position.set(0, 1.52, 0.17);
+      gojo.add(mouth);
 
-      // Body/shirt (dark uniform)
-      const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.3, 1.0, 8);
-      const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x1a202c });
+      // High collar Jujutsu uniform
+      const bodyGeometry = new THREE.CylinderGeometry(0.28, 0.32, 1.0, 8);
+      const bodyMaterial = new THREE.MeshToonMaterial({ 
+        color: 0x0A0A0A,
+        gradientMap: gradientMap
+      });
       const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-      body.position.y = 0.7;
-      group.add(body);
+      body.position.y = 0.8;
+      gojo.add(body);
+      
+      // High collar detail
+      const collarGeometry = new THREE.CylinderGeometry(0.18, 0.22, 0.15, 8);
+      const collar = new THREE.Mesh(collarGeometry, bodyMaterial);
+      collar.position.y = 1.35;
+      gojo.add(collar);
 
-      // Store reference for animations
-      (group as any).leftEye = leftEye;
-      (group as any).rightEye = rightEye;
-      (group as any).mouth = mouth;
+      // Store references for animations
+      (gojo as any).leftEye = leftEye;
+      (gojo as any).rightEye = rightEye;
+      (gojo as any).mouth = mouth;
+      (gojo as any).head = head;
 
-      sceneRef.current.add(group);
-      console.log('Enhanced Gojo fallback avatar created');
+      sceneRef.current.add(gojo);
+      console.log('🎌 High-quality Gojo programmatic avatar created');
     };
 
     // Animation loop
