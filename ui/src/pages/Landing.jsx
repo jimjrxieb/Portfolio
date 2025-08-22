@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AvatarPanel from '../components/AvatarPanel.tsx';
 import ChatPanel from '../components/ChatPanel.tsx';
 import Projects from '../components/Projects.tsx';
-import IntroModal from '../components/IntroModal.tsx';
+// import IntroModal from '../components/IntroModal.tsx';
 
 export default function Landing() {
   const [showIntroModal, setShowIntroModal] = useState(false);
@@ -21,18 +21,7 @@ export default function Landing() {
       {/* Header */}
       <div className="relative z-10 p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-crystal-400 to-gold-400 flex items-center justify-center">
-                <span className="text-ink font-bold text-lg">G</span>
-              </div>
-              <div>
-                <h1 className="text-gojo-primary font-bold text-lg">Gojo</h1>
-                <p className="text-gojo-secondary text-sm">
-                  AI Portfolio Assistant
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center justify-end">
             <div className="text-right">
               <p className="text-gojo-primary text-sm font-medium">
                 Jimmie Coleman
@@ -54,12 +43,27 @@ export default function Landing() {
               {/* Avatar Section */}
               <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
                 <div className="mb-4">
-                  <h2 className="text-gojo-primary font-semibold text-lg mb-1">
-                    Meet Gojo
-                  </h2>
-                  <p className="text-gojo-secondary text-sm">
-                    Professional AI assistant with dual-speed CI/CD expertise
-                  </p>
+                  <h1 className="text-gojo-primary font-bold text-2xl mb-2">
+                    Jimmie Coleman Portfolio
+                  </h1>
+                  <div className="flex gap-4 text-sm">
+                    <a 
+                      href="https://linkedin.com/in/jimmie-coleman" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-crystal-400 hover:text-crystal-300 underline"
+                    >
+                      LinkedIn
+                    </a>
+                    <a 
+                      href="https://github.com/jimjrxieb" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-crystal-400 hover:text-crystal-300 underline"
+                    >
+                      GitHub
+                    </a>
+                  </div>
                 </div>
                 <AvatarPanel />
               </div>
@@ -146,10 +150,11 @@ export default function Landing() {
       </div>
 
       {/* IP-Safe Intro Modal */}
-      <IntroModal
-        isOpen={showIntroModal}
-        onClose={() => setShowIntroModal(false)}
-      />
+      {showIntroModal && (
+        <div className="text-center text-yellow-400 p-4">
+          Intro Modal Placeholder
+        </div>
+      )}
     </div>
   );
 }

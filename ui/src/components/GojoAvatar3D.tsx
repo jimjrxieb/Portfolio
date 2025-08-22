@@ -222,7 +222,9 @@ export const GojoAvatar3D = React.forwardRef<
 
       try {
         // Create audio from base64 with proper type detection
-        const audioType = ttsData.audio_base64.startsWith('UklGR') ? 'audio/wav' : 'audio/mp3';
+        const audioType = ttsData.audio_base64.startsWith('UklGR')
+          ? 'audio/wav'
+          : 'audio/mp3';
         const audioBlob = new Blob(
           [Uint8Array.from(atob(ttsData.audio_base64), c => c.charCodeAt(0))],
           { type: audioType }

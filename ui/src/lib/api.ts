@@ -1,4 +1,5 @@
-export const API_BASE = import.meta.env.VITE_API_BASE || '';
+export const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
 
 export type ChatRequest = {
   message: string;
@@ -22,17 +23,36 @@ export async function chat(
   req: ChatRequest,
   signal?: AbortSignal
 ): Promise<ChatResponse> {
-  const r = await fetch(`${API_BASE}/api/chat`, {
+  // Map to our backend API format
+  const backendRequest = {
+    message: req.message,
+    audience_type: 'general',
+    context: null,
+  };
+
+  const r = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
+    body: JSON.stringify(backendRequest),
     signal,
   });
+
   if (!r.ok) {
     const detail = await safeJson(r);
     throw new Error(`Chat failed (${r.status}): ${JSON.stringify(detail)}`);
   }
-  return r.json();
+
+  const response = await r.json();
+
+  // Map backend response to frontend format
+  return {
+    answer:
+      response.response ||
+      response.text_response ||
+      "I'm having trouble responding right now.",
+    citations: [],
+    model: 'gojo-avatar',
+  };
 }
 
 export async function makeAvatar(
