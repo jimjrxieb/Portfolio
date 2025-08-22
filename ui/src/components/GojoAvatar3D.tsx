@@ -131,48 +131,95 @@ export const GojoAvatar3D = React.forwardRef<
       }
     };
 
-    // Create fallback avatar if VRM fails to load
+    // Create improved fallback avatar that looks more like a character
     const createFallbackAvatar = () => {
       if (!sceneRef.current) return;
 
-      // Simple geometric representation of Gojo
+      // Gojo character representation
       const group = new THREE.Group();
 
-      // Head (sphere with white hair texture)
-      const headGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-      const headMaterial = new THREE.MeshLambertMaterial({ color: 0xffeaa7 });
+      // Head (skin tone)
+      const headGeometry = new THREE.SphereGeometry(0.25, 32, 32);
+      const headMaterial = new THREE.MeshLambertMaterial({ color: 0xfdbcb4 }); // Skin tone
       const head = new THREE.Mesh(headGeometry, headMaterial);
       head.position.y = 1.4;
       group.add(head);
 
-      // Hair (larger sphere, white)
-      const hairGeometry = new THREE.SphereGeometry(0.35, 32, 32);
+      // Hair (spiky white hair - multiple spheres for spiky effect)
       const hairMaterial = new THREE.MeshLambertMaterial({ color: 0xf8f9fa });
+      
+      // Main hair mass
+      const hairGeometry = new THREE.SphereGeometry(0.28, 16, 16);
       const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-      hair.position.y = 1.5;
+      hair.position.y = 1.55;
       group.add(hair);
+      
+      // Hair spikes
+      for (let i = 0; i < 6; i++) {
+        const spike = new THREE.SphereGeometry(0.08, 8, 8);
+        const spikeMesh = new THREE.Mesh(spike, hairMaterial);
+        const angle = (i / 6) * Math.PI * 2;
+        spikeMesh.position.set(
+          Math.cos(angle) * 0.25,
+          1.65 + Math.random() * 0.1,
+          Math.sin(angle) * 0.25
+        );
+        group.add(spikeMesh);
+      }
 
-      // Eyes (crystal blue)
-      const eyeGeometry = new THREE.SphereGeometry(0.03, 16, 16);
-      const eyeMaterial = new THREE.MeshLambertMaterial({ color: 0x00b8ff });
-
+      // Eyes (bright blue/white glow effect)
+      const eyeMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x00d4ff,
+        transparent: true,
+        opacity: 0.9,
+      });
+      
+      const eyeGeometry = new THREE.SphereGeometry(0.04, 16, 16);
       const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-      leftEye.position.set(-0.1, 1.4, 0.25);
+      leftEye.position.set(-0.08, 1.42, 0.22);
       group.add(leftEye);
 
       const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-      rightEye.position.set(0.1, 1.4, 0.25);
+      rightEye.position.set(0.08, 1.42, 0.22);
       group.add(rightEye);
 
-      // Body (simple cylinder)
-      const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
-      const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x2d3748 });
+      // Eye glow effect
+      const glowMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x00d4ff,
+        transparent: true,
+        opacity: 0.3,
+      });
+      const glowGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+      
+      const leftGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+      leftGlow.position.copy(leftEye.position);
+      group.add(leftGlow);
+      
+      const rightGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+      rightGlow.position.copy(rightEye.position);
+      group.add(rightGlow);
+
+      // Mouth (small dark line)
+      const mouthGeometry = new THREE.BoxGeometry(0.08, 0.01, 0.01);
+      const mouthMaterial = new THREE.MeshLambertMaterial({ color: 0x2d3748 });
+      const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+      mouth.position.set(0, 1.32, 0.23);
+      group.add(mouth);
+
+      // Body/shirt (dark uniform)
+      const bodyGeometry = new THREE.CylinderGeometry(0.25, 0.3, 1.0, 8);
+      const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x1a202c });
       const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-      body.position.y = 0.6;
+      body.position.y = 0.7;
       group.add(body);
 
+      // Store reference for animations
+      (group as any).leftEye = leftEye;
+      (group as any).rightEye = rightEye;
+      (group as any).mouth = mouth;
+
       sceneRef.current.add(group);
-      console.log('Fallback Gojo avatar created');
+      console.log('Enhanced Gojo fallback avatar created');
     };
 
     // Animation loop

@@ -103,7 +103,7 @@ export default function AvatarPanel() {
           className="w-full bg-crystal-500/20 hover:bg-crystal-500/30 text-gojo-primary border border-crystal-500/30 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
           onClick={() =>
             onTalk(
-              "Hello! I'm Gojo, representing Jimmie Coleman's portfolio. I specialize in DevSecOps with advanced CI/CD pipelines, Kubernetes orchestration, and security-first development practices. I'm excited to discuss the LinkOps AI-BOX project and how it revolutionizes enterprise AI deployment."
+              "Welcome to Jimmie's portfolio page! I'm Gojo Links and I'll be hosting you while on this site. Let me give you a brief introduction to Jimmie. He is CKA and CompTIA Security Plus certified with a deep passion for AI and built this platform using it. He is currently working on 3 LinkOps AI-BOX projects for 3 separate clients. Ask anything in the chatbox and I'll try my best to answer them."
             )
           }
           disabled={speaking}
@@ -115,12 +115,12 @@ export default function AvatarPanel() {
           className="w-full bg-gold-500/20 hover:bg-gold-500/30 text-gojo-primary border border-gold-500/30 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
           onClick={() =>
             onTalk(
-              'The LinkOps AI-BOX uses dual-speed CI/CD workflows with content deployment in under 2 minutes and full pipeline completion in 10 minutes. This enables instant knowledge updates for enterprise AI systems while maintaining security-first practices and over 90% golden set accuracy.'
+              'Jimmie built this entire platform combining his DevSecOps expertise with AI passion. He created three LinkOps AI-BOX solutions: one for enterprise deployment, Jade BOX for property management, and WHIS BOX for cybersecurity. Each leverages his skills in Docker, Kubernetes, GitHub Actions, and AI technologies like RAG systems and vector databases.'
             )
           }
           disabled={speaking}
         >
-          {speaking ? '🎤 Speaking...' : '🎬 Ask About Projects'}
+          {speaking ? '🎤 Speaking...' : '🎬 About the Platform'}
         </button>
 
         {speechUrl && (

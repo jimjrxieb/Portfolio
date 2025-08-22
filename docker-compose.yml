@@ -1,20 +1,37 @@
+version: '3.8'
+
 services:
-  api:
-    build: 
-      context: ./api
-    env_file: .env
+  # ChromaDB Vector Database Service
+  chromadb:
+    build: ./chromadb
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
-      - ./models:/app/models
-      - ./data:/app/data
-    deploy:
-      resources:
-        limits:
-          memory: 2g
-        reservations:
-          memory: 1g
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+      - ./data/chroma:/chroma/data
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Gojo Avatar Creation Service
+  avatar-creation:
+    build: ./avatar-creation
+    ports:
+      - "8002:8000"
+    environment:
+      - AVATAR_CHARACTER=gojo
+      - AVATAR_DESCRIPTION=Professional male with white hair and crystal blue eyes
+      - GPT_MODEL=gpt-4o-mini
+      - GPT_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./data/avatars:/app/avatars
+    depends_on:
+      - chromadb
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -22,22 +39,58 @@ services:
       retries: 3
     restart: unless-stopped
 
+  # RAG Pipeline Service (Jupyter-based)
+  rag-pipeline:
+    build: ./rag-pipeline
+    ports:
+      - "8888:8888"  # Jupyter Lab
+      - "8003:8000"  # RAG API
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=portfolio-rag-2025
+      - CHROMA_URL=http://chromadb:8000
+      - GPT_MODEL=gpt-4o-mini
+      - GPT_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./rag-pipeline/notebooks:/app/notebooks
+      - ./data/knowledge:/app/knowledge
+      - ./data/chroma:/app/chroma
+    depends_on:
+      - chromadb
+    restart: unless-stopped
+
+  # Frontend UI Service
   ui:
-    build:
-      context: ./ui
+    build: ./ui
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_API_BASE_URL=http://localhost:8002
+      - VITE_RAG_API_URL=http://localhost:8003
+      - VITE_CHROMA_URL=http://localhost:8001
     volumes:
       - ./ui/src:/app/src
-    deploy:
-      resources:
-        limits:
-          memory: 512m
-        reservations:
-          memory: 256m
+    depends_on:
+      - avatar-creation
+      - rag-pipeline
     restart: unless-stopped
 
+  # Security Scanner Service
+  security-scanner:
+    build: ./scripts/security
+    volumes:
+      - .:/workspace
+    environment:
+      - SCAN_TARGET=/workspace
+    profiles:
+      - security
+    command: ["./run-security-scan.sh"]
+
 volumes:
-  models:
+  chroma-data:
+  avatar-data:
+  knowledge-data:
+
+networks:
+  default:
+    name: portfolio-network
