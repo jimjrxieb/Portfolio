@@ -27,17 +27,7 @@ export default function ChatPanel() {
 
   return (
     <div className="space-y-2">
-      <div className="text-xs opacity-70 flex justify-between">
-        <span>
-          🤖 {health?.llm_provider || 'loading'}/{health?.llm_model || '…'} • 📚{' '}
-          {health?.rag_namespace || 'portfolio'}
-        </span>
-        <span
-          className={`${health?.status === 'healthy' ? 'text-green-600' : 'text-orange-600'}`}
-        >
-          {health?.status === 'healthy' ? '✅ RAG Active' : '⚠️ Degraded'}
-        </span>
-      </div>
+      {/* Debug info hidden in production */}
       <ChatBoxFixed />
     </div>
   );

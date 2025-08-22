@@ -70,15 +70,6 @@ export default function Landing() {
 
               {/* Chat Section */}
               <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <div className="mb-4">
-                  <h2 className="text-gojo-primary font-semibold text-lg mb-1">
-                    Interview Assistant
-                  </h2>
-                  <p className="text-gojo-secondary text-sm">
-                    Ask about LinkOps AI-BOX, DevSecOps experience, or technical
-                    architecture
-                  </p>
-                </div>
                 <ChatPanel />
               </div>
             </div>

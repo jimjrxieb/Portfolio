@@ -81,8 +81,7 @@ export default function AvatarPanel() {
           </button>
         </div>
         <p className="text-xs text-gojo-secondary mt-1">
-          Professional male with white hair and crystal blue eyes, confident
-          voice with TTS lip-sync
+          AI assistant with interactive speech and visual responses
         </p>
       </div>
 
