@@ -94,6 +94,9 @@ export default function Landing() {
                   <p className="text-gojo-secondary text-sm">
                     Revolutionary AI solutions with security-first approach
                   </p>
+                  <p className="text-crystal-400 text-xs mt-2 italic">
+                    "AI is not a shortcut just a multiplier of your current abilities"
+                  </p>
                 </div>
                 <Projects />
               </div>
