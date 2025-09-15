@@ -1,8 +1,23 @@
 {{- if .Values.networkPolicy.enabled }}
+# Default deny-all network policy for namespace
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "portfolio.fullname" . }}-netpol
+  name: {{ include "portfolio.fullname" . }}-default-deny
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow ingress from ingress controller to UI and API
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "portfolio.fullname" . }}-allow-ingress
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "portfolio.labels" . | nindent 4 }}
@@ -12,7 +27,6 @@ spec:
       {{- include "portfolio.selectorLabels" . | nindent 6 }}
   policyTypes:
     - Ingress
-    - Egress
   ingress:
     # Allow traffic from ingress controller
     - from:
@@ -24,8 +38,24 @@ spec:
           port: {{ .Values.service.api.targetPort }}
         - protocol: TCP
           port: {{ .Values.service.ui.targetPort }}
-    {{- if .Values.chroma.enabled }}
-    # Allow API to communicate with ChromaDB
+---
+# Allow API to communicate with ChromaDB
+{{- if .Values.chroma.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "portfolio.fullname" . }}-api-to-chroma
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "portfolio.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: chroma
+  policyTypes:
+    - Ingress
+  ingress:
     - from:
         - podSelector:
             matchLabels:
@@ -34,7 +64,22 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.chroma.service.port }}
-    {{- end }}
+---
+{{- end }}
+# Allow DNS resolution for all pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "portfolio.fullname" . }}-allow-dns
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "portfolio.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Egress
   egress:
     # DNS resolution
     - to: []
@@ -43,7 +88,24 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # HTTPS for external APIs (OpenAI, HuggingFace)
+---
+# Allow API to access external services (OpenAI, ElevenLabs, D-ID)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "portfolio.fullname" . }}-api-external
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "portfolio.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  policyTypes:
+    - Egress
+  egress:
+    # HTTPS for external APIs (OpenAI, ElevenLabs, D-ID)
     - to: []
       ports:
         - protocol: TCP
@@ -64,43 +126,4 @@ spec:
         - protocol: TCP
           port: {{ .Values.chroma.service.port }}
     {{- end }}
-    # Block all other egress
----
-{{- if .Values.chroma.enabled }}
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ include "portfolio.fullname" . }}-chroma-netpol
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "portfolio.labels" . | nindent 4 }}
-    app.kubernetes.io/component: chroma
-spec:
-  podSelector:
-    matchLabels:
-      {{- include "portfolio.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: chroma
-  policyTypes:
-    - Ingress
-    - Egress
-  ingress:
-    # Only allow API to connect to ChromaDB
-    - from:
-        - podSelector:
-            matchLabels:
-              {{- include "portfolio.selectorLabels" . | nindent 14 }}
-              app.kubernetes.io/component: api
-      ports:
-        - protocol: TCP
-          port: {{ .Values.chroma.service.port }}
-  egress:
-    # DNS resolution
-    - to: []
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    # No external network access needed for ChromaDB
-{{- end }}
 {{- end }}

@@ -19,6 +19,7 @@ spec:
         {{- include "portfolio.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: chroma
     spec:
+      serviceAccountName: {{ include "portfolio.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
       containers:
@@ -45,17 +46,38 @@ spec:
               port: {{ .Values.chroma.service.port }}
             initialDelaySeconds: 15
             periodSeconds: 30
-          {{- if .Values.chroma.persistence.enabled }}
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
           volumeMounts:
+            {{- if .Values.chroma.persistence.enabled }}
             - name: chroma-data
               mountPath: /chroma/chroma
-          {{- end }}
-      {{- if .Values.chroma.persistence.enabled }}
+            {{- end }}
+            # Temporary volumes for read-only root filesystem
+            - name: tmp
+              mountPath: /tmp
+            - name: var-tmp
+              mountPath: /var/tmp
+            - name: var-cache
+              mountPath: /var/cache
       volumes:
+        {{- if .Values.chroma.persistence.enabled }}
         - name: chroma-data
           persistentVolumeClaim:
             claimName: {{ include "portfolio.fullname" . }}-chroma
-      {{- end }}
+        {{- end }}
+        # Temporary volumes for read-only root filesystem
+        - name: tmp
+          emptyDir: {}
+        - name: var-tmp
+          emptyDir: {}
+        - name: var-cache
+          emptyDir: {}
 ---
 {{- if .Values.chroma.persistence.enabled }}
 apiVersion: v1
