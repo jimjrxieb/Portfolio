@@ -68,3 +68,29 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources.ui | nindent 12 }}
+          volumeMounts:
+            # Temporary volumes for read-only root filesystem
+            - name: tmp
+              mountPath: /tmp
+            - name: var-tmp
+              mountPath: /var/tmp
+            - name: var-cache
+              mountPath: /var/cache
+            # Nginx cache directories (required for nginx)
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+      volumes:
+        # Temporary volumes for read-only root filesystem
+        - name: tmp
+          emptyDir: {}
+        - name: var-tmp
+          emptyDir: {}
+        - name: var-cache
+          emptyDir: {}
+        # Nginx-specific temporary volumes
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}

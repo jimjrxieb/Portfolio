@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if command -v conftest)",
+      "Bash(/dev/null)",
+      "Bash(then conftest test:*)",
+      "Bash(else echo \"Installing conftest first...\")",
+      "Bash(wget:*)",
+      "Bash(tar:*)",
+      "Bash(chmod:*)",
+      "Bash(./conftest test rendered-manifests.yaml --policy charts/portfolio/policies/)",
+      "Bash(fi)",
+      "Bash(./conftest test tests/security/vulnerable-deployment.yaml --policy charts/portfolio/policies/)",
+      "Bash(./conftest test tests/security/vulnerable-deployment.yaml --policy charts/portfolio/policies/ --output table)",
+      "Bash(./conftest verify:*)",
+      "Bash(./conftest test tests/security/vulnerable-deployment.yaml --policy tests/security/test-policy.rego)",
+      "Bash(./scripts/generate-security-report.sh:*)",
+      "Bash(make render-helm:*)",
+      "Bash(curl:*)",
+      "Bash(sudo mv:*)",
+      "Bash(export PATH=$PWD:$PATH)",
+      "Bash(./kind version)",
+      "Bash(make:*)",
+      "Bash(kubectl:*)",
+      "Bash(docker build:*)",
+      "Bash(helm install:*)",
+      "Bash(helm uninstall:*)",
+      "Bash(./kind load docker-image portfolio-api:local --name portfolio)",
+      "Bash(./kind load docker-image portfolio-ui:local --name portfolio)",
+      "Bash(helm upgrade:*)",
+      "Bash(echo:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

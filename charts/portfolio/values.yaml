@@ -25,7 +25,7 @@ service:
   ui:
     type: ClusterIP
     port: 80
-    targetPort: 80
+    targetPort: 8080
 
 # Ingress Configuration
 ingress:
@@ -73,7 +73,7 @@ containerSecurityContext:
   runAsNonRoot: true
   runAsUser: 10001
   runAsGroup: 10001
-  readOnlyRootFilesystem: false  # API needs write for ChromaDB and temp files
+  readOnlyRootFilesystem: true  # Security: Enable read-only root filesystem
   allowPrivilegeEscalation: false
   privileged: false
   capabilities:
@@ -85,18 +85,34 @@ containerSecurityContext:
   seLinuxOptions:
     type: container_t
 
+# Init container security (for permission fixing)
+initContainerSecurityContext:
+  runAsNonRoot: false  # Required for chown operations
+  runAsUser: 0
+  runAsGroup: 0
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  privileged: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - CHOWN  # Only capability needed for permission fixes
+      - FOWNER
+  seccompProfile:
+    type: RuntimeDefault
+
 # Network Policy Configuration
 networkPolicy:
   enabled: true
   ingressNamespace: "ingress-nginx"  # Adjust based on your ingress controller
 
-# Pod Security Standards (K8s 1.23+)
+# Pod Security Standards (K8s 1.23+) - PSP deprecated in 1.25+
 podSecurityStandards:
   enabled: true
   enforce: "restricted"
   audit: "restricted"
   warn: "restricted"
-  useCustomPolicy: false  # Use PSS instead of PSP
 
 # Resource Limits (Security)
 resourceQuotas:
@@ -113,6 +129,46 @@ securityScanning:
   enabled: true
   admissionController: true
   runtime: true
+
+# Gatekeeper (OPA admission controller)
+gatekeeper:
+  enabled: true
+  allowedRegistries:
+    - "ghcr.io/"
+    - "chromadb/"
+    - "busybox:"
+  requireSignedImages: true
+  blockPrivileged: true
+  requireResourceLimits: true
+
+# Falco runtime security monitoring
+falco:
+  enabled: true
+  alerts:
+    webhook:
+      enabled: false
+      url: ""
+    slack:
+      enabled: false
+      webhook: ""
+    email:
+      enabled: false
+      smtp:
+        server: ""
+        port: 587
+        username: ""
+        password: ""
+        to: ""
+  rules:
+    privilegeEscalation: true
+    fileModification: true
+    networkActivity: true
+    shellAccess: true
+    packageManager: true
+    sensitiveFiles: true
+    cryptoMining: true
+    containerEscape: true
+    unexpectedExecution: true
 
 # Health Probes
 probes:
@@ -154,8 +210,6 @@ env:
     LLM_MODEL: "gpt-4o-mini"
     LLM_API_BASE: "https://api.openai.com"
     EMBED_MODEL: "sentence-transformers/all-MiniLM-L6-v2"
-    CHROMA_DIR: "/data/chroma"
-    DATA_DIR: "/data"
     API_PORT: "8000"
     API_HOST: "0.0.0.0"
     CORS_ALLOW_ORIGINS: "*"
@@ -203,6 +257,7 @@ serviceAccount:
   create: true
   annotations: {}
   name: ""
+  automountServiceAccountToken: false  # Security: disable auto-mounting tokens
 
 # Pod Annotations
 podAnnotations: {}
