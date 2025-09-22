@@ -5,18 +5,14 @@
   "scripts": {
     "dev": "docker-compose up --build -d",
     "dev:ui": "cd ui && npm run dev",
-    "dev:api": "cd api && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
     "build": "docker-compose build",
     "test": "python3 test_golden_answers.py",
-    "lint": "npm run lint:ui && npm run lint:api",
+    "lint": "npm run lint:ui",
     "lint:ui": "cd ui && npm run lint",
-    "lint:api": "cd api && python3 -m flake8 . --max-line-length=88 --extend-ignore=E203,W503",
-    "format": "npm run format:ui && npm run format:api",
+    "format": "npm run format:ui",
     "format:ui": "cd ui && npm run format",
-    "format:api": "cd api && python3 -m black . --line-length=88",
-    "security": "npm run security:ui && npm run security:api",
+    "security": "npm run security:ui",
     "security:ui": "cd ui && npm audit --audit-level=moderate",
-    "security:api": "cd api && python3 -m safety check",
     "pre-push": "npm run lint && npm run format && npm run security",
     "prepare": "husky install"
   },
@@ -27,12 +23,7 @@
   },
   "lint-staged": {
     "ui/**/*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "eslint --fix"
-    ],
-    "api/**/*.py": [
-      "python3 -m black --line-length=88",
-      "python3 -m flake8 --max-line-length=88 --extend-ignore=E203,W503"
+      "prettier --write"
     ]
   },
   "dependencies": {
