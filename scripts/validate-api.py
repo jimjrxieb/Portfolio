@@ -1,3 +1,4 @@
+import tempfile
 #!/usr/bin/env python3
 """
 Validation script to ensure clean API structure without legacy imports.
@@ -109,7 +110,7 @@ def test_imports():
     """Test that Python can import the app structure"""
     try:
         sys.path.insert(0, 'api')
-        os.environ.setdefault('DATA_DIR', '/tmp/test-data')
+        os.environ.setdefault('DATA_DIR', tempfile.mkdtemp())
         os.environ.setdefault('PUBLIC_BASE_URL', 'http://localhost:8000')
         
         from app.main import app

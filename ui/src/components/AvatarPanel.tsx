@@ -10,7 +10,7 @@ export default function AvatarPanel() {
 
   async function onTalk(text: string) {
     if (muted) return; // Don't speak if muted
-    
+
     setSpeaking(true);
     try {
       // Generate TTS with visemes using our backend
@@ -71,8 +71,8 @@ export default function AvatarPanel() {
           <button
             onClick={() => setMuted(!muted)}
             className={`p-1 rounded transition-colors ${
-              muted 
-                ? 'text-red-400 hover:text-red-300' 
+              muted
+                ? 'text-red-400 hover:text-red-300'
                 : 'text-gojo-secondary hover:text-gojo-primary'
             }`}
             title={muted ? 'Unmute Audio' : 'Mute Audio'}

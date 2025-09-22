@@ -80,7 +80,8 @@ def state():
                     if "usage" in resp_data:
                         out["llm_usage"] = resp_data["usage"]
                 except Exception:
-                    pass
+                    import logging
+                    logging.warning('Unhandled exception occurred')
             else:
                 out["llm_error"] = (
                     f"Status {response.status_code}: {response.text[:200]}"

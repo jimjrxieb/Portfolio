@@ -47,17 +47,17 @@ export default function Landing() {
                     Jimmie Coleman Portfolio
                   </h1>
                   <div className="flex gap-4 text-sm">
-                    <a 
-                      href="https://linkedin.com/in/jimmie-coleman" 
-                      target="_blank" 
+                    <a
+                      href="https://linkedin.com/in/jimmie-coleman"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-crystal-400 hover:text-crystal-300 underline"
                     >
                       LinkedIn
                     </a>
-                    <a 
-                      href="https://github.com/jimjrxieb" 
-                      target="_blank" 
+                    <a
+                      href="https://github.com/jimjrxieb"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-crystal-400 hover:text-crystal-300 underline"
                     >
@@ -86,7 +86,8 @@ export default function Landing() {
                     Revolutionary AI solutions with security-first approach
                   </p>
                   <p className="text-crystal-400 text-xs mt-2 italic">
-                    "AI is not a shortcut just a multiplier of your current abilities"
+                    "AI is not a shortcut just a multiplier of your current
+                    abilities"
                   </p>
                 </div>
                 <Projects />

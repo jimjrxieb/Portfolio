@@ -64,7 +64,7 @@ export const GojoAvatar3D = React.forwardRef<
 
       // Scene setup - Gojo Domain Expansion vibes
       const scene = new THREE.Scene();
-      
+
       // Dark purple gradient background (Domain Expansion feel)
       const canvas = document.createElement('canvas');
       canvas.width = 512;
@@ -76,7 +76,7 @@ export const GojoAvatar3D = React.forwardRef<
       gradient.addColorStop(1, '#000000'); // Black bottom
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 512, 512);
-      
+
       const bgTexture = new THREE.CanvasTexture(canvas);
       scene.background = bgTexture;
       sceneRef.current = scene;
@@ -96,7 +96,7 @@ export const GojoAvatar3D = React.forwardRef<
       const renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
-        powerPreference: "high-performance"
+        powerPreference: 'high-performance',
       });
       renderer.setSize(
         containerRef.current.clientWidth,
@@ -123,7 +123,7 @@ export const GojoAvatar3D = React.forwardRef<
       const rimLight = new THREE.DirectionalLight(0x00d4ff, 0.6);
       rimLight.position.set(-1, 1, -1);
       scene.add(rimLight);
-      
+
       // Face key light
       const keyLight = new THREE.DirectionalLight(0xffffff, 0.4);
       keyLight.position.set(0, 2, 2);
@@ -139,31 +139,33 @@ export const GojoAvatar3D = React.forwardRef<
     const loadAvatar = async () => {
       try {
         // Try to load actual Gojo VRM model
-        const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader');
+        const { GLTFLoader } = await import(
+          'three/examples/jsm/loaders/GLTFLoader'
+        );
         const loader = new GLTFLoader();
-        
+
         // Load Gojo VRM from public assets
         loader.load(
           '/avatars/gojo.vrm', // You'll need to add the Gojo VRM file here
-          async (gltf) => {
+          async gltf => {
             try {
               // Convert GLTF to VRM
               const vrm = await VRM.from(gltf);
-              
+
               // Add to scene
               if (sceneRef.current) {
                 sceneRef.current.add(vrm.scene);
-                
+
                 // Position and scale the avatar
                 vrm.scene.position.y = -1;
                 vrm.scene.scale.set(1, 1, 1);
-                
+
                 // Store VRM reference
                 vrmRef.current = vrm;
-                
+
                 // Setup viseme mappings for Gojo
                 setupGojoVisemeMapping(vrm);
-                
+
                 console.log('✅ Gojo VRM loaded successfully');
                 setIsLoading(false);
                 onReady?.();
@@ -174,10 +176,13 @@ export const GojoAvatar3D = React.forwardRef<
               setIsLoading(false);
             }
           },
-          (progress) => {
-            console.log('Loading Gojo VRM:', (progress.loaded / progress.total * 100).toFixed(0) + '%');
+          progress => {
+            console.log(
+              'Loading Gojo VRM:',
+              ((progress.loaded / progress.total) * 100).toFixed(0) + '%'
+            );
           },
-          (error) => {
+          error => {
             console.error('Failed to load Gojo VRM:', error);
             console.log('Using enhanced fallback avatar');
             createFallbackAvatar();
@@ -200,7 +205,12 @@ export const GojoAvatar3D = React.forwardRef<
 
       // Create toon gradient for anime shading
       const colors = new Uint8Array([0, 127, 255]);
-      const gradientMap = new THREE.DataTexture(colors, colors.length, 1, THREE.LuminanceFormat);
+      const gradientMap = new THREE.DataTexture(
+        colors,
+        colors.length,
+        1,
+        THREE.LuminanceFormat
+      );
       gradientMap.needsUpdate = true;
 
       // Head with anime proportions (slightly elongated)
@@ -218,33 +228,49 @@ export const GojoAvatar3D = React.forwardRef<
           positions.setZ(i, z * 0.9);
         }
       }
-      
-      const headMaterial = new THREE.MeshToonMaterial({ 
-        color: 0xFFE4D6,
-        gradientMap: gradientMap
+
+      const headMaterial = new THREE.MeshToonMaterial({
+        color: 0xffe4d6,
+        gradientMap: gradientMap,
       });
       const head = new THREE.Mesh(headGeometry, headMaterial);
       head.position.y = 1.6;
       gojo.add(head);
 
       // Create signature Gojo spiky white hair
-      const hairMaterial = new THREE.MeshToonMaterial({ 
-        color: 0xF8F8FF,
-        gradientMap: gradientMap
+      const hairMaterial = new THREE.MeshToonMaterial({
+        color: 0xf8f8ff,
+        gradientMap: gradientMap,
       });
-      
+
       // Multiple hair spikes for anime look
       const spikeData = [
         { pos: [0, 1.95, 0], scale: [0.35, 0.35, 0.3], rot: [0, 0, 0] },
         { pos: [-0.15, 1.9, 0.05], scale: [0.2, 0.3, 0.2], rot: [0, 0, -0.3] },
         { pos: [0.15, 1.9, 0.05], scale: [0.2, 0.3, 0.2], rot: [0, 0, 0.3] },
         { pos: [0, 2.0, -0.1], scale: [0.25, 0.25, 0.2], rot: [-0.2, 0, 0] },
-        { pos: [-0.1, 1.92, -0.12], scale: [0.15, 0.25, 0.15], rot: [-0.3, -0.2, -0.2] },
-        { pos: [0.1, 1.92, -0.12], scale: [0.15, 0.25, 0.15], rot: [-0.3, 0.2, 0.2] },
-        { pos: [-0.08, 1.88, 0.12], scale: [0.18, 0.22, 0.15], rot: [0.2, -0.1, -0.15] },
-        { pos: [0.08, 1.88, 0.12], scale: [0.18, 0.22, 0.15], rot: [0.2, 0.1, 0.15] },
+        {
+          pos: [-0.1, 1.92, -0.12],
+          scale: [0.15, 0.25, 0.15],
+          rot: [-0.3, -0.2, -0.2],
+        },
+        {
+          pos: [0.1, 1.92, -0.12],
+          scale: [0.15, 0.25, 0.15],
+          rot: [-0.3, 0.2, 0.2],
+        },
+        {
+          pos: [-0.08, 1.88, 0.12],
+          scale: [0.18, 0.22, 0.15],
+          rot: [0.2, -0.1, -0.15],
+        },
+        {
+          pos: [0.08, 1.88, 0.12],
+          scale: [0.18, 0.22, 0.15],
+          rot: [0.2, 0.1, 0.15],
+        },
       ];
-      
+
       spikeData.forEach(spike => {
         const geometry = new THREE.ConeGeometry(...spike.scale.slice(0, 2), 5);
         const mesh = new THREE.Mesh(geometry, hairMaterial);
@@ -254,12 +280,12 @@ export const GojoAvatar3D = React.forwardRef<
       });
 
       // Eyes (bright blue/white glow effect)
-      const eyeMaterial = new THREE.MeshBasicMaterial({ 
+      const eyeMaterial = new THREE.MeshBasicMaterial({
         color: 0x00d4ff,
         transparent: true,
         opacity: 0.9,
       });
-      
+
       const eyeGeometry = new THREE.SphereGeometry(0.04, 16, 16);
       const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
       leftEye.position.set(-0.08, 1.62, 0.15);
@@ -272,17 +298,17 @@ export const GojoAvatar3D = React.forwardRef<
       gojo.add(rightEye);
 
       // Eye glow effect
-      const glowMaterial = new THREE.MeshBasicMaterial({ 
+      const glowMaterial = new THREE.MeshBasicMaterial({
         color: 0x00d4ff,
         transparent: true,
         opacity: 0.3,
       });
       const glowGeometry = new THREE.SphereGeometry(0.06, 16, 16);
-      
+
       const leftGlow = new THREE.Mesh(glowGeometry, glowMaterial);
       leftGlow.position.copy(leftEye.position);
       gojo.add(leftGlow);
-      
+
       const rightGlow = new THREE.Mesh(glowGeometry, glowMaterial);
       rightGlow.position.copy(rightEye.position);
       gojo.add(rightGlow);
@@ -296,14 +322,14 @@ export const GojoAvatar3D = React.forwardRef<
 
       // High collar Jujutsu uniform
       const bodyGeometry = new THREE.CylinderGeometry(0.28, 0.32, 1.0, 8);
-      const bodyMaterial = new THREE.MeshToonMaterial({ 
-        color: 0x0A0A0A,
-        gradientMap: gradientMap
+      const bodyMaterial = new THREE.MeshToonMaterial({
+        color: 0x0a0a0a,
+        gradientMap: gradientMap,
       });
       const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
       body.position.y = 0.8;
       gojo.add(body);
-      
+
       // High collar detail
       const collarGeometry = new THREE.CylinderGeometry(0.18, 0.22, 0.15, 8);
       const collar = new THREE.Mesh(collarGeometry, bodyMaterial);
@@ -443,46 +469,50 @@ export const GojoAvatar3D = React.forwardRef<
     const setupGojoVisemeMapping = (vrm: VRM) => {
       // Store expression names for Gojo model
       console.log('Setting up Gojo viseme mappings');
-      
+
       // Common VRM expression names that Gojo models use
       const expressions = vrm.expressionManager;
       if (expressions) {
         // Log available expressions for debugging
-        const availableExpressions = Object.keys(expressions.expressionMap || {});
+        const availableExpressions = Object.keys(
+          expressions.expressionMap || {}
+        );
         console.log('Available Gojo expressions:', availableExpressions);
       }
     };
-    
+
     // Map blendshape names to VRM expressions (Gojo-optimized)
     const mapToVRMExpression = (shapeName: string): string | null => {
       // Mapping for typical Gojo VRM models
       const mapping: Record<string, string> = {
         // Vowel visemes
-        A: 'aa',      // あ
-        I: 'ih',      // い
-        U: 'ou',      // う
-        E: 'ee',      // え
-        O: 'oh',      // お
-        
+        A: 'aa', // あ
+        I: 'ih', // い
+        U: 'ou', // う
+        E: 'ee', // え
+        O: 'oh', // お
+
         // Mouth controls
         jawOpen: 'mouth_open',
-        
+
         // Additional expressions for Gojo
         smile: 'happy',
         smirk: 'relaxed',
         serious: 'neutral',
-        
+
         // Eye controls (Six Eyes effect)
         blink: 'blink',
-        blinkLeft: 'blinkLeft', 
+        blinkLeft: 'blinkLeft',
         blinkRight: 'blinkRight',
       };
-      
+
       // Try multiple possible names (VRM models vary)
-      return mapping[shapeName] || 
-             mapping[shapeName.toLowerCase()] || 
-             shapeName.toLowerCase() || 
-             null;
+      return (
+        mapping[shapeName] ||
+        mapping[shapeName.toLowerCase()] ||
+        shapeName.toLowerCase() ||
+        null
+      );
     };
 
     // Reset mouth to neutral position
