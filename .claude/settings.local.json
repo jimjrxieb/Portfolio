@@ -29,7 +29,10 @@
       "Bash(./kind load docker-image portfolio-ui:local --name portfolio)",
       "Bash(helm upgrade:*)",
       "Bash(echo:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

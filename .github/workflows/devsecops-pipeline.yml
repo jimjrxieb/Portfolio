@@ -1,0 +1,99 @@
+name: DevSecOps Security Pipeline
+'on':
+  push:
+    branches:
+    - main
+    - master
+    - develop
+  pull_request:
+    branches:
+    - main
+    - master
+  schedule:
+  - cron: 0 2 * * *
+jobs:
+  security-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: "\U0001F512 Secrets Scan"
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: origin/main
+        head: HEAD
+    - name: "\U0001F40D Python Security Setup"
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+      if: hashFiles('**/*.py') != ''
+    - name: "\U0001F50D Python SAST Scan"
+      run: pip install bandit && bandit -r . -f json -o bandit-results.json || true
+      if: hashFiles('**/*.py') != ''
+    - name: "\U0001F4E6 Python Dependencies Scan"
+      run: pip install safety && safety check --json --output safety-results.json
+        || true
+      if: hashFiles('requirements.txt') != ''
+    - name: "\U0001F7E2 Node.js Security Setup"
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+      if: hashFiles('**/package.json') != ''
+    - name: "\U0001F50D NPM Audit"
+      run: npm audit --audit-level moderate --json > npm-audit-results.json || true
+      if: hashFiles('**/package.json') != ''
+    - name: "\U0001F3D7\uFE0F Container Security Scan"
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: fs
+        scan-ref: .
+        format: json
+        output: trivy-results.json
+    - name: "\u2601\uFE0F Infrastructure Security Scan"
+      run: pip install checkov && checkov -d . --framework terraform --output json
+        --output-file checkov-results.json || true
+      if: hashFiles('**/*.tf') != ''
+    - name: "\u2693 Kubernetes Security Scan"
+      run: "\n                              curl -s https://raw.githubusercontent.com/kubescape/kubescape/master/install.sh\
+        \ | /bin/bash\n                              kubescape scan . --format json\
+        \ --output kubescape-results.json || true\n                            "
+      if: hashFiles('**/*.yaml') != '' || hashFiles('**/*.yml') != ''
+    - name: "\U0001F6A8 Security Gate Enforcement"
+      run: "#!/bin/bash\nset -e\n\necho \"\U0001F512 Security Gate: Analyzing scan\
+        \ results...\"\n\nCRITICAL_THRESHOLD=0\nHIGH_THRESHOLD=5\nMEDIUM_THRESHOLD=20\n\
+        \nCRITICAL_COUNT=0\nHIGH_COUNT=0\nMEDIUM_COUNT=0\n\n# Check various security\
+        \ scan results\nfor result_file in *-results.json; do\n    if [[ -f \"$result_file\"\
+        \ ]]; then\n        echo \"Processing $result_file...\"\n\n        # Count\
+        \ vulnerabilities based on file type\n        case \"$result_file\" in\n \
+        \           bandit-*)\n                CRITICAL_COUNT=$((CRITICAL_COUNT +\
+        \ $(jq '.results | map(select(.issue_severity == \"HIGH\")) | length' \"$result_file\"\
+        \ 2>/dev/null || echo 0)))\n                ;;\n            npm-audit-*)\n\
+        \                CRITICAL_COUNT=$((CRITICAL_COUNT + $(jq '.metadata.vulnerabilities.critical\
+        \ // 0' \"$result_file\" 2>/dev/null || echo 0)))\n                HIGH_COUNT=$((HIGH_COUNT\
+        \ + $(jq '.metadata.vulnerabilities.high // 0' \"$result_file\" 2>/dev/null\
+        \ || echo 0)))\n                ;;\n            trivy-*)\n               \
+        \ CRITICAL_COUNT=$((CRITICAL_COUNT + $(jq '.Results[]?.Vulnerabilities[]?\
+        \ | select(.Severity == \"CRITICAL\") | length' \"$result_file\" 2>/dev/null\
+        \ || echo 0)))\n                HIGH_COUNT=$((HIGH_COUNT + $(jq '.Results[]?.Vulnerabilities[]?\
+        \ | select(.Severity == \"HIGH\") | length' \"$result_file\" 2>/dev/null ||\
+        \ echo 0)))\n                ;;\n        esac\n    fi\ndone\n\necho \"\U0001F4CA\
+        \ Security Summary:\"\necho \"   Critical: $CRITICAL_COUNT (threshold: $CRITICAL_THRESHOLD)\"\
+        \necho \"   High: $HIGH_COUNT (threshold: $HIGH_THRESHOLD)\"\necho \"   Medium:\
+        \ $MEDIUM_COUNT (threshold: $MEDIUM_THRESHOLD)\"\n\n# Enforce security gates\n\
+        if [ $CRITICAL_COUNT -gt $CRITICAL_THRESHOLD ]; then\n    echo \"\u274C SECURITY\
+        \ GATE FAILED: $CRITICAL_COUNT critical vulnerabilities detected\"\n    echo\
+        \ \"\U0001F6A8 Critical vulnerabilities must be fixed before deployment\"\n\
+        \    exit 1\nfi\n\nif [ $HIGH_COUNT -gt $HIGH_THRESHOLD ]; then\n    echo\
+        \ \"\u26A0\uFE0F WARNING: $HIGH_COUNT high vulnerabilities detected (threshold:\
+        \ $HIGH_THRESHOLD)\"\n    echo \"\U0001F4CB Consider fixing high vulnerabilities\
+        \ before deployment\"\nfi\n\necho \"\u2705 Security gate passed - deployment\
+        \ approved\"\n"
+    - name: "\U0001F4CA Upload Security Results"
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-scan-results
+        path: '*-results.json'
+      if: always()

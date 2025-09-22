@@ -8,7 +8,7 @@ const featuredProjects = {
     icon: '🚀',
     highlights: [
       'Turnkey AI solution for businesses',
-      'Privacy-focused on-premise deployment', 
+      'Privacy-focused on-premise deployment',
       'Dual-speed CI/CD workflows',
       'Enterprise-grade security & compliance',
       'Scalable RAG architecture',
@@ -101,7 +101,11 @@ const toolCategories = {
         description: 'Large language model integration',
         level: 'Advanced',
       },
-      { name: 'ChromaDB', description: 'Vector database for RAG', level: 'Advanced' },
+      {
+        name: 'ChromaDB',
+        description: 'Vector database for RAG',
+        level: 'Advanced',
+      },
       {
         name: 'Python',
         description: 'AI/ML development & automation',
@@ -299,7 +303,8 @@ export default function Projects() {
           Development Journey
         </h4>
         <div className="text-gojo-secondary text-sm mb-3">
-          4 months of intensive AI & DevOps learning, combining traditional DevOps practices with cutting-edge AI capabilities.
+          4 months of intensive AI & DevOps learning, combining traditional
+          DevOps practices with cutting-edge AI capabilities.
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
