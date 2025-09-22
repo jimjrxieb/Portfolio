@@ -10,7 +10,8 @@ import requests
 
 API_BASE = os.environ.get("API_BASE", "http://localhost:8000")
 NAMESPACE = os.environ.get("RAG_NAMESPACE", "portfolio")
-DOC_DIR = os.environ.get("DOC_DIR", os.path.join("Portfolio","data","rag","jimmie"))
+DOC_DIR = os.environ.get("DOC_DIR", os.path.join("Portfolio", "data", "rag", "jimmie"))
+
 
 def ingest_docs(docs: list[dict]) -> dict:
     """Use the existing /ingest endpoint"""
@@ -18,12 +19,15 @@ def ingest_docs(docs: list[dict]) -> dict:
     r.raise_for_status()
     return r.json()
 
+
 def ask(question: str, k: int = 5) -> str:
     """Use the existing /chat endpoint"""
-    r = requests.post(f"{API_BASE}/chat", 
-                      json={"question": question, "k": k}, timeout=45)
+    r = requests.post(
+        f"{API_BASE}/chat", json={"question": question, "k": k}, timeout=45
+    )
     r.raise_for_status()
     return r.text  # Returns streaming text
+
 
 def get_debug_state() -> dict:
     """Get debug state from API"""
@@ -31,18 +35,22 @@ def get_debug_state() -> dict:
     r.raise_for_status()
     return r.json()
 
+
 def chunk_text(text: str, max_chars: int = 1200) -> list[str]:
     # naive chunker by paragraphs
     paras = [p.strip() for p in text.split("\n") if p.strip()]
     chunks, cur = [], ""
     for p in paras:
         if len(cur) + len(p) + 1 > max_chars:
-            if cur: chunks.append(cur)
+            if cur:
+                chunks.append(cur)
             cur = p
         else:
             cur = (cur + "\n" + p).strip()
-    if cur: chunks.append(cur)
+    if cur:
+        chunks.append(cur)
     return chunks
+
 
 def ingest_dir(dir_path: str) -> int:
     files = sorted(glob.glob(os.path.join(dir_path, "*.md")))
@@ -51,25 +59,30 @@ def ingest_dir(dir_path: str) -> int:
         with open(fp, "r", encoding="utf-8") as f:
             text = f.read()
         chunks = chunk_text(text)
-        docs = [{"id": f"{os.path.basename(fp)}-{i}",
-                 "text": ct,
-                 "source": os.path.basename(fp)}
-                for i, ct in enumerate(chunks)]
+        docs = [
+            {
+                "id": f"{os.path.basename(fp)}-{i}",
+                "text": ct,
+                "source": os.path.basename(fp),
+            }
+            for i, ct in enumerate(chunks)
+        ]
         res = ingest_docs(docs)
         total += res.get("ingested", 0)
         print(f"✅ Ingested {res.get('ingested',0)} chunks from {os.path.basename(fp)}")
     return total
 
+
 def main():
     print(f"API_BASE={API_BASE}")
-    
+
     # 1) Show debug state
     try:
         debug_state = get_debug_state()
         print("🔎 DEBUG STATE:", json.dumps(debug_state, indent=2))
     except Exception as e:
         print("⚠️ Could not get debug state:", e)
-        
+
     # 2) Show health status
     try:
         health = requests.get(f"{API_BASE}/healthz", timeout=10)
@@ -99,6 +112,7 @@ def main():
             print("❌ Chat error:", he.response.text)
         except Exception as e:
             print("❌ Chat error:", e)
+
 
 if __name__ == "__main__":
     main()
