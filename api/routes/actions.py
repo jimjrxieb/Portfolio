@@ -69,7 +69,8 @@ async def talk(payload: dict):
         except Exception as e:
             # Fall back to default intro on TTS failure
             import logging
-            logging.warning('Unhandled exception occurred')
+
+            logging.warning("Unhandled exception occurred")
 
     # Fallback: return a stable local intro mp3
     if DEFAULT_INTRO.exists():
