@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { chat } from '../lib/api';
-// Test comment for pre-commit validation
 
 export default function ChatBox() {
   const [input, setInput] = useState('');
