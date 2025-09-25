@@ -11,8 +11,14 @@ spec:
     metadata:
       labels: { app: chromadb }
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
       containers:
         - name: chromadb
+          securityContext:
+            allowPrivilegeEscalation: false
           image: chromadb/chroma:latest
           ports:
             - containerPort: 8000

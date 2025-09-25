@@ -39,3 +39,9 @@ Thumbs.db
 
 # Environment files
 .env
+
+# Environment files
+*.env
+
+# Environment files
+.env.*

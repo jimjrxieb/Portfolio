@@ -1,0 +1,20 @@
+{{- if and .Values.chromadb.enabled .Values.chromadb.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "portfolio.fullname" . }}-chromadb-pvc
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "portfolio.chromadb.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.persistence.chromaData.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.chromadb.persistence.size | quote }}
+  {{- if .Values.chromadb.persistence.storageClass }}
+  storageClassName: {{ .Values.chromadb.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}

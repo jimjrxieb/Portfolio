@@ -1,32 +1,54 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  labels:
+    app: portfolio-ui
   name: portfolio-ui
   namespace: portfolio
-  labels: { app: portfolio-ui }
 spec:
   replicas: 1
   revisionHistoryLimit: 2
-  selector: { matchLabels: { app: portfolio-ui } }
+  selector:
+    matchLabels:
+      app: portfolio-ui
   template:
     metadata:
-      labels: { app: portfolio-ui }
+      labels:
+        app: portfolio-ui
     spec:
       containers:
-        - name: web
-          image: ghcr.io/shadow-link-industries/portfolio-ui:local
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: VITE_API_BASE_URL
-              value: "/api"
-          ports:
-            - containerPort: 5173
-          readinessProbe:
-            httpGet: { path: "/", port: 5173 }
-            initialDelaySeconds: 8
-          livenessProbe:
-            httpGet: { path: "/", port: 5173 }
-            initialDelaySeconds: 15
-          resources:
-            requests: { cpu: "50m", memory: "128Mi" }
-            limits:   { cpu: "300m", memory: "512Mi" }
+      - env:
+        - name: VITE_API_BASE_URL
+          value: /api
+        image: ghcr.io/shadow-link-industries/portfolio-ui:local
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5173
+          initialDelaySeconds: 15
+        name: web
+        ports:
+        - containerPort: 5173
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5173
+          initialDelaySeconds: 8
+        resources:
+          limits:
+            cpu: 300m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        fsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
