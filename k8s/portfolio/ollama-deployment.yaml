@@ -11,8 +11,14 @@ spec:
     metadata:
       labels: { app: ollama }
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
       containers:
         - name: ollama
+          securityContext:
+            allowPrivilegeEscalation: false
           image: ollama/ollama:latest
           ports:
             - containerPort: 11434

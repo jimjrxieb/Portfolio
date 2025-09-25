@@ -1,6 +1,9 @@
 FROM jupyter/datascience-notebook:latest
 
 USER root
+# Security: Switch to non-root user
+RUN adduser --disabled-password --gecos '' appuser
+USER appuser
 
 # Install additional system dependencies
 RUN apt-get update && apt-get install -y \

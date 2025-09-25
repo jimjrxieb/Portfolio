@@ -1,0 +1,58 @@
+{{- if .Values.api.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "portfolio.fullname" . }}-api
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "portfolio.api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "portfolio.api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "portfolio.api.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "portfolio.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: api
+        image: {{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}
+        imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.api.service.targetPort }}
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.configMap.name | default (printf "%s-config" (include "portfolio.fullname" .)) }}
+        - secretRef:
+            name: {{ .Values.secrets.name | default (printf "%s-secrets" (include "portfolio.fullname" .)) }}
+        {{- if .Values.api.volumeMounts }}
+        volumeMounts:
+        {{- toYaml .Values.api.volumeMounts | nindent 8 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.api.resources | nindent 10 }}
+        {{- if .Values.api.livenessProbe }}
+        livenessProbe:
+          {{- toYaml .Values.api.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.api.readinessProbe }}
+        readinessProbe:
+          {{- toYaml .Values.api.readinessProbe | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+      {{- if .Values.api.volumeMounts }}
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+      {{- end }}
+{{- end }}

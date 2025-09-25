@@ -6,12 +6,25 @@ metadata:
 spec:
   template:
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
       restartPolicy: Never
       containers:
       - name: ingest
+        securityContext:
+          allowPrivilegeEscalation: false
         image: ghcr.io/shadow-link-industries/portfolio-api:with-data
         command: ["python", "ingest.py"]
         workingDir: /app
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
         env:
           - { name: CHROMA_DIR, value: "/data/chroma" }
           - { name: SENTENCE_TRANSFORMERS_HOME, value: "/data/cache" }

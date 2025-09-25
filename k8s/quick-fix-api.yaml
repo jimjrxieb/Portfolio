@@ -13,9 +13,13 @@ spec:
       labels:
         app: portfolio-api-quick
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
       - name: api
         image: python:3.11-slim
+        securityContext:
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 8000
         env:

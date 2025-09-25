@@ -1,0 +1,281 @@
+# Global configuration
+global:
+  imageRegistry: ghcr.io
+  imagePrefix: jimjrxieb/portfolio
+  pullPolicy: Always
+  namespace: portfolio
+
+# UI Service (React Frontend)
+ui:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-ui
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    hosts:
+      - host: portfolio.local
+        paths:
+          - path: /
+            pathType: Prefix
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  env:
+    VITE_API_BASE_URL: "http://api:8000"
+    VITE_RAG_API_URL: "http://rag-pipeline:8000"
+    VITE_CHROMA_URL: "http://chromadb:8000"
+
+# API Service (FastAPI Backend)
+api:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-api
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  env:
+    PYTHONPATH: "/app"
+    DATA_DIR: "/data"
+    CHROMADB_URL: "http://chromadb:8000"
+    AVATAR_SERVICE_URL: "http://avatar-creation:8000"
+    RAG_API_URL: "http://rag-pipeline:8000"
+  volumeMounts:
+    - name: data-volume
+      mountPath: /data
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# ChromaDB (Vector Database)
+chromadb:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-chromadb
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  env:
+    CHROMA_DB_IMPL: "duckdb+parquet"
+    CHROMA_PERSIST_DIRECTORY: "/chroma/data"
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+    mountPath: /chroma/data
+  livenessProbe:
+    httpGet:
+      path: /api/v1/heartbeat
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /api/v1/heartbeat
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+# Avatar Creation Service (GenAI)
+avatarCreation:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-avatar-creation
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  env:
+    AVATAR_CHARACTER: "gojo"
+    AVATAR_DESCRIPTION: "Professional male with white hair and crystal blue eyes"
+    GPT_MODEL: "gpt-4o-mini"
+    CHROMADB_URL: "http://chromadb:8000"
+  volumeMounts:
+    - name: avatars-volume
+      mountPath: /app/avatars
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# RAG Pipeline (Jupyter + RAG API)
+ragPipeline:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-rag-pipeline
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    ports:
+      - name: api
+        port: 8000
+        targetPort: 8000
+      - name: jupyter
+        port: 8888
+        targetPort: 8888
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  env:
+    JUPYTER_ENABLE_LAB: "yes"
+    JUPYTER_TOKEN: "portfolio-rag-2025"
+    CHROMA_URL: "http://chromadb:8000"
+    GPT_MODEL: "gpt-4o-mini"
+  volumeMounts:
+    - name: notebooks-volume
+      mountPath: /app/notebooks
+    - name: knowledge-volume
+      mountPath: /app/knowledge
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 60
+    periodSeconds: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+
+# Secrets configuration
+secrets:
+  create: true
+  name: portfolio-secrets
+  data:
+    OPENAI_API_KEY: ""  # To be provided via values override or Sealed Secrets
+
+# ConfigMap configuration
+configMap:
+  create: true
+  name: portfolio-config
+  data:
+    # Will be populated from env values above
+
+# Persistence volumes
+persistence:
+  chromaData:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  avatarsData:
+    enabled: true
+    size: 500Mi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  knowledgeData:
+    enabled: true
+    size: 2Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  notebooksData:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Network policies
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
+
+# Monitoring
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s

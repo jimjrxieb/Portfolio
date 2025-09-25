@@ -13,9 +13,13 @@ spec:
       labels:
         app: portfolio-ui-quick
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
       - name: ui
         image: nginx:alpine
+        securityContext:
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 80
         volumeMounts:

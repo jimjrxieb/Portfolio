@@ -636,4 +636,4 @@ if __name__ == "__main__":
     print(f"📊 RAG Namespace: {CONFIG['rag_namespace']}")
     print(f"🤖 LLM: {CONFIG['llm_provider']}/{CONFIG['llm_model']}")
     print(f"🔍 Embedding Model: {CONFIG['embedding_model']}")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

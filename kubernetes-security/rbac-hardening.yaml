@@ -1,0 +1,54 @@
+# RBAC Security Hardening for CIS 5.1.x findings
+# Addresses findings: 5.1.1, 5.1.2, 5.1.3, 5.1.4, 5.1.5, 5.1.6
+
+---
+# Fix 5.1.5: Create explicit service account with automountServiceAccountToken disabled
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: portfolio-service-account
+  namespace: portfolio
+automountServiceAccountToken: false
+
+---
+# Fix 5.1.1, 5.1.3: Minimize cluster-admin role and wildcard usage
+# Create restricted role instead of using cluster-admin
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: portfolio
+  name: portfolio-restricted-role
+rules:
+# Fix 5.1.4: Minimize pod creation access - only allow specific operations
+- apiGroups: [""]
+  resources: ["configmaps", "services"]
+  verbs: ["get", "list", "watch"]
+# Fix 5.1.2: Minimize secrets access - no get/list/watch on secrets
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+---
+# Bind the restricted role to the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: portfolio-role-binding
+  namespace: portfolio
+subjects:
+- kind: ServiceAccount
+  name: portfolio-service-account
+  namespace: portfolio
+roleRef:
+  kind: Role
+  name: portfolio-restricted-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Fix 5.1.5: Update default service account to disable token mounting
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: portfolio
+automountServiceAccountToken: false

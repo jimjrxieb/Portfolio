@@ -1,0 +1,114 @@
+# Pod Security Standards for CIS 5.2.x and 5.7.x findings
+# Addresses findings: 5.2.1-5.2.9, 5.7.2, 5.7.3
+
+---
+# Fix 5.7.1: Create dedicated namespace (not default)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: portfolio
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+
+---
+# Fix 5.3.2: Network Policy to ensure all namespaces have network policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: portfolio-network-policy
+  namespace: portfolio
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: portfolio
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+---
+# Example hardened pod specification addressing CIS 5.2.x and 5.7.x
+apiVersion: v1
+kind: Pod
+metadata:
+  name: portfolio-secure-pod
+  namespace: portfolio
+  annotations:
+    # Fix 5.7.2: Set seccomp profile to docker/default
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  serviceAccountName: portfolio-service-account
+  # Fix 5.1.6: Ensure service account token is not mounted
+  automountServiceAccountToken: false
+
+  # Fix 5.2.2: Ensure hostPID is not shared
+  hostPID: false
+
+  # Fix 5.2.3: Ensure hostIPC is not shared
+  hostIPC: false
+
+  # Fix 5.2.4: Ensure hostNetwork is not shared
+  hostNetwork: false
+
+  containers:
+  - name: portfolio-container
+    image: portfolio:latest
+
+    # Fix 5.7.3: Apply security context
+    securityContext:
+      # Fix 5.2.1: Ensure not privileged
+      privileged: false
+
+      # Fix 5.2.5: Ensure allowPrivilegeEscalation is false
+      allowPrivilegeEscalation: false
+
+      # Fix 5.2.6: Ensure not running as root
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+
+      # Fix 5.2.7, 5.2.8, 5.2.9: Drop all capabilities, including NET_RAW
+      capabilities:
+        drop:
+        - ALL
+
+      # Fix 5.2.13: Read-only root filesystem
+      readOnlyRootFilesystem: true
+
+    # Resource limits for security
+    resources:
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+      requests:
+        memory: "128Mi"
+        cpu: "250m"
+
+    # Fix 5.4.1: Use secrets as files, not environment variables
+    volumeMounts:
+    - name: secret-volume
+      mountPath: /etc/secrets
+      readOnly: true
+
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: portfolio-secrets
+      defaultMode: 0400

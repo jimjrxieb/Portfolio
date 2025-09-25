@@ -31,12 +31,21 @@ spec:
           securityContext:
             runAsUser: 10001
             runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
           envFrom:
             - configMapRef: { name: portfolio-config }
             - secretRef: { name: portfolio-secrets }
           ports:
             - containerPort: 8000
           args: ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000","--workers","1"]
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           readinessProbe:
             httpGet: { path: /health, port: 8000 }
             initialDelaySeconds: 40

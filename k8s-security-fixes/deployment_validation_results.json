@@ -1,0 +1,85 @@
+{
+  "summary": {
+    "deployment_success_rate": "7/7",
+    "test_success_rate": "2/4",
+    "cluster_accessible": true,
+    "security_posture": "Improved"
+  },
+  "deployment_results": [
+    {
+      "action": "namespace_creation",
+      "success": true,
+      "details": "namespace/portfolio unchanged\n"
+    },
+    {
+      "manifest": "default-deny-networkpolicy.yaml",
+      "success": true,
+      "output": "networkpolicy.networking.k8s.io/default-deny-all unchanged\n",
+      "error": null
+    },
+    {
+      "manifest": "role-binding-default.yaml",
+      "success": true,
+      "output": "rolebinding.rbac.authorization.k8s.io/app-role-binding unchanged\n",
+      "error": null
+    },
+    {
+      "manifest": "service-account-default.yaml",
+      "success": true,
+      "output": "serviceaccount/app-service-account unchanged\n",
+      "error": null
+    },
+    {
+      "manifest": "pod-security-standards-default.yaml",
+      "success": true,
+      "output": "namespace/default unchanged\n",
+      "error": null
+    },
+    {
+      "manifest": "app-role-default.yaml",
+      "success": true,
+      "output": "role.rbac.authorization.k8s.io/app-role unchanged\n",
+      "error": null
+    },
+    {
+      "manifest": "allow-dns-networkpolicy.yaml",
+      "success": true,
+      "output": "networkpolicy.networking.k8s.io/allow-dns configured\n",
+      "error": null
+    }
+  ],
+  "security_validations": [
+    {
+      "test": "service_account_exists",
+      "success": false,
+      "details": "Service account app-service-account created"
+    },
+    {
+      "test": "network_policies_deployed",
+      "success": true,
+      "policies_found": [],
+      "details": "Found 0 NetworkPolicies",
+      "default_deny": false
+    },
+    {
+      "test": "pod_security_enforcement",
+      "insecure_pod_blocked": true,
+      "details": "Error from server (Forbidden): error when creating \"/tmp/k8s_manifest.yaml\": pods \"insecure-test-pod\" is forbidden: violates PodSecurity \"restricted:latest\": privileged (container \"test\" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container \"test\" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container \"test\" must set securityContext.capabilities.drop=[\"ALL\"]), runAsNonRoot != true (pod or container \"test\" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container \"test\" must set securityContext.seccompProfile.type to \"RuntimeDefault\" or \"Localhost\")\n",
+      "secure_pod_allowed": false,
+      "secure_details": ""
+    }
+  ],
+  "functional_validations": [
+    {
+      "test": "application_deployment",
+      "success": true,
+      "details": "deployment.apps/security-test-app created\n"
+    }
+  ],
+  "failures": [],
+  "next_actions": [
+    "Review RBAC policies - service account permissions may be too restrictive",
+    "Deploy default-deny NetworkPolicy for zero-trust networking",
+    "Application not starting - review security context compatibility"
+  ]
+}

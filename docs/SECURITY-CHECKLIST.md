@@ -80,6 +80,15 @@
 - [ ] **Prompt injection**: Cannot manipulate LLM to expose system information
 - [ ] **RAG injection**: Cannot inject malicious content into knowledge base
 
+### ✅ Intentionally Vulnerable Applications for Security Training
+You're thinking of intentionally vulnerable applications used for security training and testing. The two most common ones are:
+
+**DVWA (Damn Vulnerable Web Application):**
+- Repository: https://github.com/digininja/DVWA
+- PHP-based web application with SQL injection, XSS, CSRF vulnerabilities
+- Different difficulty levels (low, medium, high)
+- Good for demonstrating web application security scanning
+
 ## Production Security Monitoring
 
 ### ✅ Security Logging
