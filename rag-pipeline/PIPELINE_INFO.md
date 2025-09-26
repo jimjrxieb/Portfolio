@@ -5,6 +5,7 @@
 Your RAG pipeline is a complete LangChain-style knowledge processing system that monitors new files, processes them through embedding generation, and makes them immediately available to the Jade AI assistant.
 
 ## 📊 **Current Status**
+
 - **Total Documents:** 391 embedded documents in ChromaDB
 - **Knowledge Base:** Comprehensive portfolio information + personal profile
 - **Processing:** Automatic chunking (1000 chars, 200 overlap)
@@ -12,16 +13,17 @@ Your RAG pipeline is a complete LangChain-style knowledge processing system that
 
 ## 🔧 **Port Configuration**
 
-| Service | Port | Purpose | Status |
-|---------|------|---------|--------|
-| **ChromaDB** | 8001 | Vector database storage | ✅ Running |
-| **Jade Brain API** | 8002 | AI assistant with RAG integration | ✅ Running |
+| Service              | Port | Purpose                                 | Status     |
+| -------------------- | ---- | --------------------------------------- | ---------- |
+| **ChromaDB**         | 8001 | Vector database storage                 | ✅ Running |
+| **Jade Brain API**   | 8002 | AI assistant with RAG integration       | ✅ Running |
 | **RAG Pipeline API** | 8000 | Knowledge ingestion & Jupyter notebooks | ✅ Running |
-| **UI Frontend** | 5173 | Portfolio website with chat | ✅ Running |
+| **UI Frontend**      | 5173 | Portfolio website with chat             | ✅ Running |
 
 ## 🚀 **Startup Commands**
 
 ### Start All Services
+
 ```bash
 # Terminal 1: ChromaDB
 cd /home/jimmie/linkops-industries/Portfolio
@@ -57,24 +59,28 @@ rag-pipeline/
 ## 🔄 **Usage - LangChain Style Workflow**
 
 ### Single Batch Processing (like running a notebook cell)
+
 ```bash
 cd /home/jimmie/linkops-industries/Portfolio/rag-pipeline
 ./process_new_data.sh
 ```
 
 ### Continuous Monitoring (like Gradio.launch())
+
 ```bash
 cd /home/jimmie/linkops-industries/Portfolio/rag-pipeline
 ./process_new_data.sh watch 30  # Check every 30 seconds
 ```
 
 ### Direct Python Usage
+
 ```bash
 cd /home/jimmie/linkops-industries/Portfolio/rag-pipeline
 DATA_DIR=../data CHROMA_URL=http://localhost:8001 python3 batch_pipeline.py
 ```
 
 ## 📊 **Processing Results Example**
+
 ```
 Results: {
   'status': 'completed',
@@ -106,6 +112,7 @@ Results: {
 ## ⚡ **Quick Testing**
 
 Test new knowledge integration:
+
 ```bash
 # Add a test file
 echo "# Test Knowledge\nThis is test content for the RAG pipeline." > new-rag-data/test.md
@@ -129,11 +136,12 @@ curl -X POST http://localhost:8002/chat -H "Content-Type: application/json" -d '
 ✅ **Context-aware retrieval** - RAG results integrated with responses
 
 ## 🔧 **Environment Variables**
+
 ```bash
 export DATA_DIR=../data
 export CHROMA_URL=http://localhost:8001
 export RAG_API_URL=http://localhost:8003
-export OPENAI_API_KEY=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
+export OPENAI_API_KEY="your-openai-api-key-here"
 export LLM_MODEL=gpt-4o-mini
 ```
 
