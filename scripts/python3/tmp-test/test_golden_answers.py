@@ -5,9 +5,8 @@ Phase 6 - Quality assurance with curated test cases + anti-hallucination validat
 """
 
 import requests
-import json
 import sys
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 # Gojo Golden Set - Avatar Interview Questions (Must Pass >90%)
 GOJO_GOLDEN_SET = [
@@ -418,7 +417,7 @@ def run_golden_tests(api_url: str = "http://localhost:8000") -> bool:
         avg_percentage = (total_score / max_total) * 100
         passed_golden = sum(1 for r in golden_results if r["passed"])
 
-        print(f"\n🏆 Golden Set Performance:")
+        print("\n🏆 Golden Set Performance:")
         print(f"   Tests Passed: {passed_golden}/{len(golden_results)}")
         print(f"   Overall Score: {total_score}/{max_total} ({avg_percentage:.1f}%)")
 
@@ -434,7 +433,7 @@ def run_golden_tests(api_url: str = "http://localhost:8000") -> bool:
     # Negative set performance
     if negative_results:
         passed_negative = sum(1 for r in negative_results if r["passed"])
-        print(f"\n🛡️ Anti-Hallucination Performance:")
+        print("\n🛡️ Anti-Hallucination Performance:")
         print(
             f"   Tests Passed: {passed_negative}/{len(negative_results)} ({(passed_negative/len(negative_results)*100):.0f}%)"
         )
@@ -445,7 +444,43 @@ def run_golden_tests(api_url: str = "http://localhost:8000") -> bool:
     return all_passed
 
 
+def validate_api_url(url: str) -> str:
+    """Validate and sanitize API URL to prevent SSRF attacks"""
+    from urllib.parse import urlparse
+
+    # Parse the URL
+    parsed = urlparse(url)
+
+    # Only allow HTTP/HTTPS schemes
+    if parsed.scheme not in ["http", "https"]:
+        raise ValueError("Only HTTP and HTTPS URLs are allowed")
+
+    # Validate hostname - only allow localhost and specific allowed hosts
+    allowed_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]
+    if parsed.hostname not in allowed_hosts:
+        raise ValueError(
+            f"Host '{parsed.hostname}' not allowed. Only localhost is permitted for testing."
+        )
+
+    # Validate port range (if specified)
+    if parsed.port and (parsed.port < 1024 or parsed.port > 65535):
+        raise ValueError("Port must be between 1024 and 65535")
+
+    # Reconstruct safe URL
+    safe_url = f"{parsed.scheme}://{parsed.hostname}"
+    if parsed.port:
+        safe_url += f":{parsed.port}"
+
+    return safe_url
+
+
 if __name__ == "__main__":
-    api_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
-    success = run_golden_tests(api_url)
+    try:
+        api_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
+        # Security: Validate API URL to prevent SSRF
+        safe_api_url = validate_api_url(api_url)
+        success = run_golden_tests(safe_api_url)
+    except ValueError as e:
+        print(f"❌ Invalid API URL: {e}")
+        sys.exit(1)
     sys.exit(0 if success else 1)

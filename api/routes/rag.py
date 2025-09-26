@@ -169,6 +169,18 @@ async def ingest_to_version(request: IngestRequest) -> Dict[str, Any]:
                 if not file_path_resolved.is_relative_to(data_dir_resolved):
                     continue  # Skip files outside DATA_DIR
 
+                # Double-check the file is within allowed directory and is a regular file
+                if (
+                    not file_path_resolved.is_file()
+                    or ".." in str(file_path_resolved)
+                    or not str(file_path_resolved).startswith(str(data_dir_resolved))
+                ):
+                    continue  # Skip potentially unsafe files
+
+                # Validate file extension for additional security
+                if not file_path_resolved.suffix.lower() == ".md":
+                    continue  # Only process markdown files
+
                 with open(file_path_resolved, "r", encoding="utf-8") as f:
                     content = f.read()
 
