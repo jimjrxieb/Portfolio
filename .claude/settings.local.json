@@ -60,7 +60,8 @@
       "Bash(npm install:*)",
       "Bash(pip install:*)",
       "Bash(pre-commit:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(gh repo view:*)"
     ],
     "deny": [],
     "ask": []
