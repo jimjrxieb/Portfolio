@@ -86,7 +86,12 @@ export default function AvatarPanel() {
         }}
       >
         <CardContent sx={{ pb: 2 }}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            mb={1}
+          >
             <Box display="flex" alignItems="center" gap={1}>
               <Typography variant="body2" fontWeight={500} color="primary">
                 Avatar: Jade
@@ -122,7 +127,8 @@ export default function AvatarPanel() {
         sx={{
           height: 320,
           overflow: 'hidden',
-          background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, rgba(17, 24, 39, 0.2) 100%)',
+          background:
+            'linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, rgba(17, 24, 39, 0.2) 100%)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
         }}
       >
