@@ -43,7 +43,6 @@ async def create_avatar(photo: UploadFile = File(...), voice: str = Form(None)):
 
 @router.post("/talk")
 async def talk(payload: dict):
-    avatar_id = payload.get("avatar_id")
     text = payload.get("text", "")
     voice = payload.get("voice")
 
@@ -66,7 +65,7 @@ async def talk(payload: dict):
             # Return relative URL that gets served by assets endpoint
             rel_path = os.path.relpath(mp3_path, DATA_DIR)
             return {"url": f"/api/assets/{rel_path}"}
-        except Exception as e:
+        except Exception:
             # Fall back to default intro on TTS failure
             import logging
 
@@ -99,17 +98,24 @@ assets_router = APIRouter()
 
 @assets_router.get("/api/assets/{path:path}")
 def serve_asset(path: str):
-    from pathlib import Path
-    import os
+    import re
 
     # Security: Comprehensive path traversal protection
+    # Reject any path with directory traversal attempts
     if ".." in path or path.startswith("/") or "\\" in path:
         raise HTTPException(status_code=404, detail="Invalid path")
 
+    # Additional security: only allow alphanumeric, dash, underscore, dot, and forward slash
+    if not re.match(r"^[a-zA-Z0-9._/-]+$", path):
+        raise HTTPException(status_code=404, detail="Invalid path characters")
+
     # Normalize and validate path
     try:
+        # Sanitize the input path - remove any potentially dangerous components
+        sanitized_path = path.strip().replace("\\", "").replace("..", "")
+
         # Check uploads first
-        clean_path = path.replace("uploads/", "")
+        clean_path = sanitized_path.replace("uploads/", "")
         up_path = (UPLOADS / clean_path).resolve()
 
         # Ensure the resolved path is within the uploads directory
@@ -118,10 +124,14 @@ def serve_asset(path: str):
             and up_path.exists()
             and up_path.is_file()
         ):
-            return FileResponse(up_path)
+            # Additional security check: ensure the final path is safe
+            if ".." not in str(up_path) and str(up_path).startswith(
+                str(UPLOADS.resolve())
+            ):
+                return FileResponse(up_path)
 
         # Then assets directory
-        asset_path = (ASSETS / path).resolve()
+        asset_path = (ASSETS / sanitized_path).resolve()
 
         # Ensure the resolved path is within the assets directory
         if (
@@ -129,13 +139,17 @@ def serve_asset(path: str):
             and asset_path.exists()
             and asset_path.is_file()
         ):
-            return FileResponse(asset_path)
+            # Additional security check: ensure the final path is safe
+            if ".." not in str(asset_path) and str(asset_path).startswith(
+                str(ASSETS.resolve())
+            ):
+                return FileResponse(asset_path)
 
     except (ValueError, OSError):
         # Handle any path resolution errors
         raise HTTPException(status_code=404, detail="File not found")
 
-    # Special cases for fallbacks
+    # Special cases for fallbacks - only allow exact matches
     if path == "default-intro" and DEFAULT_INTRO.exists():
         return FileResponse(DEFAULT_INTRO, media_type="audio/mpeg")
 
@@ -161,7 +175,7 @@ def rag_count(namespace: str = None):
         # Try to get count directly
         try:
             count = collection.count()
-        except:
+        except Exception:
             # Fallback: get all documents and count them
             docs = collection.get(limit=1_000_000)
             count = len(docs.get("documents", []))
