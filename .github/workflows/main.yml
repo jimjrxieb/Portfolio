@@ -26,6 +26,10 @@ jobs:
   quality-checks:
     runs-on: ubuntu-latest
     name: Code Quality & Security
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
 
     steps:
     - name: Checkout code
