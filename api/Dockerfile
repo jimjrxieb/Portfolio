@@ -1,74 +1,85 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.11-slim AS base
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+# Use Python Alpine for smaller image size
+FROM python:3.11-alpine AS base
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies required for Python packages
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    linux-headers \
+    curl \
+    && rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
-# System deps minimal with --mount cache  
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
+# Copy and install Python dependencies
 COPY api/requirements.txt /app/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
-    pip install -r /app/requirements.txt
+
+# Install dependencies with CPU-only versions to avoid CUDA
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    fastapi==0.104.1 \
+    uvicorn[standard]==0.24.0 \
+    pydantic[email]>=2.7.0 \
+    pydantic-settings>=2.4.0 \
+    python-multipart>=0.0.18 \
+    python-dotenv==1.0.0 \
+    httpx==0.25.2 \
+    pyyaml==6.0.1 \
+    openai==0.28 \
+    numpy \
+    chromadb==0.4.18 \
+    sentence-transformers==2.2.2 \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    torch --index-url https://download.pytorch.org/whl/cpu
 
 # --- Final runtime image ---
-FROM python:3.11-slim AS run
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-WORKDIR /app
+FROM python:3.11-alpine AS run
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
- && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    DEFAULT_INTRO=/app/assets/default_intro.mp3 \
+    DATA_DIR=/data
 
-# Non-root user for security with hardened settings
-RUN useradd -u 10001 -m -r -s /sbin/nologin -c "Application User" appuser && \
-    mkdir -p /home/appuser && \
-    chown appuser:appuser /home/appuser
+# Install minimal runtime dependencies
+RUN apk add --no-cache curl
+
+# Create non-root user for security
+RUN adduser -u 10001 -D -s /bin/sh appuser
 
 # Copy Python dependencies from builder
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=base /usr/local/bin /usr/local/bin
 
-# Copy ONLY the clean API structure and assets
+# Copy application code
 COPY api/ /app/
 
-# Environment defaults
-ENV DEFAULT_INTRO=/app/assets/default_intro.mp3
-ENV DATA_DIR=/data
-ENV PYTHONPATH=/app
-
-# Create data directory with proper permissions and security hardening
-RUN mkdir -p /data/uploads/audio /data/assets /tmp/app && \
-    chown -R appuser:appuser /data /app /tmp/app && \
-    chmod -R 750 /data /app && \
-    chmod 1777 /tmp/app
-
-# Security: Remove unnecessary packages and files
-RUN apt-get remove --purge -y curl && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Create data directory with proper permissions
+RUN mkdir -p /data/uploads/audio /data/assets && \
+    chown -R appuser:appuser /data /app
 
 # Switch to non-root user
 USER appuser
 
-# Set secure working directory
 WORKDIR /app
 
 # Security labels
 LABEL security.scan="enabled" \
       security.non-root="true" \
-      security.capabilities="none"
+      security.no-cuda="true"
 
 EXPOSE 8000
 
-# Health check using Python instead of curl for smaller image
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)" || exit 1
 
