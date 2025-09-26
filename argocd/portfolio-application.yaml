@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/component: application
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/refresh: "2025-09-26-simplified-architecture"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -30,10 +31,8 @@ spec:
           value: latest
         - name: chromadb.image.tag
           value: latest
-        - name: avatarCreation.image.tag
-          value: latest
-        - name: ragPipeline.image.tag
-          value: latest
+        # Simplified architecture - Jade-Brain merged into API
+        # RAG pipeline is local-only, not deployed
   destination:
     server: https://kubernetes.default.svc
     namespace: portfolio

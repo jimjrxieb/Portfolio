@@ -138,8 +138,8 @@ export default function Landing() {
                     oversight through approval-based workflows.
                   </p>
                   <p className="text-crystal-400 text-xs mt-2 italic">
-                    &ldquo;AI is not a shortcut just a multiplier of your current
-                    abilities&rdquo;
+                    &ldquo;AI is not a shortcut just a multiplier of your
+                    current abilities&rdquo;
                   </p>
                 </div>
                 <Projects />

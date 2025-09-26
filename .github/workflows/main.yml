@@ -118,8 +118,6 @@ jobs:
         component:
           - { name: 'api', path: './api/Dockerfile', context: '.' }
           - { name: 'ui', path: './ui/Dockerfile', context: '.' }
-          - { name: 'jade-brain', path: './Jade-Brain/Dockerfile', context: '.' }
-          - { name: 'rag-pipeline', path: './rag-pipeline/Dockerfile.api', context: '.' }
 
     outputs:
       image-tag: ${{ steps.meta.outputs.image-tag }}
@@ -179,7 +177,7 @@ jobs:
 
     strategy:
       matrix:
-        component: ['api', 'ui', 'jade-brain', 'rag-pipeline']
+        component: ['api', 'ui']
 
     steps:
     - name: Log in to Container Registry

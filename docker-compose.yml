@@ -12,83 +12,72 @@ services:
       - CHROMA_DB_IMPL=duckdb+parquet
       - CHROMA_PERSIST_DIRECTORY=/chroma/data
     restart: unless-stopped
-
-  # Jade-Brain Intelligence System
-  jade-brain:
-    build: ./Jade-Brain
-    ports:
-      - "8002:8000"
-    environment:
-      - CHROMA_URL=http://chromadb:8000
-      - RAG_API_URL=http://rag-pipeline:8000
-      - GPT_MODEL=gpt-4o-mini
-      - GPT_API_KEY=${OPENAI_API_KEY:-}
-    depends_on:
-      - chromadb
-      - rag-pipeline
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: unless-stopped
 
-  # API Backend Service
+  # API Backend Service (with Jade-Brain integrated)
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
     ports:
-      - "8004:8000"
+      - "8000:8000"
     environment:
-      - JADE_BRAIN_URL=http://jade-brain:8000
       - CHROMA_URL=http://chromadb:8000
+      - GPT_MODEL=gpt-4o-mini
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - PYTHONPATH=/app
+    volumes:
+      - ./data/chroma:/data/chroma
+      - ./data/uploads:/data/uploads
     depends_on:
-      - jade-brain
+      - chromadb
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: unless-stopped
-
-  # RAG Pipeline API Service (lightweight)
-  rag-pipeline:
-    build:
-      context: ./rag-pipeline
-      dockerfile: Dockerfile.api
-    ports:
-      - "8003:8000"  # RAG API only
-    environment:
-      - CHROMA_URL=http://chromadb:8000
-      - GPT_MODEL=gpt-4o-mini
-      - GPT_API_KEY=${OPENAI_API_KEY:-}
-    volumes:
-      - ./data/knowledge:/app/knowledge
-      - ./data/chroma:/app/chroma
-    depends_on:
-      - chromadb
     restart: unless-stopped
 
   # Frontend UI Service
   ui:
-    build: ./ui
+    build:
+      context: .
+      dockerfile: ./ui/Dockerfile
     ports:
-      - "5173:5173"
+      - "3000:80"
     environment:
-      - VITE_JADE_BRAIN_URL=http://localhost:8002
-      - VITE_API_URL=http://localhost:8004
-      - VITE_RAG_API_URL=http://localhost:8003
+      - VITE_API_URL=http://localhost:8000
       - VITE_CHROMA_URL=http://localhost:8001
-    volumes:
-      - ./ui/src:/app/src
     depends_on:
-      - jade-brain
+      - api
     restart: unless-stopped
 
+  # Local Development Only - RAG Pipeline for data ingestion
+  # Uncomment when you need to ingest new data on ROG Strix
+  # rag-pipeline:
+  #   build:
+  #     context: .
+  #     dockerfile: ./rag-pipeline/Dockerfile.api
+  #   ports:
+  #     - "8003:8000"
+  #   environment:
+  #     - CHROMA_URL=http://chromadb:8000
+  #     - GPT_MODEL=gpt-4o-mini
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+  #   volumes:
+  #     - ./data/knowledge:/app/knowledge
+  #     - ./data/chroma:/app/chroma
+  #   depends_on:
+  #     - chromadb
+  #   profiles:
+  #     - dev-tools
 
 volumes:
   chroma-data:
-  avatar-data:
-  knowledge-data:
 
 networks:
   default:

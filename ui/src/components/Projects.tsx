@@ -89,38 +89,106 @@ const TOOL_CATEGORIES: Record<CategoryKey, ToolCategory> = {
     title: 'DevSecOps Stack',
     icon: '🚀',
     tools: [
-      { name: 'Docker', description: 'Containerization & microservices', level: 'Advanced' },
-      { name: 'Kubernetes', description: 'Container orchestration', level: 'Intermediate' },
-      { name: 'GitHub Actions', description: 'CI/CD automation pipelines', level: 'Advanced' },
-      { name: 'Trivy', description: 'Security vulnerability scanning', level: 'Intermediate' },
-      { name: 'Cloudflare Tunnel', description: 'Secure networking & deployment', level: 'Intermediate' },
-      { name: 'Linting Tools', description: 'Code quality & formatting', level: 'Advanced' },
+      {
+        name: 'Docker',
+        description: 'Containerization & microservices',
+        level: 'Advanced',
+      },
+      {
+        name: 'Kubernetes',
+        description: 'Container orchestration',
+        level: 'Intermediate',
+      },
+      {
+        name: 'GitHub Actions',
+        description: 'CI/CD automation pipelines',
+        level: 'Advanced',
+      },
+      {
+        name: 'Trivy',
+        description: 'Security vulnerability scanning',
+        level: 'Intermediate',
+      },
+      {
+        name: 'Cloudflare Tunnel',
+        description: 'Secure networking & deployment',
+        level: 'Intermediate',
+      },
+      {
+        name: 'Linting Tools',
+        description: 'Code quality & formatting',
+        level: 'Advanced',
+      },
     ],
   },
   aiml: {
     title: 'AI/ML Technologies',
     icon: '🤖',
     tools: [
-      { name: 'OpenAI GPT-4o', description: 'Large language model integration', level: 'Advanced' },
-      { name: 'ChromaDB', description: 'Vector database for RAG', level: 'Advanced' },
-      { name: 'Python', description: 'AI/ML development & automation', level: 'Advanced' },
-      { name: 'FastAPI', description: 'High-performance API backends', level: 'Advanced' },
-      { name: 'RAG Systems', description: 'Retrieval-augmented generation', level: 'Intermediate' },
-      { name: 'Azure TTS', description: 'Text-to-speech integration', level: 'Intermediate' },
+      {
+        name: 'OpenAI GPT-4o',
+        description: 'Large language model integration',
+        level: 'Advanced',
+      },
+      {
+        name: 'ChromaDB',
+        description: 'Vector database for RAG',
+        level: 'Advanced',
+      },
+      {
+        name: 'Python',
+        description: 'AI/ML development & automation',
+        level: 'Advanced',
+      },
+      {
+        name: 'FastAPI',
+        description: 'High-performance API backends',
+        level: 'Advanced',
+      },
+      {
+        name: 'RAG Systems',
+        description: 'Retrieval-augmented generation',
+        level: 'Intermediate',
+      },
+      {
+        name: 'Azure TTS',
+        description: 'Text-to-speech integration',
+        level: 'Intermediate',
+      },
     ],
   },
   security: {
     title: 'Security & Compliance',
     icon: '🛡️',
     tools: [
-      { name: 'SAST/DAST', description: 'Static/Dynamic analysis', level: 'Advanced' },
-      { name: 'Trivy', description: 'Vulnerability scanning', level: 'Advanced' },
+      {
+        name: 'SAST/DAST',
+        description: 'Static/Dynamic analysis',
+        level: 'Advanced',
+      },
+      {
+        name: 'Trivy',
+        description: 'Vulnerability scanning',
+        level: 'Advanced',
+      },
       { name: 'OWASP ZAP', description: 'Security testing', level: 'Advanced' },
       { name: 'Falco', description: 'Runtime security', level: 'Intermediate' },
-      { name: 'OPA Gatekeeper', description: 'Policy enforcement', level: 'Advanced' },
-      { name: 'CIS Benchmarks', description: 'Security standards', level: 'Advanced' },
+      {
+        name: 'OPA Gatekeeper',
+        description: 'Policy enforcement',
+        level: 'Advanced',
+      },
+      {
+        name: 'CIS Benchmarks',
+        description: 'Security standards',
+        level: 'Advanced',
+      },
       { name: 'RBAC/ABAC', description: 'Access control', level: 'Expert' },
-      { name: 'Network Policies', description: 'Network security', level: 'Advanced' },
+      {
+        name: 'Network Policies',
+        description: 'Network security',
+        level: 'Advanced',
+      },
     ],
   },
 } as const;
@@ -144,13 +212,21 @@ const ProjectCard: React.FC<{
       <div className="flex items-center gap-3">
         <span className="text-xl">{project.icon}</span>
         <div>
-          <div className="text-gojo-primary font-medium text-sm">{project.title}</div>
-          <div className="text-gojo-secondary text-xs">{project.description}</div>
+          <div className="text-gojo-primary font-medium text-sm">
+            {project.title}
+          </div>
+          <div className="text-gojo-secondary text-xs">
+            {project.description}
+          </div>
         </div>
       </div>
       <div className="text-right">
-        <div className="text-xs text-crystal-400 font-medium">{project.status}</div>
-        <div className="text-gojo-secondary text-xs">{isSelected ? '▼' : '▶'}</div>
+        <div className="text-xs text-crystal-400 font-medium">
+          {project.status}
+        </div>
+        <div className="text-gojo-secondary text-xs">
+          {isSelected ? '▼' : '▶'}
+        </div>
       </div>
     </div>
 
@@ -207,7 +283,9 @@ const CategorySection: React.FC<{
         <div className="flex items-center gap-3">
           <span className="text-2xl">{category.icon}</span>
           <div>
-            <h3 className="text-gojo-primary font-semibold">{category.title}</h3>
+            <h3 className="text-gojo-primary font-semibold">
+              {category.title}
+            </h3>
             <p className="text-gojo-secondary text-sm">
               {category.tools.length} tools • Click to expand
             </p>
@@ -220,7 +298,7 @@ const CategorySection: React.FC<{
     {isSelected && (
       <div className="mt-3 bg-snow/5 border border-white/10 rounded-lg p-4">
         <div className="grid grid-cols-1 gap-3">
-          {category.tools.map((tool) => (
+          {category.tools.map(tool => (
             <ToolItem key={tool.name} tool={tool} />
           ))}
         </div>
@@ -231,8 +309,12 @@ const CategorySection: React.FC<{
 
 // Main Component
 export default function Projects() {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
-  const [selectedProject, setSelectedProject] = useState<ProjectKey | null>('linkops');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(
+    null
+  );
+  const [selectedProject, setSelectedProject] = useState<ProjectKey | null>(
+    'linkops'
+  );
 
   const toggleCategory = (key: CategoryKey) => {
     setSelectedCategory(prev => (prev === key ? null : key));
@@ -246,48 +328,75 @@ export default function Projects() {
     <div className="space-y-4" data-dev="projects">
       {/* Project Selector */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-3">Copilot Projects</h4>
+        <h4 className="text-gojo-primary font-semibold mb-3">
+          Copilot Projects
+        </h4>
         <div className="space-y-2">
-          {(Object.entries(FEATURED_PROJECTS) as [ProjectKey, Project][]).map(([key, project]) => (
-            <ProjectCard
-              key={key}
-              project={project}
-              projectKey={key}
-              isSelected={selectedProject === key}
-              onToggle={() => toggleProject(key)}
-            />
-          ))}
+          {(Object.entries(FEATURED_PROJECTS) as [ProjectKey, Project][]).map(
+            ([key, project]) => (
+              <ProjectCard
+                key={key}
+                project={project}
+                projectKey={key}
+                isSelected={selectedProject === key}
+                onToggle={() => toggleProject(key)}
+              />
+            )
+          )}
         </div>
       </div>
 
       {/* Tool Categories */}
       <div className="grid grid-cols-1 gap-3">
-        {(Object.entries(TOOL_CATEGORIES) as [CategoryKey, ToolCategory][]).map(([key, category]) => (
-          <CategorySection
-            key={key}
-            category={category}
-            categoryKey={key}
-            isSelected={selectedCategory === key}
-            onToggle={() => toggleCategory(key)}
-          />
-        ))}
+        {(Object.entries(TOOL_CATEGORIES) as [CategoryKey, ToolCategory][]).map(
+          ([key, category]) => (
+            <CategorySection
+              key={key}
+              category={category}
+              categoryKey={key}
+              isSelected={selectedCategory === key}
+              onToggle={() => toggleCategory(key)}
+            />
+          )
+        )}
       </div>
 
       {/* Journey Section */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-3">Development Journey</h4>
+        <h4 className="text-gojo-primary font-semibold mb-3">
+          Development Journey
+        </h4>
         <div className="text-gojo-secondary text-sm mb-3">
-          4 months of intensive AI & DevOps learning, combining traditional DevOps practices with cutting-edge AI capabilities.
+          4 months of intensive AI & DevOps learning, combining traditional
+          DevOps practices with cutting-edge AI capabilities.
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           {[
-            { title: 'Passion-Driven', subtitle: 'AI capabilities & innovation', color: 'crystal-400' },
-            { title: 'Rapid Learning', subtitle: 'Modern tech stack', color: 'gold-400' },
-            { title: 'Practical Focus', subtitle: 'Real-world applications', color: 'jade-400' },
-            { title: 'Integration', subtitle: 'DevOps + AI/ML', color: 'crystal-300' },
+            {
+              title: 'Passion-Driven',
+              subtitle: 'AI capabilities & innovation',
+              color: 'crystal-400',
+            },
+            {
+              title: 'Rapid Learning',
+              subtitle: 'Modern tech stack',
+              color: 'gold-400',
+            },
+            {
+              title: 'Practical Focus',
+              subtitle: 'Real-world applications',
+              color: 'jade-400',
+            },
+            {
+              title: 'Integration',
+              subtitle: 'DevOps + AI/ML',
+              color: 'crystal-300',
+            },
           ].map((item, index) => (
             <div key={index}>
-              <div className={`text-${item.color} font-semibold`}>{item.title}</div>
+              <div className={`text-${item.color} font-semibold`}>
+                {item.title}
+              </div>
               <div className="text-gojo-secondary text-xs">{item.subtitle}</div>
             </div>
           ))}
