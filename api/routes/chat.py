@@ -20,11 +20,23 @@ from engines.llm_engine import LLMEngine
 from routes.validation import validate_response, ValidationRequest
 
 # Import Sheyla's conversation engine
-import sys
-from pathlib import Path
+# import sys
+# from pathlib import Path
+#
+# sys.path.append(str(Path(__file__).parent.parent.parent))
+# from chat.engines.conversation_engine import ConversationEngine, ConversationContext
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from chat.engines.conversation_engine import ConversationEngine, ConversationContext
+# Temporary placeholders until conversation engine is available
+class ConversationContext:
+    def __init__(self, **kwargs):
+        pass
+
+class ConversationEngine:
+    def __init__(self):
+        pass
+
+    def generate_response(self, context):
+        return {"response": "Conversation engine not yet available"}
 
 router = APIRouter()
 

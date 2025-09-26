@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import AvatarPanel from '../components/AvatarPanel.tsx';
 import ChatPanel from '../components/ChatPanel.tsx';
 import Projects from '../components/Projects.tsx';
-// import IntroModal from '../components/IntroModal.tsx';
 
 export default function Landing() {
   const [showIntroModal, setShowIntroModal] = useState(false);
@@ -38,14 +36,17 @@ export default function Landing() {
       <div className="relative z-10 px-6 pb-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Left Panel - Avatar & Chat */}
+            {/* Left Panel - Welcome & Chat */}
             <div className="space-y-6">
-              {/* Avatar Section */}
+              {/* Welcome Section */}
               <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <div className="mb-4">
+                <div className="mb-6">
                   <h1 className="text-gojo-primary font-bold text-2xl mb-2">
                     Jimmie Coleman Portfolio
                   </h1>
+                  <p className="text-gojo-secondary mb-4">
+                    DevSecOps Engineer & AI Solutions Architect
+                  </p>
                   <div className="flex gap-4 text-sm">
                     <a
                       href="https://linkedin.com/in/jimmie-coleman"
@@ -65,7 +66,55 @@ export default function Landing() {
                     </a>
                   </div>
                 </div>
-                <AvatarPanel />
+
+                {/* Professional Overview */}
+                <div className="bg-snow/10 rounded-lg p-4 border border-white/5">
+                  <h3 className="text-gojo-primary font-semibold mb-3">
+                    **DevSecOps Engineer | AI Systems Implementation**
+                  </h3>
+                  <p className="text-gojo-secondary text-sm leading-relaxed mb-4">
+                    CKA & CompTIA Security+ certified with production experience
+                    in containerized AI systems. This portfolio demonstrates
+                    practical implementation across three areas:
+                  </p>
+
+                  <ul className="text-gojo-secondary text-sm leading-relaxed space-y-2 mb-4">
+                    <li>
+                      <strong className="text-gojo-primary">
+                        DevSecOps Automation
+                      </strong>{' '}
+                      - GitHub Actions CI/CD pipeline with ArgoCD deployment and
+                      integrated security scanning
+                    </li>
+                    <li>
+                      <strong className="text-gojo-primary">
+                        RAG Document Processing
+                      </strong>{' '}
+                      - Vector embeddings and semantic search for enterprise
+                      document analysis using ChromaDB and sentence transformers
+                    </li>
+                    <li>
+                      <strong className="text-gojo-primary">
+                        Production AI Deployment
+                      </strong>{' '}
+                      - Containerized chatbot systems with Docker/Kubernetes,
+                      implementing retrieval-augmented generation for business
+                      document queries
+                    </li>
+                  </ul>
+
+                  <p className="text-gojo-secondary text-sm leading-relaxed mb-3">
+                    The Jade chatbot showcases end-to-end RAG implementation:
+                    document chunking, vector storage, semantic search, and LLM
+                    response generation. Built for real enterprise use cases
+                    with proper error handling and caching.
+                  </p>
+
+                  <p className="text-crystal-400 text-sm font-medium">
+                    <strong>Technical stack:</strong> Python, Docker,
+                    Kubernetes, ChromaDB, OpenAI APIs, sentence-transformers
+                  </p>
+                </div>
               </div>
 
               {/* Chat Section */}
@@ -83,11 +132,14 @@ export default function Landing() {
                     Current Venture
                   </h2>
                   <p className="text-gojo-secondary text-sm">
-                    Revolutionary AI solutions with security-first approach
+                    Developing on-premise AI solutions for enterprises with
+                    strict data privacy requirements. Includes automation agents
+                    that streamline repetitive processes while maintaining human
+                    oversight through approval-based workflows.
                   </p>
                   <p className="text-crystal-400 text-xs mt-2 italic">
-                    "AI is not a shortcut just a multiplier of your current
-                    abilities"
+                    &ldquo;AI is not a shortcut just a multiplier of your current
+                    abilities&rdquo;
                   </p>
                 </div>
                 <Projects />

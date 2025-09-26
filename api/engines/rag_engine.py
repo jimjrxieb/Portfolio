@@ -20,7 +20,8 @@ class Doc:
 
 class RAGEngine:
     def __init__(self):
-        chroma_dir = os.getenv("CHROMA_DIR", "/app/models/chroma")
+        from settings import CHROMA_DIR
+        chroma_dir = str(CHROMA_DIR)
         os.makedirs(chroma_dir, exist_ok=True)
 
         self.client = chromadb.PersistentClient(path=chroma_dir)

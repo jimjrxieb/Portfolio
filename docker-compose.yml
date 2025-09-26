@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # ChromaDB Vector Database Service
   chromadb:
-    build: ./chromadb
+    image: chromadb/chroma:latest
     ports:
       - "8001:8000"
     volumes:
@@ -11,27 +11,21 @@ services:
     environment:
       - CHROMA_DB_IMPL=duckdb+parquet
       - CHROMA_PERSIST_DIRECTORY=/chroma/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     restart: unless-stopped
 
-  # Gojo Avatar Creation Service
-  avatar-creation:
-    build: ./avatar-creation
+  # Jade-Brain Intelligence System
+  jade-brain:
+    build: ./Jade-Brain
     ports:
       - "8002:8000"
     environment:
-      - AVATAR_CHARACTER=gojo
-      - AVATAR_DESCRIPTION=Professional male with white hair and crystal blue eyes
+      - CHROMA_URL=http://chromadb:8000
+      - RAG_API_URL=http://rag-pipeline:8000
       - GPT_MODEL=gpt-4o-mini
       - GPT_API_KEY=${OPENAI_API_KEY:-}
-    volumes:
-      - ./data/avatars:/app/avatars
     depends_on:
       - chromadb
+      - rag-pipeline
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -39,20 +33,35 @@ services:
       retries: 3
     restart: unless-stopped
 
-  # RAG Pipeline Service (Jupyter-based)
-  rag-pipeline:
-    build: ./rag-pipeline
+  # API Backend Service
+  api:
+    build: ./api
     ports:
-      - "8888:8888"  # Jupyter Lab
-      - "8003:8000"  # RAG API
+      - "8004:8000"
     environment:
-      - JUPYTER_ENABLE_LAB=yes
-      - JUPYTER_TOKEN=portfolio-rag-2025
+      - JADE_BRAIN_URL=http://jade-brain:8000
+      - CHROMA_URL=http://chromadb:8000
+    depends_on:
+      - jade-brain
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # RAG Pipeline API Service (lightweight)
+  rag-pipeline:
+    build:
+      context: ./rag-pipeline
+      dockerfile: Dockerfile.api
+    ports:
+      - "8003:8000"  # RAG API only
+    environment:
       - CHROMA_URL=http://chromadb:8000
       - GPT_MODEL=gpt-4o-mini
       - GPT_API_KEY=${OPENAI_API_KEY:-}
     volumes:
-      - ./rag-pipeline/notebooks:/app/notebooks
       - ./data/knowledge:/app/knowledge
       - ./data/chroma:/app/chroma
     depends_on:
@@ -65,26 +74,16 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=http://localhost:8002
+      - VITE_JADE_BRAIN_URL=http://localhost:8002
+      - VITE_API_URL=http://localhost:8004
       - VITE_RAG_API_URL=http://localhost:8003
       - VITE_CHROMA_URL=http://localhost:8001
     volumes:
       - ./ui/src:/app/src
     depends_on:
-      - avatar-creation
-      - rag-pipeline
+      - jade-brain
     restart: unless-stopped
 
-  # Security Scanner Service
-  security-scanner:
-    build: ./scripts/security
-    volumes:
-      - .:/workspace
-    environment:
-      - SCAN_TARGET=/workspace
-    profiles:
-      - security
-    command: ["./run-security-scan.sh"]
 
 volumes:
   chroma-data:
