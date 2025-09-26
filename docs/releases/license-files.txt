@@ -1,0 +1,5 @@
+./node_modules/which/LICENSE
+./node_modules/micromatch/LICENSE
+./node_modules/prettier/LICENSE
+./node_modules/fill-range/LICENSE
+./node_modules/human-signals/LICENSE

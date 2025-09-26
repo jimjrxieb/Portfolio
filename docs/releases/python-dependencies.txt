@@ -1,0 +1,71 @@
+=== ./api/requirements-external.txt ===
+# External service integrations
+openai==0.28
+=== ./api/requirements.txt ===
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic[email]>=2.7.0
+pydantic-settings>=2.4.0
+python-multipart>=0.0.18
+transformers>=4.40.0
+torch>=2.7.1-rc1
+sentence-transformers==2.2.2
+chromadb==0.4.18
+openai==0.28
+pyyaml==6.0.1
+python-dotenv==1.0.0
+httpx==0.25.2
+numpy<2.0
+huggingface_hub<0.20.0
+# MCP (Model Control Protocol) integration - using json for now
+# mcp will be added when stable packages are available
+# Development tools (removed due to dependency conflicts)
+# black==24.1.1
+# flake8==7.0.0
+# safety==2.3.5
+
+=== ./api/requirements-ml.txt ===
+# Heavy ML dependencies (cached separately)
+transformers>=4.40.0
+torch==2.1.2
+sentence-transformers==2.2.2
+chromadb==0.4.18
+numpy<2.0
+huggingface_hub<0.20.0
+=== ./api/requirements-base.txt ===
+# Core FastAPI dependencies (lightweight)
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic[email]>=2.7.0
+pydantic-settings>=2.4.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+httpx==0.25.2
+pyyaml==6.0.1
+=== ./rag-pipeline/requirements.txt ===
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+chromadb==0.4.18
+openai==1.52.0
+numpy==1.24.3
+pandas==2.0.3
+jupyter==1.0.0
+jupyterlab>=4.0.11
+python-dotenv==1.0.0
+httpx==0.25.2
+sentence-transformers==2.2.2
+tiktoken==0.5.1
+
+=== ./avatar-creation/requirements.txt ===
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.7.0
+openai==1.52.0
+python-multipart>=0.0.18
+pillow>=10.3.0
+requests>=2.32.4
+python-dotenv==1.0.0
+httpx==0.25.2
+azure-cognitiveservices-speech==1.35.0
+websockets==12.0
+

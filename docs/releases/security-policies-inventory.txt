@@ -1,0 +1,6 @@
+total 20
+drwxr-xr-x 2 jimmie jimmie 4096 Sep 15 00:48 .
+drwxr-xr-x 6 jimmie jimmie 4096 Sep 18 14:57 ..
+-rw-r--r-- 1 jimmie jimmie 1141 Sep 15 00:48 images.rego
+-rw-r--r-- 1 jimmie jimmie 1146 Sep 15 00:48 network.rego
+-rw-r--r-- 1 jimmie jimmie 3468 Sep 15 00:48 security.rego

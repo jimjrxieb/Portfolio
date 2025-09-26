@@ -1,0 +1,11 @@
+total 48
+drwxr-xr-x 3 jimmie jimmie 4096 Aug 21 23:39 .
+drwxr-xr-x 8 jimmie jimmie 4096 Sep 21 23:03 ..
+-rw-r--r-- 1 jimmie jimmie 2090 Aug 21 22:03 api.spec.ts
+-rw-r--r-- 1 jimmie jimmie 7002 Aug 21 22:03 avatar-fallback.spec.ts
+drwxr-xr-x 2 jimmie jimmie 4096 Aug 21 22:03 fixtures
+-rw-r--r-- 1 jimmie jimmie  698 Aug 21 22:03 global-setup.ts
+-rw-r--r-- 1 jimmie jimmie 7609 Aug 22 01:05 portfolio-e2e.spec.ts
+-rw-r--r-- 1 jimmie jimmie  471 Aug 21 22:03 ui-chat.spec.ts
+-rw-r--r-- 1 jimmie jimmie 2899 Aug 21 22:03 ui-clean.spec.ts
+-rw-r--r-- 1 jimmie jimmie  580 Aug 21 22:03 utils.ts

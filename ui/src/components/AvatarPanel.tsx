@@ -1,4 +1,22 @@
 import React, { useState, useRef } from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  IconButton,
+  Box,
+  Stack,
+  Chip,
+  Divider,
+} from '@mui/material';
+import {
+  VolumeOff,
+  VolumeUp,
+  PlayArrow,
+  Movie,
+  Mic,
+} from '@mui/icons-material';
 import { API_BASE } from '../lib/api';
 import GojoAvatar3D, { GojoAvatar3DRef } from './GojoAvatar3D';
 
@@ -57,86 +75,128 @@ export default function AvatarPanel() {
   }
 
   return (
-    <div className="space-y-4" data-dev="avatar-panel">
+    <Stack spacing={3} data-dev="avatar-panel">
       {/* Avatar Info Display */}
-      <div className="bg-snow/20 rounded-lg p-3 border border-white/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gojo-primary">
-              Avatar: Gojo
-            </span>
-            <span className="text-xs text-gojo-secondary">•</span>
-            <span className="text-xs text-gojo-secondary">3D VRM Model</span>
-          </div>
-          <button
-            onClick={() => setMuted(!muted)}
-            className={`p-1 rounded transition-colors ${
-              muted
-                ? 'text-red-400 hover:text-red-300'
-                : 'text-gojo-secondary hover:text-gojo-primary'
-            }`}
-            title={muted ? 'Unmute Audio' : 'Mute Audio'}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-        </div>
-        <p className="text-xs text-gojo-secondary mt-1">
-          AI assistant with interactive speech and visual responses
-        </p>
-      </div>
+      <Card
+        elevation={2}
+        sx={{
+          bgcolor: 'rgba(255, 255, 255, 0.02)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <CardContent sx={{ pb: 2 }}>
+          <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Typography variant="body2" fontWeight={500} color="primary">
+                Avatar: Jade
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                •
+              </Typography>
+              <Chip
+                label="3D VRM Model"
+                size="small"
+                variant="outlined"
+                sx={{ height: 20, fontSize: '0.75rem' }}
+              />
+            </Box>
+            <IconButton
+              onClick={() => setMuted(!muted)}
+              size="small"
+              color={muted ? 'error' : 'default'}
+              title={muted ? 'Unmute Audio' : 'Mute Audio'}
+            >
+              {muted ? <VolumeOff /> : <VolumeUp />}
+            </IconButton>
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            AI assistant with interactive speech and visual responses
+          </Typography>
+        </CardContent>
+      </Card>
 
       {/* 3D Avatar Display */}
-      <div className="w-full h-80 rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-crystal-500/5 to-ink/20">
+      <Card
+        elevation={3}
+        sx={{
+          height: 320,
+          overflow: 'hidden',
+          background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.05) 0%, rgba(17, 24, 39, 0.2) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <GojoAvatar3D
           ref={avatarRef}
           speaking={speaking}
-          onReady={() => console.log('Gojo avatar ready')}
+          onReady={() => console.log('Jade avatar ready')}
           onSpeaking={speaking => setSpeaking(speaking)}
           onAnimationComplete={() => console.log('Animation complete')}
           className="w-full h-full"
         />
-      </div>
+      </Card>
 
       {/* Avatar Controls */}
-      <div className="space-y-2">
-        <button
-          className="w-full bg-crystal-500/20 hover:bg-crystal-500/30 text-gojo-primary border border-crystal-500/30 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
+      <Stack spacing={2}>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={speaking ? <Mic /> : <PlayArrow />}
           onClick={() =>
             onTalk(
-              "Welcome to Jimmie's portfolio page! I'm Gojo Links and I'll be hosting you while on this site. Let me give you a brief introduction to Jimmie. He is CKA and CompTIA Security Plus certified with a deep passion for AI and built this platform using it. He is currently working on 3 LinkOps AI-BOX projects for 3 separate clients. Ask anything in the chatbox and I'll try my best to answer them."
+              "Welcome to Jimmie's portfolio page! I'm Jade, Jimmie's AI assistant. He is CKA and CompTIA Security Plus certified with a deep passion for AI and built this platform using it. He is currently working on 3 LinkOps AI-BOX projects for 3 separate clients. Ask anything in the chatbox and I'll try my best to answer them."
             )
           }
           disabled={speaking}
+          sx={{
+            bgcolor: 'rgba(139, 92, 246, 0.2)',
+            borderColor: 'rgba(139, 92, 246, 0.3)',
+            color: 'primary.main',
+            '&:hover': {
+              bgcolor: 'rgba(139, 92, 246, 0.3)',
+            },
+          }}
         >
-          {speaking ? '🎤 Speaking...' : '▶️ Play Introduction'}
-        </button>
+          {speaking ? 'Speaking...' : 'Play Introduction'}
+        </Button>
 
-        <button
-          className="w-full bg-gold-500/20 hover:bg-gold-500/30 text-gojo-primary border border-gold-500/30 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
+        <Button
+          variant="outlined"
+          size="large"
+          startIcon={speaking ? <Mic /> : <Movie />}
           onClick={() =>
             onTalk(
-              'Jimmie built this entire platform combining his DevSecOps expertise with AI passion. He created three LinkOps AI-BOX solutions: one for enterprise deployment, Jade BOX for property management, and WHIS BOX for cybersecurity. Each leverages his skills in Docker, Kubernetes, GitHub Actions, and AI technologies like RAG systems and vector databases.'
+              'Jimmie built this entire platform combining his DevSecOps expertise with AI passion. He created three LinkOps AI-BOX solutions: one for enterprise deployment, ZRS-COPILOT for property management, and GP-COPILOT for cybersecurity. Each leverages his skills in Docker, Kubernetes, GitHub Actions, and AI technologies like RAG systems and vector databases.'
             )
           }
           disabled={speaking}
+          sx={{
+            borderColor: 'rgba(251, 191, 36, 0.3)',
+            color: 'primary.main',
+            bgcolor: 'rgba(251, 191, 36, 0.1)',
+            '&:hover': {
+              bgcolor: 'rgba(251, 191, 36, 0.2)',
+              borderColor: 'rgba(251, 191, 36, 0.4)',
+            },
+          }}
         >
-          {speaking ? '🎤 Speaking...' : '🎬 About the Platform'}
-        </button>
+          {speaking ? 'Speaking...' : 'About the Platform'}
+        </Button>
 
         {speechUrl && (
-          <div className="mt-3">
+          <Box mt={2}>
             <audio
               controls
               src={speechUrl}
-              className="w-full"
+              style={{ width: '100%' }}
               onEnded={() => {
                 URL.revokeObjectURL(speechUrl);
                 setSpeechUrl('');
               }}
             />
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

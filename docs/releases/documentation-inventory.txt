@@ -1,0 +1,14 @@
+total 96
+drwxr-xr-x  6 jimmie jimmie  4096 Sep 25 11:35 .
+drwxr-xr-x 27 jimmie jimmie  4096 Sep 25 09:18 ..
+-rw-r--r--  1 jimmie jimmie  5113 Aug 21 22:03 API-CLEANUP.md
+-rw-r--r--  1 jimmie jimmie  7863 Aug 21 22:03 FINISH-LINE.md
+-rw-r--r--  1 jimmie jimmie  7801 Aug 21 22:03 GPT4O-MINI-FALLBACK.md
+-rw-r--r--  1 jimmie jimmie 10158 Aug 21 22:03 MENTOR-REVIEW.md
+-rw-r--r--  1 jimmie jimmie  9780 Aug 21 22:03 RUNBOOK.md
+-rw-r--r--  1 jimmie jimmie 10165 Sep 25 09:53 SECURITY-CHECKLIST.md
+-rw-r--r--  1 jimmie jimmie  8445 Aug 21 22:03 UI-CLEANUP.md
+drwxr-xr-x  2 jimmie jimmie  4096 Aug 21 22:03 context
+drwxr-xr-x  2 jimmie jimmie  4096 Aug 21 23:12 md
+drwxr-xr-x  2 jimmie jimmie  4096 Sep 25 11:50 releases
+drwxr-xr-x  2 jimmie jimmie  4096 Aug 21 23:12 yaml

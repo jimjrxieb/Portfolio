@@ -1,6 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
-const featuredProjects = {
+// Types
+interface Project {
+  title: string;
+  description: string;
+  status: string;
+  icon: string;
+  highlights: string[];
+}
+
+interface Tool {
+  name: string;
+  description: string;
+  level: 'Intermediate' | 'Advanced' | 'Expert';
+}
+
+interface ToolCategory {
+  title: string;
+  icon: string;
+  tools: Tool[];
+}
+
+type ProjectKey = 'linkops' | 'jade' | 'whis' | 'portfolio';
+type CategoryKey = 'devops' | 'aiml' | 'security';
+
+// Constants
+const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
   linkops: {
     title: 'LinkOps AI-BOX',
     description: 'Enterprise AI deployment platform',
@@ -15,7 +40,7 @@ const featuredProjects = {
     ],
   },
   jade: {
-    title: 'Jade BOX',
+    title: 'ZRS-COPILOT',
     description: 'AI property management assistant',
     status: 'ZRS Integration',
     icon: '🏠',
@@ -28,305 +53,244 @@ const featuredProjects = {
     ],
   },
   whis: {
-    title: 'WHIS BOX',
-    description: 'SOAR cybersecurity copilot',
-    status: 'Guardpoint Deployment',
+    title: 'GP-COPILOT',
+    description: 'DevSecOps Security Automation',
+    status: 'GuidePoint Deployment',
     icon: '🛡️',
     highlights: [
-      'Security orchestration & automated response',
-      'Splunk & LimaCharlie log analysis',
-      'Threat intelligence integration',
-      'Incident response automation',
-      'Best practice action recommendations',
+      'Multi-scanner vulnerability detection (Trivy, Checkov, Bandit, TFSec, Gitleaks)',
+      'Kubernetes security operations & RBAC automation',
+      'Infrastructure as Code security hardening',
+      'Secrets management (K8s/Docker/Vault basics)',
+      'Security finding normalization & reporting',
+      'Confidence-based remediation (junior → mid progression)',
+      'Research & documentation automation (CVE feeds, security guides)',
     ],
   },
   portfolio: {
     title: 'Interactive Portfolio',
-    description: '3D avatar portfolio platform',
+    description: 'RAG-powered AI portfolio platform',
     status: 'Live Demo',
     icon: '🎭',
     highlights: [
-      '3D Gojo avatar with VRM technology',
-      'Real-time TTS lip-sync animation',
-      'DevOps & AI/ML showcase',
-      'Modern web technologies (React, Three.js)',
-      'Demonstrates full-stack capabilities',
+      'Jade AI assistant with RAG knowledge base',
+      'LangChain-style batch processing pipeline',
+      'ChromaDB vector storage (391+ documents)',
+      'sentence-transformers embeddings',
+      'OpenAI GPT-4o-mini integration',
+      'React/TypeScript frontend with FastAPI backend',
+      'Honest, grounded AI responses about experience',
     ],
   },
-};
+} as const;
 
-const toolCategories = {
+const TOOL_CATEGORIES: Record<CategoryKey, ToolCategory> = {
   devops: {
     title: 'DevSecOps Stack',
     icon: '🚀',
     tools: [
-      {
-        name: 'Docker',
-        description: 'Containerization & microservices',
-        level: 'Advanced',
-      },
-      {
-        name: 'Kubernetes',
-        description: 'Container orchestration',
-        level: 'Intermediate',
-      },
-      {
-        name: 'GitHub Actions',
-        description: 'CI/CD automation pipelines',
-        level: 'Advanced',
-      },
-      {
-        name: 'Trivy',
-        description: 'Security vulnerability scanning',
-        level: 'Intermediate',
-      },
-      {
-        name: 'Cloudflare Tunnel',
-        description: 'Secure networking & deployment',
-        level: 'Intermediate',
-      },
-      {
-        name: 'Linting Tools',
-        description: 'Code quality & formatting',
-        level: 'Advanced',
-      },
+      { name: 'Docker', description: 'Containerization & microservices', level: 'Advanced' },
+      { name: 'Kubernetes', description: 'Container orchestration', level: 'Intermediate' },
+      { name: 'GitHub Actions', description: 'CI/CD automation pipelines', level: 'Advanced' },
+      { name: 'Trivy', description: 'Security vulnerability scanning', level: 'Intermediate' },
+      { name: 'Cloudflare Tunnel', description: 'Secure networking & deployment', level: 'Intermediate' },
+      { name: 'Linting Tools', description: 'Code quality & formatting', level: 'Advanced' },
     ],
   },
   aiml: {
     title: 'AI/ML Technologies',
     icon: '🤖',
     tools: [
-      {
-        name: 'OpenAI GPT-4o',
-        description: 'Large language model integration',
-        level: 'Advanced',
-      },
-      {
-        name: 'ChromaDB',
-        description: 'Vector database for RAG',
-        level: 'Advanced',
-      },
-      {
-        name: 'Python',
-        description: 'AI/ML development & automation',
-        level: 'Advanced',
-      },
-      {
-        name: 'FastAPI',
-        description: 'High-performance API backends',
-        level: 'Advanced',
-      },
-      {
-        name: 'RAG Systems',
-        description: 'Retrieval-augmented generation',
-        level: 'Intermediate',
-      },
-      {
-        name: 'Azure TTS',
-        description: 'Text-to-speech integration',
-        level: 'Intermediate',
-      },
+      { name: 'OpenAI GPT-4o', description: 'Large language model integration', level: 'Advanced' },
+      { name: 'ChromaDB', description: 'Vector database for RAG', level: 'Advanced' },
+      { name: 'Python', description: 'AI/ML development & automation', level: 'Advanced' },
+      { name: 'FastAPI', description: 'High-performance API backends', level: 'Advanced' },
+      { name: 'RAG Systems', description: 'Retrieval-augmented generation', level: 'Intermediate' },
+      { name: 'Azure TTS', description: 'Text-to-speech integration', level: 'Intermediate' },
     ],
   },
   security: {
     title: 'Security & Compliance',
     icon: '🛡️',
     tools: [
-      {
-        name: 'SAST/DAST',
-        description: 'Static/Dynamic analysis',
-        level: 'Advanced',
-      },
-      {
-        name: 'Trivy',
-        description: 'Vulnerability scanning',
-        level: 'Advanced',
-      },
+      { name: 'SAST/DAST', description: 'Static/Dynamic analysis', level: 'Advanced' },
+      { name: 'Trivy', description: 'Vulnerability scanning', level: 'Advanced' },
       { name: 'OWASP ZAP', description: 'Security testing', level: 'Advanced' },
       { name: 'Falco', description: 'Runtime security', level: 'Intermediate' },
-      {
-        name: 'OPA Gatekeeper',
-        description: 'Policy enforcement',
-        level: 'Advanced',
-      },
-      {
-        name: 'CIS Benchmarks',
-        description: 'Security standards',
-        level: 'Advanced',
-      },
+      { name: 'OPA Gatekeeper', description: 'Policy enforcement', level: 'Advanced' },
+      { name: 'CIS Benchmarks', description: 'Security standards', level: 'Advanced' },
       { name: 'RBAC/ABAC', description: 'Access control', level: 'Expert' },
-      {
-        name: 'Network Policies',
-        description: 'Network security',
-        level: 'Advanced',
-      },
+      { name: 'Network Policies', description: 'Network security', level: 'Advanced' },
     ],
   },
-};
+} as const;
 
-export default function Projects() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedProject, setSelectedProject] = useState<string | null>(
-    'linkops'
-  );
+// Components
+const ProjectCard: React.FC<{
+  project: Project;
+  projectKey: string;
+  isSelected: boolean;
+  onToggle: () => void;
+}> = ({ project, isSelected, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+      isSelected
+        ? 'bg-crystal-500/20 border-crystal-500/30'
+        : 'bg-snow/5 border-white/10 hover:bg-snow/10'
+    }`}
+  >
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <span className="text-xl">{project.icon}</span>
+        <div>
+          <div className="text-gojo-primary font-medium text-sm">{project.title}</div>
+          <div className="text-gojo-secondary text-xs">{project.description}</div>
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="text-xs text-crystal-400 font-medium">{project.status}</div>
+        <div className="text-gojo-secondary text-xs">{isSelected ? '▼' : '▶'}</div>
+      </div>
+    </div>
 
-  return (
-    <div className="space-y-4" data-dev="projects">
-      {/* Project Selector Dropdown */}
-      <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-3">
-          Featured Projects
-        </h4>
-        <div className="space-y-2">
-          {Object.entries(featuredProjects).map(([key, project]) => (
-            <button
-              key={key}
-              onClick={() =>
-                setSelectedProject(selectedProject === key ? null : key)
-              }
-              className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                selectedProject === key
-                  ? 'bg-crystal-500/20 border-crystal-500/30'
-                  : 'bg-snow/5 border-white/10 hover:bg-snow/10'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{project.icon}</span>
-                  <div>
-                    <div className="text-gojo-primary font-medium text-sm">
-                      {project.title}
-                    </div>
-                    <div className="text-gojo-secondary text-xs">
-                      {project.description}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-crystal-400 font-medium">
-                    {project.status}
-                  </div>
-                  <div className="text-gojo-secondary text-xs">
-                    {selectedProject === key ? '▼' : '▶'}
-                  </div>
-                </div>
-              </div>
-
-              {selectedProject === key && (
-                <div className="mt-3 pt-3 border-t border-white/10">
-                  <div className="grid grid-cols-1 gap-2">
-                    {project.highlights.map((highlight, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <span className="text-crystal-400">•</span>
-                        <span className="text-gojo-secondary text-xs">
-                          {highlight}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </button>
+    {isSelected && (
+      <div className="mt-3 pt-3 border-t border-white/10">
+        <div className="grid grid-cols-1 gap-2">
+          {project.highlights.map((highlight, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <span className="text-crystal-400">•</span>
+              <span className="text-gojo-secondary text-xs">{highlight}</span>
+            </div>
           ))}
         </div>
       </div>
-      {/* Category Selection */}
-      <div className="grid grid-cols-1 gap-3">
-        {Object.entries(toolCategories).map(([key, category]) => (
-          <div key={key}>
-            <button
-              onClick={() =>
-                setSelectedCategory(selectedCategory === key ? null : key)
-              }
-              className="w-full text-left bg-snow/10 hover:bg-snow/20 border border-white/10 rounded-lg p-4 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{category.icon}</span>
-                  <div>
-                    <h3 className="text-gojo-primary font-semibold">
-                      {category.title}
-                    </h3>
-                    <p className="text-gojo-secondary text-sm">
-                      {category.tools.length} tools • Click to expand
-                    </p>
-                  </div>
-                </div>
-                <div className="text-gojo-secondary">
-                  {selectedCategory === key ? '▼' : '▶'}
-                </div>
-              </div>
-            </button>
+    )}
+  </button>
+);
 
-            {/* Expanded Tool Details */}
-            {selectedCategory === key && (
-              <div className="mt-3 bg-snow/5 border border-white/10 rounded-lg p-4">
-                <div className="grid grid-cols-1 gap-3">
-                  {category.tools.map((tool, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between py-2 border-b border-white/5 last:border-b-0"
-                    >
-                      <div>
-                        <div className="text-gojo-primary font-medium text-sm">
-                          {tool.name}
-                        </div>
-                        <div className="text-gojo-secondary text-xs">
-                          {tool.description}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            tool.level === 'Expert'
-                              ? 'bg-crystal-500/20 text-crystal-300'
-                              : tool.level === 'Advanced'
-                                ? 'bg-gold-500/20 text-gold-300'
-                                : 'bg-jade-500/20 text-jade-300'
-                          }`}
-                        >
-                          {tool.level}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+const ToolItem: React.FC<{ tool: Tool }> = ({ tool }) => {
+  const levelStyles = useMemo(() => {
+    const styles = {
+      Expert: 'bg-crystal-500/20 text-crystal-300',
+      Advanced: 'bg-gold-500/20 text-gold-300',
+      Intermediate: 'bg-jade-500/20 text-jade-300',
+    };
+    return styles[tool.level];
+  }, [tool.level]);
+
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-b-0">
+      <div>
+        <div className="text-gojo-primary font-medium text-sm">{tool.name}</div>
+        <div className="text-gojo-secondary text-xs">{tool.description}</div>
+      </div>
+      <span className={`text-xs px-2 py-1 rounded-full ${levelStyles}`}>
+        {tool.level}
+      </span>
+    </div>
+  );
+};
+
+const CategorySection: React.FC<{
+  category: ToolCategory;
+  categoryKey: string;
+  isSelected: boolean;
+  onToggle: () => void;
+}> = ({ category, isSelected, onToggle }) => (
+  <div>
+    <button
+      onClick={onToggle}
+      className="w-full text-left bg-snow/10 hover:bg-snow/20 border border-white/10 rounded-lg p-4 transition-colors"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{category.icon}</span>
+          <div>
+            <h3 className="text-gojo-primary font-semibold">{category.title}</h3>
+            <p className="text-gojo-secondary text-sm">
+              {category.tools.length} tools • Click to expand
+            </p>
           </div>
+        </div>
+        <div className="text-gojo-secondary">{isSelected ? '▼' : '▶'}</div>
+      </div>
+    </button>
+
+    {isSelected && (
+      <div className="mt-3 bg-snow/5 border border-white/10 rounded-lg p-4">
+        <div className="grid grid-cols-1 gap-3">
+          {category.tools.map((tool) => (
+            <ToolItem key={tool.name} tool={tool} />
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+// Main Component
+export default function Projects() {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ProjectKey | null>('linkops');
+
+  const toggleCategory = (key: CategoryKey) => {
+    setSelectedCategory(prev => (prev === key ? null : key));
+  };
+
+  const toggleProject = (key: ProjectKey) => {
+    setSelectedProject(prev => (prev === key ? null : key));
+  };
+
+  return (
+    <div className="space-y-4" data-dev="projects">
+      {/* Project Selector */}
+      <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
+        <h4 className="text-gojo-primary font-semibold mb-3">Copilot Projects</h4>
+        <div className="space-y-2">
+          {(Object.entries(FEATURED_PROJECTS) as [ProjectKey, Project][]).map(([key, project]) => (
+            <ProjectCard
+              key={key}
+              project={project}
+              projectKey={key}
+              isSelected={selectedProject === key}
+              onToggle={() => toggleProject(key)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Tool Categories */}
+      <div className="grid grid-cols-1 gap-3">
+        {(Object.entries(TOOL_CATEGORIES) as [CategoryKey, ToolCategory][]).map(([key, category]) => (
+          <CategorySection
+            key={key}
+            category={category}
+            categoryKey={key}
+            isSelected={selectedCategory === key}
+            onToggle={() => toggleCategory(key)}
+          />
         ))}
       </div>
 
-      {/* Journey & Passion */}
+      {/* Journey Section */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-3">
-          Development Journey
-        </h4>
+        <h4 className="text-gojo-primary font-semibold mb-3">Development Journey</h4>
         <div className="text-gojo-secondary text-sm mb-3">
-          4 months of intensive AI & DevOps learning, combining traditional
-          DevOps practices with cutting-edge AI capabilities.
+          4 months of intensive AI & DevOps learning, combining traditional DevOps practices with cutting-edge AI capabilities.
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="text-crystal-400 font-semibold">Passion-Driven</div>
-            <div className="text-gojo-secondary text-xs">
-              AI capabilities & innovation
+          {[
+            { title: 'Passion-Driven', subtitle: 'AI capabilities & innovation', color: 'crystal-400' },
+            { title: 'Rapid Learning', subtitle: 'Modern tech stack', color: 'gold-400' },
+            { title: 'Practical Focus', subtitle: 'Real-world applications', color: 'jade-400' },
+            { title: 'Integration', subtitle: 'DevOps + AI/ML', color: 'crystal-300' },
+          ].map((item, index) => (
+            <div key={index}>
+              <div className={`text-${item.color} font-semibold`}>{item.title}</div>
+              <div className="text-gojo-secondary text-xs">{item.subtitle}</div>
             </div>
-          </div>
-          <div>
-            <div className="text-gold-400 font-semibold">Rapid Learning</div>
-            <div className="text-gojo-secondary text-xs">Modern tech stack</div>
-          </div>
-          <div>
-            <div className="text-jade-400 font-semibold">Practical Focus</div>
-            <div className="text-gojo-secondary text-xs">
-              Real-world applications
-            </div>
-          </div>
-          <div>
-            <div className="text-crystal-300 font-semibold">Integration</div>
-            <div className="text-gojo-secondary text-xs">DevOps + AI/ML</div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

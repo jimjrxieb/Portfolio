@@ -1,2 +1,0 @@
-# External service integrations
-openai==0.28

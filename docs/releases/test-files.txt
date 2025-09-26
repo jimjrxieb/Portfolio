@@ -1,0 +1,10 @@
+./node_modules/yaml/dist/test-events.js
+./node_modules/yaml/dist/test-events.d.ts
+./test_audio.json
+./test_audio_output.mp3
+./tests/security/test-policy.rego
+./ui/node_modules/lucide-react/dist/esm/icons/test-tubes.js.map
+./ui/node_modules/lucide-react/dist/esm/icons/test-tube-diagonal.js
+./ui/node_modules/lucide-react/dist/esm/icons/test-tube-2.js
+./ui/node_modules/lucide-react/dist/esm/icons/test-tube-2.js.map
+./ui/node_modules/lucide-react/dist/esm/icons/test-tubes.js
