@@ -133,18 +133,43 @@ async def ingest_to_version(request: IngestRequest) -> Dict[str, Any]:
             version_id = request.version_id
             collection_name = f"{rag.namespace}_{version_id}"
 
-        # Load documents from specified path
-        source_path = Path(DATA_DIR) / request.source_path
+        # Load documents from specified path with security validation
+        # Security: Prevent path traversal attacks
+        if (
+            ".." in request.source_path
+            or request.source_path.startswith("/")
+            or "\\" in request.source_path
+        ):
+            raise HTTPException(status_code=400, detail="Invalid source path")
 
-        if not source_path.exists():
-            raise HTTPException(
-                status_code=404, detail=f"Source path not found: {request.source_path}"
-            )
+        try:
+            source_path = (Path(DATA_DIR) / request.source_path).resolve()
+            data_dir_resolved = Path(DATA_DIR).resolve()
+
+            # Ensure the resolved path is within DATA_DIR
+            if not source_path.is_relative_to(data_dir_resolved):
+                raise HTTPException(
+                    status_code=400, detail="Source path outside allowed directory"
+                )
+
+            if not source_path.exists():
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Source path not found: {request.source_path}",
+                )
+
+        except (ValueError, OSError):
+            raise HTTPException(status_code=400, detail="Invalid source path")
 
         docs = []
         for file_path in glob.glob(str(source_path / "**/*.md"), recursive=True):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                # Additional security check for each file
+                file_path_resolved = Path(file_path).resolve()
+                if not file_path_resolved.is_relative_to(data_dir_resolved):
+                    continue  # Skip files outside DATA_DIR
+
+                with open(file_path_resolved, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 # Create document ID from relative path

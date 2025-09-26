@@ -17,22 +17,29 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ProcessingResult:
     """Result of document processing"""
+
     decision: str  # "embed" or "document"
     storage_path: str
     chunks: Optional[List[str]] = None
     metadata: Optional[Dict] = None
     reason: str = ""
 
+
 class IngestionEngine:
     """Main engine for RAG data ingestion"""
 
     def __init__(self):
         # Configuration
-        self.data_dir = Path(os.getenv("DATA_DIR", "/home/jimmie/linkops-industries/Portfolio/data"))
-        self.docs_dir = Path(os.getenv("DOCS_DIR", "/home/jimmie/linkops-industries/Portfolio/docs"))
+        self.data_dir = Path(
+            os.getenv("DATA_DIR", "/home/jimmie/linkops-industries/Portfolio/data")
+        )
+        self.docs_dir = Path(
+            os.getenv("DOCS_DIR", "/home/jimmie/linkops-industries/Portfolio/docs")
+        )
         self.chroma_dir = self.data_dir / "chroma"
 
         # Processing settings
@@ -40,28 +47,32 @@ class IngestionEngine:
         self.chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "200"))
 
         # Initialize components
-        self.embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        self.embedding_model = SentenceTransformer(
+            "sentence-transformers/all-MiniLM-L6-v2"
+        )
         self.chroma_client = chromadb.PersistentClient(path=str(self.chroma_dir))
 
         # Get or create collection
         try:
             self.collection = self.chroma_client.get_collection("portfolio_knowledge")
         except:
-            self.collection = self.chroma_client.create_collection("portfolio_knowledge")
+            self.collection = self.chroma_client.create_collection(
+                "portfolio_knowledge"
+            )
 
     def sanitize_content(self, content: str) -> str:
         """Clean and sanitize input content"""
         # Remove excessive whitespace
-        content = re.sub(r'\n\s*\n\s*\n', '\n\n', content)
+        content = re.sub(r"\n\s*\n\s*\n", "\n\n", content)
 
         # Remove HTML tags if present
-        content = re.sub(r'<[^>]+>', '', content)
+        content = re.sub(r"<[^>]+>", "", content)
 
         # Fix encoding issues
-        content = content.encode('utf-8', errors='ignore').decode('utf-8')
+        content = content.encode("utf-8", errors="ignore").decode("utf-8")
 
         # Normalize whitespace
-        content = re.sub(r'\s+', ' ', content).strip()
+        content = re.sub(r"\s+", " ", content).strip()
 
         return content
 
@@ -76,28 +87,53 @@ class IngestionEngine:
         source_lower = source.lower()
 
         # Definitely embed these
-        embed_extensions = ['.md', '.txt', '.pdf']
-        embed_types = ['bio', 'project', 'skill', 'faq', 'knowledge', 'interview']
+        embed_extensions = [".md", ".txt", ".pdf"]
+        embed_types = ["bio", "project", "skill", "faq", "knowledge", "interview"]
 
         if any(ext in source_lower for ext in embed_extensions):
             if any(type_name in source_lower for type_name in embed_types):
                 return True, "Knowledge content suitable for embedding"
 
         # Definitely don't embed these
-        document_extensions = ['.yaml', '.yml', '.json', '.py', '.sh', '.js', '.ts', '.css', '.html']
+        document_extensions = [
+            ".yaml",
+            ".yml",
+            ".json",
+            ".py",
+            ".sh",
+            ".js",
+            ".ts",
+            ".css",
+            ".html",
+        ]
         if any(ext in source_lower for ext in document_extensions):
             return False, "Configuration/code file - store as document"
 
         # Content analysis
-        question_patterns = ['?', 'what is', 'how to', 'why', 'when', 'where', 'who']
+        question_patterns = ["?", "what is", "how to", "why", "when", "where", "who"]
         has_questions = any(pattern in content.lower() for pattern in question_patterns)
 
         # Conversational patterns
-        conversational_patterns = ['i am', 'my experience', 'i work', 'i specialize', 'tell me']
-        is_conversational = any(pattern in content.lower() for pattern in conversational_patterns)
+        conversational_patterns = [
+            "i am",
+            "my experience",
+            "i work",
+            "i specialize",
+            "tell me",
+        ]
+        is_conversational = any(
+            pattern in content.lower() for pattern in conversational_patterns
+        )
 
         # Business/personal info patterns
-        info_patterns = ['experience', 'skills', 'project', 'company', 'role', 'responsibility']
+        info_patterns = [
+            "experience",
+            "skills",
+            "project",
+            "company",
+            "role",
+            "responsibility",
+        ]
         is_info = any(pattern in content.lower() for pattern in info_patterns)
 
         if has_questions or is_conversational or is_info:
@@ -113,7 +149,7 @@ class IngestionEngine:
 
         chunks = []
         for i in range(0, len(content), self.chunk_size - self.chunk_overlap):
-            chunk = content[i:i + self.chunk_size]
+            chunk = content[i : i + self.chunk_size]
             if chunk.strip():  # Don't add empty chunks
                 chunks.append(chunk.strip())
 
@@ -128,7 +164,9 @@ class IngestionEngine:
             # Process each chunk
             for i, chunk in enumerate(chunks):
                 # Create unique ID
-                chunk_id = hashlib.md5(f"{source}_{i}_{chunk[:50]}".encode()).hexdigest()
+                chunk_id = hashlib.sha256(
+                    f"{source}_{i}_{chunk[:50]}".encode()
+                ).hexdigest()
 
                 # Create embedding
                 embedding = self.embedding_model.encode(chunk)
@@ -138,7 +176,7 @@ class IngestionEngine:
                     "source": source,
                     "chunk_index": i,
                     "total_chunks": len(chunks),
-                    **(metadata or {})
+                    **(metadata or {}),
                 }
 
                 # Add to collection
@@ -146,7 +184,7 @@ class IngestionEngine:
                     documents=[chunk],
                     embeddings=[embedding.tolist()],
                     ids=[chunk_id],
-                    metadatas=[chunk_metadata]
+                    metadatas=[chunk_metadata],
                 )
 
             logger.info(f"Embedded {len(chunks)} chunks from {source}")
@@ -156,7 +194,9 @@ class IngestionEngine:
             logger.error(f"Failed to embed content from {source}: {e}")
             return False
 
-    def store_document(self, content: str, source: str, content_type: str = "general") -> str:
+    def store_document(
+        self, content: str, source: str, content_type: str = "general"
+    ) -> str:
         """Store content as regular document"""
         # Determine storage path based on type
         if content_type in ["knowledge", "bio", "project"]:
@@ -170,13 +210,19 @@ class IngestionEngine:
         storage_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write content
-        with open(storage_path, 'w', encoding='utf-8') as f:
+        with open(storage_path, "w", encoding="utf-8") as f:
             f.write(content)
 
         logger.info(f"Stored document at {storage_path}")
         return str(storage_path)
 
-    def process_input(self, content: str, source: str = "", content_type: str = "general", metadata: Dict = None) -> ProcessingResult:
+    def process_input(
+        self,
+        content: str,
+        source: str = "",
+        content_type: str = "general",
+        metadata: Dict = None,
+    ) -> ProcessingResult:
         """Main processing function"""
         try:
             # Step 1: Sanitize content
@@ -196,15 +242,17 @@ class IngestionEngine:
                         storage_path=str(self.chroma_dir),
                         chunks=chunks,
                         metadata=metadata,
-                        reason=f"Embedded: {reason}"
+                        reason=f"Embedded: {reason}",
                     )
                 else:
                     # Fallback to document storage
-                    storage_path = self.store_document(clean_content, source, content_type)
+                    storage_path = self.store_document(
+                        clean_content, source, content_type
+                    )
                     return ProcessingResult(
                         decision="document",
                         storage_path=storage_path,
-                        reason="Embedding failed, stored as document"
+                        reason="Embedding failed, stored as document",
                     )
             else:
                 # Store as regular document
@@ -212,15 +260,13 @@ class IngestionEngine:
                 return ProcessingResult(
                     decision="document",
                     storage_path=storage_path,
-                    reason=f"Document: {reason}"
+                    reason=f"Document: {reason}",
                 )
 
         except Exception as e:
             logger.error(f"Processing failed: {e}")
             return ProcessingResult(
-                decision="error",
-                storage_path="",
-                reason=f"Error: {str(e)}"
+                decision="error", storage_path="", reason=f"Error: {str(e)}"
             )
 
     def get_status(self) -> Dict:
@@ -233,17 +279,15 @@ class IngestionEngine:
                 "chroma_available": True,
                 "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
                 "data_dir": str(self.data_dir),
-                "docs_dir": str(self.docs_dir)
+                "docs_dir": str(self.docs_dir),
             }
         except Exception as e:
-            return {
-                "status": "error",
-                "error": str(e),
-                "chroma_available": False
-            }
+            return {"status": "error", "error": str(e), "chroma_available": False}
+
 
 # Global instance
 _ingestion_engine = None
+
 
 def get_ingestion_engine() -> IngestionEngine:
     """Get global ingestion engine instance"""

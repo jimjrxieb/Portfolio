@@ -99,19 +99,41 @@ assets_router = APIRouter()
 
 @assets_router.get("/api/assets/{path:path}")
 def serve_asset(path: str):
-    # Security: prevent directory traversal
-    if ".." in path or path.startswith("/"):
-        raise HTTPException(404, "invalid path")
+    from pathlib import Path
+    import os
 
-    # Check uploads first
-    up_path = UPLOADS / path.replace("uploads/", "")
-    if up_path.exists() and up_path.is_file():
-        return FileResponse(up_path)
+    # Security: Comprehensive path traversal protection
+    if ".." in path or path.startswith("/") or "\\" in path:
+        raise HTTPException(status_code=404, detail="Invalid path")
 
-    # Then assets directory
-    asset_path = ASSETS / path
-    if asset_path.exists() and asset_path.is_file():
-        return FileResponse(asset_path)
+    # Normalize and validate path
+    try:
+        # Check uploads first
+        clean_path = path.replace("uploads/", "")
+        up_path = (UPLOADS / clean_path).resolve()
+
+        # Ensure the resolved path is within the uploads directory
+        if (
+            up_path.is_relative_to(UPLOADS.resolve())
+            and up_path.exists()
+            and up_path.is_file()
+        ):
+            return FileResponse(up_path)
+
+        # Then assets directory
+        asset_path = (ASSETS / path).resolve()
+
+        # Ensure the resolved path is within the assets directory
+        if (
+            asset_path.is_relative_to(ASSETS.resolve())
+            and asset_path.exists()
+            and asset_path.is_file()
+        ):
+            return FileResponse(asset_path)
+
+    except (ValueError, OSError):
+        # Handle any path resolution errors
+        raise HTTPException(status_code=404, detail="File not found")
 
     # Special cases for fallbacks
     if path == "default-intro" and DEFAULT_INTRO.exists():

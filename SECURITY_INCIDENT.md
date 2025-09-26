@@ -27,6 +27,27 @@ GitLeaks security scanner detected exposed credentials in documentation files:
 - [ ] **Rotate ArgoCD admin password** if used in production
 - [ ] **Review git history** for any other credential exposure
 
+### 🔧 Additional Security Fixes Applied
+
+#### **Path Traversal Vulnerabilities (HIGH)**
+
+- **Fixed**: `api/routes/actions.py` - Added comprehensive path validation with `resolve()` and `is_relative_to()`
+- **Fixed**: `api/routes/rag.py` - Added directory traversal protection for source path validation
+- **Impact**: Prevented arbitrary file read attacks
+
+#### **Insecure MD5 Hashing (LOW)**
+
+- **Fixed**: `rag-pipeline/ingestion_engine.py` - Replaced MD5 with SHA-256
+- **Fixed**: `rag-pipeline/legacy/ingest_knowledge.py` - Replaced MD5 with SHA-256
+- **Fixed**: `rag-pipeline/legacy/setup_rag.py` - Replaced MD5 with SHA-256
+- **Impact**: Improved cryptographic security for chunk IDs
+
+#### **Pending: SSRF Vulnerabilities (LOW)**
+
+- **Location**: `scripts/python3/tmp-test/test_golden_answers.py`
+- **Issue**: Command line argument flows into requests.post URL
+- **Status**: Low priority (test script only, not production code)
+
 ## Prevention Measures
 
 - ✅ GitLeaks secrets scanner already active in CI/CD
