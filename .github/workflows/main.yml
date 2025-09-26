@@ -24,6 +24,7 @@ env:
 
 jobs:
   # Parallel security scanning jobs (like microservices)
+  # Note: SARIF uploads require GitHub Advanced Security (available on public repos or Enterprise)
   sast-scanning:
     runs-on: ubuntu-latest
     name: Static Analysis Security Testing
@@ -47,12 +48,19 @@ jobs:
           p/javascript
         generateSarif: "1"
 
-    - name: Upload Semgrep results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
+    - name: Store Semgrep results (GitHub Advanced Security not available)
       if: always() && hashFiles('semgrep.sarif') != ''
-      with:
-        sarif_file: semgrep.sarif
-        category: 'semgrep-sast'
+      run: |
+        echo "📊 Semgrep SARIF results generated: semgrep.sarif"
+        echo "💡 Results would upload to Security tab if GitHub Advanced Security was enabled"
+
+    # Uncomment when GitHub Advanced Security is available:
+    # - name: Upload Semgrep results to GitHub Security
+    #   uses: github/codeql-action/upload-sarif@v3
+    #   if: always() && hashFiles('semgrep.sarif') != ''
+    #   with:
+    #     sarif_file: semgrep.sarif
+    #     category: 'semgrep-sast'
 
   python-security:
     runs-on: ubuntu-latest
