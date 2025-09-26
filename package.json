@@ -6,7 +6,7 @@
     "dev": "docker-compose up --build -d",
     "dev:ui": "cd ui && npm run dev",
     "build": "docker-compose build",
-    "test": "python3 test_golden_answers.py",
+    "test": "echo 'Use specific test commands: npm run test:ui, npm run test:api, npm run test:e2e'",
     "lint": "cd ui && npm run lint",
     "format": "cd ui && npm run format",
     "security": "cd ui && npm audit --audit-level=moderate",
