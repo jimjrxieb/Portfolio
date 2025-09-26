@@ -57,7 +57,10 @@
       "Bash(DATA_DIR=../data CHROMA_URL=http://localhost:8001 python3 batch_pipeline.py)",
       "Bash(./process_new_data.sh:*)",
       "Bash(npm install)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(pre-commit:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []

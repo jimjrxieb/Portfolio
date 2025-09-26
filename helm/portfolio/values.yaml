@@ -8,25 +8,17 @@ global:
 # UI Service (React Frontend)
 ui:
   enabled: true
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: ghcr.io/jimjrxieb/portfolio-ui
     tag: "latest"
     pullPolicy: Always
   service:
-    type: ClusterIP
-    port: 80
+    type: LoadBalancer
+    port: 3000
     targetPort: 80
   ingress:
-    enabled: true
-    className: nginx
-    annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    hosts:
-      - host: portfolio.local
-        paths:
-          - path: /
-            pathType: Prefix
+    enabled: false # Using LoadBalancer for local testing
   resources:
     requests:
       memory: "128Mi"
@@ -35,20 +27,19 @@ ui:
       memory: "256Mi"
       cpu: "500m"
   env:
-    VITE_API_BASE_URL: "http://api:8000"
-    VITE_RAG_API_URL: "http://rag-pipeline:8000"
-    VITE_CHROMA_URL: "http://chromadb:8000"
+    VITE_API_BASE_URL: "http://localhost:8000"
+    VITE_CHROMA_URL: "http://localhost:8001"
 
-# API Service (FastAPI Backend)
+# API Service (FastAPI Backend with integrated Jade-Brain)
 api:
   enabled: true
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: ghcr.io/jimjrxieb/portfolio-api
     tag: "latest"
     pullPolicy: Always
   service:
-    type: ClusterIP
+    type: LoadBalancer
     port: 8000
     targetPort: 8000
   resources:
@@ -61,9 +52,9 @@ api:
   env:
     PYTHONPATH: "/app"
     DATA_DIR: "/data"
-    CHROMADB_URL: "http://chromadb:8000"
-    AVATAR_SERVICE_URL: "http://avatar-creation:8000"
-    RAG_API_URL: "http://rag-pipeline:8000"
+    CHROMA_URL: "http://chromadb:8000"
+    GPT_MODEL: "gpt-4o-mini"
+    # Jade-Brain is now integrated into API service
   volumeMounts:
     - name: data-volume
       mountPath: /data
@@ -85,12 +76,12 @@ chromadb:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/jimjrxieb/portfolio-chromadb
+    repository: chromadb/chroma
     tag: "latest"
     pullPolicy: Always
   service:
-    type: ClusterIP
-    port: 8000
+    type: LoadBalancer
+    port: 8001
     targetPort: 8000
   resources:
     requests:
@@ -104,7 +95,7 @@ chromadb:
     CHROMA_PERSIST_DIRECTORY: "/chroma/data"
   persistence:
     enabled: true
-    size: 1Gi
+    size: 2Gi
     storageClass: ""
     mountPath: /chroma/data
   livenessProbe:
@@ -120,99 +111,16 @@ chromadb:
     initialDelaySeconds: 5
     periodSeconds: 5
 
-# Avatar Creation Service (GenAI)
-avatarCreation:
-  enabled: true
-  replicaCount: 1
-  image:
-    repository: ghcr.io/jimjrxieb/portfolio-avatar-creation
-    tag: "latest"
-    pullPolicy: Always
-  service:
-    type: ClusterIP
-    port: 8000
-    targetPort: 8000
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "512Mi"
-      cpu: "500m"
-  env:
-    AVATAR_CHARACTER: "gojo"
-    AVATAR_DESCRIPTION: "Professional male with white hair and crystal blue eyes"
-    GPT_MODEL: "gpt-4o-mini"
-    CHROMADB_URL: "http://chromadb:8000"
-  volumeMounts:
-    - name: avatars-volume
-      mountPath: /app/avatars
-  livenessProbe:
-    httpGet:
-      path: /health
-      port: 8000
-    initialDelaySeconds: 30
-    periodSeconds: 10
-  readinessProbe:
-    httpGet:
-      path: /health
-      port: 8000
-    initialDelaySeconds: 10
-    periodSeconds: 5
-
-# RAG Pipeline (Jupyter + RAG API)
-ragPipeline:
-  enabled: true
-  replicaCount: 1
-  image:
-    repository: ghcr.io/jimjrxieb/portfolio-rag-pipeline
-    tag: "latest"
-    pullPolicy: Always
-  service:
-    type: ClusterIP
-    ports:
-      - name: api
-        port: 8000
-        targetPort: 8000
-      - name: jupyter
-        port: 8888
-        targetPort: 8888
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "200m"
-    limits:
-      memory: "1Gi"
-      cpu: "1000m"
-  env:
-    JUPYTER_ENABLE_LAB: "yes"
-    JUPYTER_TOKEN: "portfolio-rag-2025"
-    CHROMA_URL: "http://chromadb:8000"
-    GPT_MODEL: "gpt-4o-mini"
-  volumeMounts:
-    - name: notebooks-volume
-      mountPath: /app/notebooks
-    - name: knowledge-volume
-      mountPath: /app/knowledge
-  livenessProbe:
-    httpGet:
-      path: /health
-      port: 8000
-    initialDelaySeconds: 60
-    periodSeconds: 30
-  readinessProbe:
-    httpGet:
-      path: /health
-      port: 8000
-    initialDelaySeconds: 30
-    periodSeconds: 10
+# NOTE: Avatar Creation and RAG Pipeline services removed
+# - Avatar Creation: Functionality integrated into API service
+# - RAG Pipeline: Local development tool only, not deployed to Kubernetes
 
 # Secrets configuration
 secrets:
   create: true
   name: portfolio-secrets
   data:
-    OPENAI_API_KEY: ""  # To be provided via values override or Sealed Secrets
+    OPENAI_API_KEY: "" # To be provided via values override or Sealed Secrets
 
 # ConfigMap configuration
 configMap:
@@ -225,23 +133,11 @@ configMap:
 persistence:
   chromaData:
     enabled: true
-    size: 1Gi
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-  avatarsData:
-    enabled: true
-    size: 500Mi
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-  knowledgeData:
-    enabled: true
     size: 2Gi
     storageClass: ""
     accessModes:
       - ReadWriteOnce
-  notebooksData:
+  apiData:
     enabled: true
     size: 1Gi
     storageClass: ""
