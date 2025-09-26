@@ -107,7 +107,7 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       continue-on-error: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
   code-quality:
     runs-on: ubuntu-latest
@@ -194,7 +194,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GH_TOKEN }}
 
     - name: Generate metadata
       id: meta
@@ -245,7 +245,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GH_TOKEN }}
 
     - name: Run Trivy vulnerability scanner (${{ matrix.component }})
       uses: aquasecurity/trivy-action@master
