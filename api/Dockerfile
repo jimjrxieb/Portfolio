@@ -23,23 +23,9 @@ WORKDIR /app
 # Copy and install Python dependencies
 COPY api/requirements.txt /app/requirements.txt
 
-# Install dependencies with CPU-only versions to avoid CUDA
+# Install dependencies - use requirements.txt for consistent builds
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-    fastapi==0.104.1 \
-    uvicorn[standard]==0.24.0 \
-    pydantic[email]>=2.7.0 \
-    pydantic-settings>=2.4.0 \
-    python-multipart>=0.0.18 \
-    python-dotenv==1.0.0 \
-    httpx==0.25.2 \
-    pyyaml==6.0.1 \
-    openai==0.28 \
-    numpy \
-    chromadb==0.4.18 \
-    sentence-transformers==2.2.2 \
-    --extra-index-url https://download.pytorch.org/whl/cpu \
-    torch --index-url https://download.pytorch.org/whl/cpu
+    pip install --no-cache-dir -r /app/requirements.txt
 
 # --- Final runtime image ---
 FROM python:3.11-alpine AS run
