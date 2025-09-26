@@ -1,0 +1,107 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: portfoliopodsecurity
+  annotations:
+    metadata.gatekeeper.sh/title: "Portfolio Pod Security Standards"
+    metadata.gatekeeper.sh/version: 1.0.0
+    description: "Enforces Kubernetes Pod Security Standards for Portfolio platform"
+spec:
+  crd:
+    spec:
+      names:
+        kind: PortfolioPodSecurity
+      validation:
+        type: object
+        properties:
+          securityLevel:
+            description: "Pod Security Standard level (baseline, restricted)"
+            type: string
+            enum: ["baseline", "restricted"]
+          allowedCapabilities:
+            description: "List of allowed Linux capabilities"
+            type: array
+            items:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package portfoliopodsecurity
+
+        # Deny hostNetwork usage
+        violation[{"msg": msg}] {
+          input.review.object.spec.template.spec.hostNetwork == true
+          msg := "Pods cannot use host networking"
+        }
+
+        # Deny hostPID usage
+        violation[{"msg": msg}] {
+          input.review.object.spec.template.spec.hostPID == true
+          msg := "Pods cannot use host PID namespace"
+        }
+
+        # Deny hostIPC usage
+        violation[{"msg": msg}] {
+          input.review.object.spec.template.spec.hostIPC == true
+          msg := "Pods cannot use host IPC namespace"
+        }
+
+        # Deny privileged containers
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          container.securityContext.privileged == true
+          msg := sprintf("Container '%s' cannot run in privileged mode", [container.name])
+        }
+
+        # Deny dangerous capabilities
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          capability := container.securityContext.capabilities.add[_]
+          dangerous_capability(capability)
+          msg := sprintf("Container '%s' cannot add dangerous capability '%s'", [container.name, capability])
+        }
+
+        # Require non-root filesystem group
+        violation[{"msg": msg}] {
+          pod_spec := input.review.object.spec.template.spec
+          pod_spec.securityContext.fsGroup == 0
+          msg := "Pod cannot use root filesystem group (fsGroup: 0)"
+        }
+
+        # Require seccompProfile
+        violation[{"msg": msg}] {
+          pod_spec := input.review.object.spec.template.spec
+          not pod_spec.securityContext.seccompProfile
+          msg := "Pod must specify seccompProfile"
+        }
+
+        # Helper function for dangerous capabilities
+        dangerous_capability(cap) {
+          cap == "SYS_ADMIN"
+        }
+
+        dangerous_capability(cap) {
+          cap == "NET_ADMIN"
+        }
+
+        dangerous_capability(cap) {
+          cap == "SYS_TIME"
+        }
+
+        dangerous_capability(cap) {
+          cap == "SYS_MODULE"
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: PortfolioPodSecurity
+metadata:
+  name: portfolio-pod-security
+  namespace: portfolio
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment"]
+      namespaces: ["portfolio"]
+  parameters:
+    securityLevel: "restricted"
+    allowedCapabilities: []

@@ -11,26 +11,13 @@ data:
   CHROMA_DB_IMPL: {{ .Values.chromadb.env.CHROMA_DB_IMPL | quote }}
   CHROMA_PERSIST_DIRECTORY: {{ .Values.chromadb.env.CHROMA_PERSIST_DIRECTORY | quote }}
 
-  # Avatar Creation Configuration
-  AVATAR_CHARACTER: {{ .Values.avatarCreation.env.AVATAR_CHARACTER | quote }}
-  AVATAR_DESCRIPTION: {{ .Values.avatarCreation.env.AVATAR_DESCRIPTION | quote }}
-  GPT_MODEL: {{ .Values.avatarCreation.env.GPT_MODEL | quote }}
-
-  # RAG Pipeline Configuration
-  JUPYTER_ENABLE_LAB: {{ .Values.ragPipeline.env.JUPYTER_ENABLE_LAB | quote }}
-  JUPYTER_TOKEN: {{ .Values.ragPipeline.env.JUPYTER_TOKEN | quote }}
-
-  # Service URLs (internal cluster communication)
-  CHROMADB_URL: {{ .Values.api.env.CHROMADB_URL | quote }}
-  AVATAR_SERVICE_URL: {{ .Values.api.env.AVATAR_SERVICE_URL | quote }}
-  RAG_API_URL: {{ .Values.api.env.RAG_API_URL | quote }}
+  # API Configuration (includes integrated Jade-Brain)
+  PYTHONPATH: {{ .Values.api.env.PYTHONPATH | quote }}
+  DATA_DIR: {{ .Values.api.env.DATA_DIR | quote }}
+  CHROMA_URL: {{ .Values.api.env.CHROMA_URL | quote }}
+  GPT_MODEL: {{ .Values.api.env.GPT_MODEL | quote }}
 
   # UI Environment Variables
   VITE_API_BASE_URL: {{ .Values.ui.env.VITE_API_BASE_URL | quote }}
-  VITE_RAG_API_URL: {{ .Values.ui.env.VITE_RAG_API_URL | quote }}
   VITE_CHROMA_URL: {{ .Values.ui.env.VITE_CHROMA_URL | quote }}
-
-  # API Configuration
-  PYTHONPATH: {{ .Values.api.env.PYTHONPATH | quote }}
-  DATA_DIR: {{ .Values.api.env.DATA_DIR | quote }}
 {{- end }}
