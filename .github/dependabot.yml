@@ -1,0 +1,174 @@
+# Dependabot Configuration - Enterprise Dependency Management
+# Automatically manages security updates and dependency maintenance
+# Documentation: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # Python Dependencies (API & RAG Pipeline)
+  - package-ecosystem: "pip"
+    directory: "/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "python"
+      - "security"
+    assignees:
+      - "jimjrxieb"
+    reviewers:
+      - "jimjrxieb"
+    commit-message:
+      prefix: "🔒"
+      include: "scope"
+    # Security updates get immediate priority
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    # Group related ML/AI packages together
+    groups:
+      ai-ml-packages:
+        patterns:
+          - "torch*"
+          - "transformers*"
+          - "sentence-transformers*"
+          - "numpy*"
+          - "scikit-learn*"
+          - "pandas*"
+      api-packages:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "pydantic*"
+          - "requests*"
+      database-packages:
+        patterns:
+          - "chromadb*"
+          - "sqlite*"
+          - "sqlalchemy*"
+
+  # Python Dependencies (RAG Pipeline)
+  - package-ecosystem: "pip"
+    directory: "/rag-pipeline"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "python"
+      - "rag-pipeline"
+    assignees:
+      - "jimjrxieb"
+    commit-message:
+      prefix: "🔧"
+      include: "scope"
+
+  # Node.js Dependencies (UI Frontend)
+  - package-ecosystem: "npm"
+    directory: "/ui"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "frontend"
+    assignees:
+      - "jimjrxieb"
+    commit-message:
+      prefix: "⚡"
+      include: "scope"
+    # Group React and build tool updates
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+          - "react-dom*"
+      build-tools:
+        patterns:
+          - "vite*"
+          - "esbuild*"
+          - "@vitejs/*"
+          - "rollup*"
+      babel-ecosystem:
+        patterns:
+          - "@babel/*"
+          - "babel-*"
+      testing-tools:
+        patterns:
+          - "playwright*"
+          - "@playwright/*"
+          - "jest*"
+          - "vitest*"
+
+  # Docker Dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "infrastructure"
+    assignees:
+      - "jimjrxieb"
+    commit-message:
+      prefix: "🐳"
+      include: "scope"
+
+  # GitHub Actions Dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "first-monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    assignees:
+      - "jimjrxieb"
+    commit-message:
+      prefix: "🚀"
+      include: "scope"
+    # Group security-related actions
+    groups:
+      security-actions:
+        patterns:
+          - "*/semgrep-action*"
+          - "*/gitleaks-action*"
+          - "*/trivy-action*"
+          - "github/codeql-action*"
+      build-actions:
+        patterns:
+          - "actions/checkout*"
+          - "actions/setup-*"
+          - "docker/build-push-action*"
+          - "docker/setup-*"
+# Additional Security Configuration
+# - All security updates are automatically prioritized
+# - Critical vulnerabilities trigger immediate PRs
+# - Dependency groups reduce PR noise and improve review efficiency
+# - Custom labels help with automated triage and review workflows
