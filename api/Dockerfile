@@ -11,26 +11,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-# Install dependencies in layers for better caching
-# Layer 1: Core FastAPI dependencies (change rarely)
-COPY api/requirements-base.txt /app/requirements-base.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
-    pip install -r /app/requirements-base.txt
-
-# Layer 2: External services (change occasionally)  
-COPY api/requirements-external.txt /app/requirements-external.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r /app/requirements-external.txt
-
-# Layer 3: Heavy ML dependencies (change rarely but big downloads)
-COPY api/requirements-ml.txt /app/requirements-ml.txt  
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r /app/requirements-ml.txt
-
-# Layer 4: Legacy requirements (for compatibility)
+# Install Python dependencies
 COPY api/requirements.txt /app/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
     pip install -r /app/requirements.txt
 
 # --- Final runtime image ---
@@ -53,7 +37,6 @@ COPY --from=base /usr/local/bin /usr/local/bin
 
 # Copy ONLY the clean API structure and assets
 COPY api/ /app/
-COPY chat/ /app/chat/
 
 # Environment defaults
 ENV DEFAULT_INTRO=/app/assets/default_intro.mp3
