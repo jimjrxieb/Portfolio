@@ -13,13 +13,13 @@ RUN apt-get update && apt-get install -y \
 RUN groupadd -r jade && useradd -r -g jade jade
 
 # Copy requirements first for better layer caching
-COPY requirements.txt .
+COPY Jade-Brain/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY Jade-Brain/ .
 
 # Set ownership and permissions
 RUN chown -R jade:jade /app
