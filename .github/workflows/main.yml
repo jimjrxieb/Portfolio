@@ -102,6 +102,30 @@ jobs:
         cd api && safety check --json --output ../safety-api-report.json || echo "Dependency security issues in API"
         cd ../rag-pipeline && safety check --json --output ../safety-rag-report.json || echo "Dependency security issues in RAG pipeline"
 
+    - name: Run GitLeaks secrets scanner
+      uses: gitleaks/gitleaks-action@v2
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run Semgrep SAST (Snyk Alternative)
+      uses: semgrep/semgrep-action@v1
+      continue-on-error: true
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/python
+          p/javascript
+        generateSarif: "1"
+
+    - name: Upload Semgrep results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('semgrep.sarif') != ''
+      with:
+        sarif_file: semgrep.sarif
+        category: 'semgrep-sast'
+
     - name: TypeScript type checking
       run: cd ui && npm run lint -- --max-warnings 0
 
@@ -245,6 +269,32 @@ jobs:
           echo "⚠️ No Kubernetes manifests found to validate"
         fi
 
+    - name: Run Conftest Policy Validation
+      run: |
+        echo "🔒 Running OPA/Conftest policy validation..."
+        if [ -f "./conftest" ]; then
+          echo "✅ Using existing conftest binary"
+        else
+          echo "📦 Installing Conftest..."
+          wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.46.0/conftest_0.46.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.46.0_Linux_x86_64.tar.gz
+          chmod +x conftest
+        fi
+
+        # Test Helm rendered manifests if they exist
+        if [ -f "/tmp/rendered-manifests.yaml" ]; then
+          echo "🧪 Testing Helm manifests against security policies..."
+          ./conftest test /tmp/rendered-manifests.yaml --policy scripts/python3/ci/security-policies/ || echo "Policy violations found"
+        fi
+
+        # Test K8s manifests
+        if [ -d "k8s" ]; then
+          echo "🧪 Testing K8s manifests against security policies..."
+          find k8s/ -name "*.yaml" -type f -exec ./conftest test {} --policy scripts/python3/ci/security-policies/ \; || echo "Policy violations found"
+        fi
+
+        echo "✅ Policy validation complete"
+
   deploy:
     runs-on: ubuntu-latest
     needs: [build-images, security-scan]
@@ -293,13 +343,21 @@ jobs:
         echo "  K8s Validation: ${{ needs.validate-k8s.result }}"
         echo "  Deployment:     ${{ needs.deploy.result }}"
         echo ""
+        echo "🔒 Security Scanners Active:"
+        echo "  • GitLeaks: Secrets detection"
+        echo "  • Semgrep: SAST (Snyk alternative)"
+        echo "  • Trivy: Container vulnerability scanning"
+        echo "  • Bandit: Python security analysis"
+        echo "  • Safety: Python dependency vulnerabilities"
+        echo "  • npm audit: Node.js dependency vulnerabilities"
+        echo "  • Conftest/OPA: Policy as Code validation"
+        echo ""
         echo "🏗️ Platform Architecture:"
-        echo "  • 5-service Docker Compose setup"
+        echo "  • 3-service simplified setup (API+Jade, UI, ChromaDB)"
         echo "  • ChromaDB vector database (391+ documents)"
-        echo "  • Jade-Brain AI assistant system"
-        echo "  • RAG pipeline for batch processing"
+        echo "  • Integrated Jade-Brain AI assistant"
         echo "  • React/TypeScript UI with FastAPI backend"
-        echo "  • Kubernetes deployment ready"
+        echo "  • ArgoCD deployment ready"
         echo ""
         echo "🔗 Next Steps:"
         echo "  • Images available in GHCR: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-*:${{ needs.build-images.outputs.image-tag }}"
