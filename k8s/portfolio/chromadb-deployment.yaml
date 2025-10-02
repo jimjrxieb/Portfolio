@@ -18,8 +18,16 @@ spec:
       containers:
         - name: chromadb
           securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
             allowPrivilegeEscalation: false
-          image: chromadb/chroma:latest
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+            readOnlyRootFilesystem: true
+          image: chromadb/chroma:0.4.18
           ports:
             - containerPort: 8000
           env:
