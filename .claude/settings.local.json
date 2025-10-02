@@ -61,7 +61,14 @@
       "Bash(pip install:*)",
       "Bash(pre-commit:*)",
       "Bash(git config:*)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(gh api:*)",
+      "Bash(else echo \"Installing conftest...\")",
+      "Bash(./conftest test k8s/base/deployment-api.yaml --policy charts/portfolio/policies/)",
+      "Bash(./conftest:*)",
+      "Bash(git clone:*)",
+      "Bash(rm:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
