@@ -1,4 +1,4 @@
-# Portfolio API with Jade-Brain AI Assistant
+# Portfolio API with Sheyla AI Assistant
 FROM python:3.11-slim
 
 # Set environment variables
@@ -18,7 +18,7 @@ COPY api/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code (includes Jade-Brain components)
+# Copy application code (includes personality files, engines, routes)
 COPY api/ /app/
 
 # Create non-root user for security

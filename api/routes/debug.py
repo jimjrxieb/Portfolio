@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.settings import settings
+import settings
 
 router = APIRouter(prefix="/api/debug", tags=["debug"])
 

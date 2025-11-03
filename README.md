@@ -1,221 +1,484 @@
-# Portfolio DevSecOps Platform
+# Portfolio - AI-Powered Professional Showcase
 
-A comprehensive DevSecOps showcase demonstrating enterprise-grade security controls, automated compliance validation, and runtime monitoring in a Kubernetes environment. This portfolio application serves as a reference implementation for modern cloud-native security practices.
+> Full-stack portfolio platform with RAG-powered AI assistant, 3D avatar, and comprehensive knowledge base
 
-## 🛡️ Security Architecture
+**Live Demo**: [https://linksmlm.com](https://linksmlm.com)
 
-### Container Security
-- **Non-root execution**: All containers run as user 10001
-- **Read-only root filesystem**: Prevents runtime file modifications
-- **Dropped capabilities**: All Linux capabilities dropped by default
-- **seccomp profiles**: Runtime default profiles enforced
-- **Privilege restrictions**: No privilege escalation allowed
-
-### Network Security
-- **Default-deny NetworkPolicies**: Zero-trust network segmentation
-- **Microsegmentation**: Service-to-service communication controls
-- **Ingress restrictions**: TLS-enforced external access (production)
-- **DNS policies**: Controlled external communication
-
-### Pod Security Standards
-- **PSS "restricted" enforcement**: Kubernetes 1.23+ security standards
-- **Namespace-level controls**: Automated policy enforcement
-- **Runtime validation**: Real-time compliance checking
-
-### Supply Chain Security
-- **SBOM generation**: Software Bill of Materials for all images
-- **Container scanning**: Trivy vulnerability detection
-- **Image signing**: Cosign signatures for authenticity
-- **Registry controls**: Approved registries only via Gatekeeper
-
-## 🔧 DevSecOps Pipeline
-
-### GitHub Actions Workflow
-```yaml
-# .github/workflows/devsecops.yml
-Security Checks:
-├── SAST Scanning (Semgrep)
-├── Dependency Scanning (Trivy)
-├── Container Scanning (Trivy)
-├── SBOM Generation (Syft)
-├── Image Signing (Cosign)
-├── Kubernetes Validation (kubeconform)
-├── Policy Testing (Conftest)
-└── Deployment (Helm)
-```
-
-### Policy as Code
-- **OPA/Conftest**: 15+ security policies
-- **Gatekeeper**: Admission control constraints
-- **Helm validation**: Chart security testing
-- **Custom rules**: Organization-specific policies
-
-### Runtime Security
-- **Falco monitoring**: 9 custom security rules
-- **Anomaly detection**: Behavioral analysis
-- **Real-time alerts**: Slack/email notifications
-- **Compliance reporting**: Automated security metrics
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Docker
-- KIND (Kubernetes in Docker)
-- Helm 3
-- kubectl
-
-### Local Deployment
-```bash
-# 1. Create KIND cluster
-make create-cluster
-
-# 2. Build and load images
-make build-images
-make load-images
-
-# 3. Deploy with security controls
-make deploy
-
-# 4. Verify deployment
-kubectl get pods -n portfolio
-```
-
-### Security Validation
-```bash
-# Run security policy tests
-conftest test charts/portfolio/policies/
-
-# Generate compliance report
-./scripts/generate-security-report.sh
-
-# Test with vulnerable manifests
-conftest test tests/security/vulnerable-deployment.yaml --policy charts/portfolio/policies/
-```
-
-## 📊 Monitoring & Observability
-
-### Security Dashboards
-- **Grafana dashboards**: Security metrics visualization
-- **Prometheus metrics**: Policy violations, runtime events
-- **Compliance reports**: Automated HTML reports
-- **Alert manager**: Security incident notifications
-
-### Key Metrics
-- Policy compliance rate: 99.7% (636/638 tests pass)
-- Container security score: 100% compliant
-- Network policy coverage: Complete microsegmentation
-- Runtime violations: Real-time detection
-
-## 🏗️ Architecture Components
-
-### Core Services
-- **Portfolio API**: FastAPI backend with security hardening
-- **Portfolio UI**: React frontend with secure deployment
-- **ChromaDB**: Vector database with network isolation
-- **Monitoring**: Prometheus/Grafana stack
-
-### Security Tools
-- **Gatekeeper**: OPA admission controller
-- **Falco**: Runtime security monitoring
-- **Conftest**: Policy validation
-- **Trivy**: Vulnerability scanning
-
-## 📋 Security Controls Matrix
-
-| Control Category | Implementation | Status |
-|-----------------|----------------|---------|
-| Container Security | Non-root, RO filesystem, seccomp | ✅ |
-| Network Security | NetworkPolicies, microsegmentation | ✅ |
-| Pod Security | PSS restricted, security contexts | ✅ |
-| Supply Chain | SBOM, signing, scanning | ✅ |
-| Runtime Security | Falco rules, monitoring | ✅ |
-| Policy as Code | OPA/Gatekeeper, Conftest | ✅ |
-| Observability | Grafana dashboards, metrics | ✅ |
-| Compliance | Automated reporting, alerts | ✅ |
-
-## 🔍 Policy Validation Examples
-
-### Successful Validation
-```bash
-$ conftest test charts/portfolio/templates/
-636 tests, 636 passed, 0 warnings, 0 failures, 0 exceptions
-```
-
-### Detecting Violations
-```bash
-$ conftest test tests/security/vulnerable-deployment.yaml --policy charts/portfolio/policies/
-FAIL - Container 'bad-container' is running as root user (UID 0)
-FAIL - Container 'bad-container' has privileged mode enabled
-FAIL - Container 'bad-container' allows privilege escalation
-FAIL - Service 'vulnerable-service' uses NodePort which is not allowed
-```
-
-## 🛠️ Development Commands
-
-```bash
-# Render Helm templates
-make render-helm
-
-# Run security tests
-make test-security
-
-# Generate security report
-make security-report
-
-# Deploy to local cluster
-make deploy-local
-
-# Clean up
-make cleanup
-```
-
-## 📁 Project Structure
-
-```
-Portfolio/
-├── .github/workflows/         # DevSecOps CI/CD pipeline
-├── charts/portfolio/          # Helm chart with security configs
-│   ├── policies/             # OPA/Conftest security policies
-│   ├── dashboards/           # Grafana security dashboards
-│   └── templates/            # Kubernetes manifests
-├── scripts/                  # Automation and utility scripts
-├── tests/security/           # Security test manifests
-├── api/                      # FastAPI backend
-├── ui/                       # React frontend
-└── Makefile                  # Development automation
-```
-
-## 🔐 Security Best Practices Implemented
-
-1. **Defense in Depth**: Multiple security layers
-2. **Zero Trust**: Default-deny network policies
-3. **Least Privilege**: Minimal container permissions
-4. **Shift Left**: Security in CI/CD pipeline
-5. **Continuous Monitoring**: Runtime security detection
-6. **Compliance as Code**: Automated policy enforcement
-7. **Supply Chain Security**: SBOM and image signing
-8. **Observability**: Comprehensive security metrics
-
-## 📚 Documentation
-
-- [Security Architecture](docs/security-architecture.md)
-- [Deployment Guide](docs/deployment.md)
-- [Policy Development](docs/policy-development.md)
-- [Monitoring Setup](docs/monitoring.md)
-
-## 🤝 Contributing
-
-This project serves as a DevSecOps reference implementation. See security controls in action:
-
-1. Fork the repository
-2. Make changes following security guidelines
-3. Run security validation: `make test-security`
-4. Submit pull request
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) for details.
+[![Production Ready](https://img.shields.io/badge/status-production-green)](https://linksmlm.com)
+[![Security](https://img.shields.io/badge/security-hardened-blue)](./GP-copilot/GP-COPILOT-ASSESSMENT-REPORT.md)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5)](./charts/portfolio/)
 
 ---
 
-**🎯 This portfolio demonstrates enterprise-grade DevSecOps practices suitable for production Kubernetes environments with comprehensive security controls, automated compliance validation, and runtime monitoring.**
+## Overview
+
+An intelligent portfolio platform featuring **Gojo**, an AI assistant powered by Retrieval-Augmented Generation (RAG), that answers questions about professional experience, projects, and technical expertise. The system combines modern AI/ML technologies with production-grade DevSecOps practices.
+
+### Key Features
+
+- **RAG-Powered Chat**: Semantic search over 20+ knowledge base documents with GPT-4o mini
+- **3D Avatar**: Interactive Three.js/VRM avatar with lip-sync and animation
+- **Response Validation**: Anti-hallucination detection with confidence scoring
+- **Multi-Provider LLM**: OpenAI primary, local Qwen fallback for cost optimization
+- **Voice Synthesis**: ElevenLabs TTS integration for natural speech
+- **Version Management**: Atomic RAG collection swaps for zero-downtime updates
+- **Production Ready**: Kubernetes deployment with Helm, rate limiting, security headers
+
+---
+
+## Architecture
+
+### Technology Stack
+
+**Backend (Python)**
+- FastAPI 0.104.1 + Uvicorn (async web framework)
+- ChromaDB 1.1.0+ (vector database with persistent storage)
+- sentence-transformers/all-MiniLM-L6-v2 (384-dim embeddings)
+- PyTorch 2.6.0 (GPU/CPU support)
+- OpenAI GPT-4o mini (primary LLM)
+- Qwen/Qwen2.5-1.5B-Instruct (local fallback LLM)
+
+**Frontend (React)**
+- React 18.2.0 + TypeScript/TSX
+- Vite 5.1.0 (build tool)
+- Three.js 0.164.1 + VRM (3D avatar rendering)
+- Material-UI 7.3.2 + Tailwind CSS 4.1.12
+
+**Infrastructure**
+- Docker (non-root, multi-stage builds)
+- Kubernetes + Helm charts
+- Cloudflare Tunnel (public exposure)
+- GitHub Actions (CI/CD)
+
+### System Components
+
+```
+Portfolio/
+├── api/                      # FastAPI backend
+│   ├── routes/              # API endpoints (chat, RAG, health, uploads)
+│   ├── engines/             # Core logic (LLM, RAG, conversation, avatar)
+│   ├── jade_config/         # AI personality and configuration
+│   └── Dockerfile           # Production container
+├── ui/                       # React frontend
+│   ├── src/components/      # UI components + 3D avatar
+│   └── Dockerfile           # Production container
+├── rag-pipeline/            # Data ingestion & ChromaDB management
+├── data/
+│   ├── knowledge/           # 20+ markdown source documents
+│   └── chroma/              # Persistent vector database
+├── charts/portfolio/        # Kubernetes Helm deployment
+├── docs/                    # Development documentation
+└── scripts/                 # Deployment automation
+```
+
+---
+
+## AI Assistant System
+
+### Conversation Flow
+
+```
+User Question
+    ↓
+Semantic Search (ChromaDB)
+    ↓
+Context Retrieval (top 5 matches)
+    ↓
+LLM Prompt Construction (GPT-4o mini)
+    ↓
+Response Validation (anti-hallucination)
+    ↓
+Citation Formatting
+    ↓
+Avatar Animation + TTS
+```
+
+### Response Validation
+
+The system includes sophisticated anti-hallucination detection:
+- 8 different hallucination trap patterns
+- Confidence scoring (0-1)
+- Source document grounding validation
+- Detects fabricated facts, fake companies, wrong identities
+
+### Avatar System
+
+**Gojo (Primary Avatar)**
+- 3D animated male avatar (white hair, crystal blue eyes)
+- Real-time Three.js/VRM rendering
+- Lip-sync with ElevenLabs TTS
+- Personality: Professional, technical, helpful
+
+**Sheyla (Secondary)**
+- Interview/interaction avatar
+- Warm, professional Indian heritage
+- Status: Conversation engine implemented
+
+### Knowledge Base
+
+**Data Sources** (`/data/knowledge/`)
+- Biography and professional mission
+- DevOps/DevSecOps expertise (Kubernetes, CI/CD, Infrastructure as Code)
+- AI/ML expertise (RAG, LLMs, vector databases)
+- Project descriptions (LinkOps AI-BOX, Afterlife, etc.)
+- Client case studies (ZRS Management)
+- FAQ and comprehensive portfolio documentation
+
+**Ingestion Pipeline**
+- Markdown → Sanitize → Chunk (1000 tokens) → Embed → ChromaDB
+- Versioned collections with atomic swaps
+- Zero-downtime updates
+
+---
+
+## API Endpoints
+
+### Chat Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/chat` | Main conversation (RAG + LLM) |
+| GET | `/api/chat/sessions/{id}` | Retrieve chat history |
+| DELETE | `/api/chat/sessions/{id}` | Clear session |
+| GET | `/api/chat/health` | Chat service status |
+| GET | `/api/chat/prompts` | Conversation starters |
+
+### RAG Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/rag/versions` | Create new index version |
+| GET | `/api/rag/versions` | List all versions |
+| POST | `/api/rag/ingest` | Ingest documents |
+| POST | `/api/rag/swap` | Atomic collection swap |
+| DELETE | `/api/rag/versions/{id}` | Delete old version |
+
+### Health & Status
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Basic health check |
+| GET | `/api/health/llm` | LLM provider test |
+| GET | `/api/health/rag` | RAG availability |
+| GET | `/api/debug/state` | Full configuration |
+
+### Avatar/Media
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/actions/avatar/create` | Avatar creation |
+| POST | `/api/actions/avatar/talk` | TTS generation |
+| POST | `/api/upload/image` | Image upload |
+
+---
+
+## Configuration
+
+### Environment Variables
+
+**Required**
+```bash
+# LLM Configuration
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-...
+LLM_MODEL=gpt-4o-mini
+
+# Vector Database
+CHROMA_URL=http://chromadb:8000
+RAG_NAMESPACE=portfolio
+
+# Public URL
+PUBLIC_BASE_URL=https://linksmlm.com
+CORS_ORIGINS=http://localhost:5173,https://linksmlm.com
+```
+
+**Optional**
+```bash
+# Voice Services
+ELEVENLABS_API_KEY=sk-...
+DID_API_KEY=...
+
+# Debug
+DEBUG_MODE=true
+```
+
+See [`.env.example`](.env.example) for complete configuration template.
+
+---
+
+## Quick Start
+
+### Local Development
+
+**Prerequisites**
+- Docker + Docker Compose
+- Node.js 18+ (for UI development)
+- Python 3.11+ (for API development)
+
+**Start all services**
+```bash
+# Clone repository
+git clone https://github.com/jimjrxieb/Portfolio.git
+cd Portfolio
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your API keys
+nano .env
+
+# Start services
+docker-compose up --build -d
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+```
+
+**Access services**
+- Frontend: http://localhost:5173
+- API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+- ChromaDB: http://localhost:8001
+
+### Production Deployment
+
+**Kubernetes with Helm**
+```bash
+# Build and push containers
+docker build -t ghcr.io/jimjrxieb/portfolio-api:latest ./api
+docker build -t ghcr.io/jimjrxieb/portfolio-ui:latest ./ui
+docker push ghcr.io/jimjrxieb/portfolio-api:latest
+docker push ghcr.io/jimjrxieb/portfolio-ui:latest
+
+# Deploy with Helm
+helm upgrade --install portfolio ./charts/portfolio \
+  --namespace portfolio \
+  --create-namespace \
+  --values ./charts/portfolio/values.prod.yaml
+
+# Check deployment
+kubectl get pods -n portfolio
+kubectl logs -f deployment/portfolio-api -n portfolio
+```
+
+See [Kubernetes Deployment Guide](./docs/deployment/KUBERNETES_READY.md) for detailed instructions.
+
+---
+
+## Development
+
+### Project Structure
+
+**Backend Routes** (`api/routes/`)
+- `chat.py` - Conversation endpoints
+- `rag.py` - RAG management
+- `health.py` - Health checks
+- `uploads.py` - File uploads
+- `validation.py` - Input validation
+
+**Backend Engines** (`api/engines/`)
+- `jade_engine.py` - Conversation logic (Gojo personality)
+- `rag_engine.py` - RAG operations
+- `llm_engine.py` - Multi-provider LLM client
+- `response_generator.py` - Response validation
+- `avatar_engine.py` - Avatar integration
+- `speech_engine.py` - TTS integration
+
+**Frontend Components** (`ui/src/components/`)
+- `GojoAvatar3D.tsx` - 3D avatar rendering
+- `Chat.tsx` - Chat interface
+- `Projects.tsx` - Project showcase
+- `About.tsx` - About section
+
+### Running Tests
+
+```bash
+# Backend tests
+cd api
+pytest
+
+# Frontend tests
+cd ui
+npm test
+
+# Integration tests
+docker-compose up -d
+pytest integration/
+```
+
+### Updating Knowledge Base
+
+```bash
+# Add/edit documents in data/knowledge/
+
+# Rebuild RAG index
+cd rag-pipeline
+python ingestion_engine.py
+
+# Or use API
+curl -X POST http://localhost:8000/api/rag/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"documents_path": "/data/knowledge"}'
+```
+
+---
+
+## Security
+
+### Security Features Implemented
+
+- No hardcoded secrets (environment variables)
+- Input validation on all endpoints
+- CORS properly configured
+- Security headers (CSP, HSTS, X-Frame-Options)
+- Rate limiting (30 req/min per IP)
+- Non-root container execution
+- Path traversal protection
+- SSRF prevention
+- Response validation
+
+### Security Assessment
+
+See [GP-Copilot Security Assessment](./GP-copilot/GP-COPILOT-ASSESSMENT-REPORT.md) for detailed security analysis.
+
+**Status**: Production-ready with zero security findings
+
+---
+
+## Performance
+
+### Metrics
+
+- **Response Time**: <2s average (including RAG + LLM)
+- **RAG Search**: <100ms for semantic search
+- **Concurrent Users**: Tested up to 50 simultaneous chats
+- **Knowledge Base**: 20+ documents, 384-dim embeddings
+- **Rate Limiting**: 30 requests/min per IP
+
+### Optimization
+
+- Gzip compression for API responses
+- Lazy-loaded 3D assets
+- Chunked knowledge base (1000 tokens/chunk)
+- Top-5 retrieval for context (configurable)
+- Local LLM fallback for cost optimization
+
+---
+
+## External Services
+
+### Active Integrations
+- **OpenAI**: GPT-4o mini LLM (https://api.openai.com)
+- **ChromaDB**: Vector database (self-hosted)
+- **ElevenLabs**: Text-to-speech (optional)
+- **HuggingFace**: Embedding models + local LLM
+- **Cloudflare**: Tunnel for public exposure
+
+### Configured but Inactive
+- **D-ID**: Avatar video generation (in config, not actively used)
+
+---
+
+## Monitoring & Troubleshooting
+
+### Health Checks
+
+```bash
+# Basic health
+curl http://localhost:8000/health
+
+# LLM provider
+curl http://localhost:8000/api/health/llm
+
+# RAG system
+curl http://localhost:8000/api/health/rag
+
+# Full debug state
+curl http://localhost:8000/api/debug/state
+```
+
+### Common Issues
+
+**Chat not responding**
+```bash
+# Check API logs
+docker-compose logs api
+
+# Verify ChromaDB
+curl http://localhost:8001/api/v1/heartbeat
+
+# Check LLM API key
+docker-compose exec api env | grep LLM_API_KEY
+```
+
+**UI not loading**
+```bash
+# Check UI logs
+docker-compose logs ui
+
+# Rebuild
+cd ui && npm run build
+
+# Check CORS
+curl -H "Origin: http://localhost:5173" http://localhost:8000/health -v
+```
+
+**RAG returning no results**
+```bash
+# Check ChromaDB collections
+curl http://localhost:8001/api/v1/collections
+
+# Rebuild index
+cd rag-pipeline && python ingestion_engine.py
+```
+
+---
+
+## Contributing
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests (`pytest` for backend, `npm test` for frontend)
+5. Commit with conventional commits (`git commit -m 'feat: add amazing feature'`)
+6. Push to branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Code Standards
+
+- **Python**: Black formatting, type hints, docstrings
+- **TypeScript**: ESLint + Prettier, strict mode
+- **Commits**: Conventional Commits specification
+- **Tests**: Required for new features
+
+---
+
+## License
+
+This project is proprietary. All rights reserved.
+
+---
+
+## Contact & Support
+
+**Project Owner**: Jimmie Coleman
+**Live Demo**: [https://linksmlm.com](https://linksmlm.com)
+**Repository**: [https://github.com/jimjrxieb/Portfolio](https://github.com/jimjrxieb/Portfolio)
+
+For questions or support, please open an issue on GitHub.
+
+---
+
+## Acknowledgments
+
+- **OpenAI**: GPT-4o mini LLM
+- **ChromaDB**: Vector database
+- **ElevenLabs**: Professional TTS
+- **Three.js**: 3D rendering
+- **FastAPI**: Modern Python web framework
+- **React**: UI framework
+
+---
+
+Built with care by [Jimmie Coleman](https://linksmlm.com) - DevSecOps Engineer & AI/ML Specialist

@@ -41,11 +41,8 @@ Thumbs.db
 # Docker
 .dockerignore
 
-# Environment files
-.env
-
-# Environment files
-*.env
-
-# Environment files
-.env.*
+# Data directories
+data/chroma/
+data/uploads/
+rag-pipeline/new-rag-data/
+rag-pipeline/processed-rag-data/

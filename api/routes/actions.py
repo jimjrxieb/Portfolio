@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from uuid import uuid4
 from pathlib import Path
 import os
-from app.settings import settings
+import settings
 
 router = APIRouter(prefix="/api/actions/avatar", tags=["avatar"])
 

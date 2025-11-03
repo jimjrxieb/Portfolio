@@ -2,9 +2,9 @@ import os
 import chromadb
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
-from sentence_transformers import SentenceTransformer
 import logging
 import time
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -31,42 +31,32 @@ class RAGEngine:
         self.active_alias = f"{self.namespace}_active"
         self.collection = self._get_active_collection()
 
-        embed_model = os.getenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-        self.embedder = SentenceTransformer(embed_model)
+        # Use Ollama for embeddings (proper embedding model)
+        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+        self.embed_model = os.getenv("EMBED_MODEL", "nomic-embed-text")
+
+    def _get_embedding(self, text: str) -> List[float]:
+        """Get embedding from Ollama"""
+        try:
+            response = requests.post(
+                f"{self.ollama_url}/api/embeddings",
+                json={"model": self.embed_model, "prompt": text},
+                timeout=30
+            )
+            response.raise_for_status()
+            return response.json()["embedding"]
+        except Exception as e:
+            logger.error(f"Ollama embedding failed: {e}")
+            # Return zero vector as fallback (768 for nomic-embed-text)
+            return [0.0] * 768
+
+    def _get_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
+        """Get embeddings for multiple texts"""
+        return [self._get_embedding(text) for text in texts]
 
     def _get_active_collection(self):
         """Get the currently active collection, creating default if needed"""
-        try:
-            # Try to get metadata about active collection alias
-            collections = self.client.list_collections()
-            active_collections = [
-                c for c in collections if c.name.startswith(f"{self.namespace}_v")
-            ]
-
-            if not active_collections:
-                # Create first version
-                collection_name = f"{self.namespace}_v1"
-                logger.info(f"Creating initial RAG collection: {collection_name}")
-                return self.client.get_or_create_collection(collection_name)
-
-            # Get the latest version (highest number)
-            versions = []
-            for c in active_collections:
-                try:
-                    version = int(c.name.split("_v")[1])
-                    versions.append((version, c.name))
-                except (ValueError, IndexError):
-                    continue
-
-            if versions:
-                latest_version = max(versions, key=lambda x: x[0])[1]
-                logger.info(f"Using active RAG collection: {latest_version}")
-                return self.client.get_or_create_collection(latest_version)
-
-        except Exception as e:
-            logger.warning(f"Error getting active collection: {e}")
-
-        # Fallback to legacy collection name
+        # Always use portfolio_knowledge collection (the one populated by ingestion)
         return self.client.get_or_create_collection("portfolio_knowledge")
 
     def create_version(self, version_id: Optional[str] = None) -> str:
@@ -125,7 +115,7 @@ class RAGEngine:
             for doc in docs
         ]
 
-        embeddings = self.embedder.encode(texts, convert_to_tensor=False).tolist()
+        embeddings = self._get_embeddings_batch(texts)
 
         try:
             # For versioned ingestion, we typically want clean slate
@@ -156,7 +146,7 @@ class RAGEngine:
             for doc in docs
         ]
 
-        embeddings = self.embedder.encode(texts, convert_to_tensor=False).tolist()
+        embeddings = self._get_embeddings_batch(texts)
 
         try:
             # Delete existing docs with same IDs first
@@ -176,9 +166,7 @@ class RAGEngine:
     def search(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
         """Search for relevant documents"""
         try:
-            query_embedding = self.embedder.encode(
-                [query], convert_to_tensor=False
-            ).tolist()[0]
+            query_embedding = self._get_embedding(query)
             results = self.collection.query(
                 query_embeddings=[query_embedding], n_results=n_results
             )
