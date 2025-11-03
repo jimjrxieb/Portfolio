@@ -1,7 +1,7 @@
 # data-dev:api-uploads-route
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel, AnyHttpUrl
-from app.settings import settings
+import settings
 import os
 import uuid
 import shutil

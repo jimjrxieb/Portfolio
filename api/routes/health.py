@@ -4,7 +4,7 @@ Provides system status, component health, and configuration info
 """
 
 from fastapi import APIRouter
-from settings import settings
+import settings
 import httpx
 import os
 from datetime import datetime

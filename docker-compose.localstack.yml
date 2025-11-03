@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  # LocalStack - AWS Services Emulation
+  localstack:
+    container_name: portfolio-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"            # LocalStack gateway (all services)
+      - "4510-4559:4510-4559"  # External services port range
+    environment:
+      # Services to enable
+      - SERVICES=s3,dynamodb,sqs,lambda,events,logs,cloudwatch,iam,sts
+
+      # Configuration
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - PERSISTENCE=1
+      - LAMBDA_EXECUTOR=docker-reuse
+      - DOCKER_HOST=unix:///var/run/docker.sock
+
+      # LocalStack settings
+      - LOCALSTACK_HOST=localstack:4566
+      - EDGE_PORT=4566
+
+      # AWS credentials (fake, but required)
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      # Mount initialization script
+      - "./infrastructure/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+
+      # Mount Docker socket for Lambda
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+      # Persistent data
+      - "./infrastructure/localstack/data:/tmp/localstack/data"
+
+      # Lambda function code (if exists)
+      - "./infrastructure/aws/lambda:/tmp/lambda"
+    networks:
+      - portfolio-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ChromaDB - Vector Database
+  chromadb:
+    container_name: portfolio-chromadb
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./data/chroma:/chroma/data
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/data
+      - IS_PERSISTENT=TRUE
+    networks:
+      - portfolio-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Backend
+  api:
+    container_name: portfolio-api
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # ChromaDB
+      - CHROMA_URL=http://chromadb:8000
+      - CHROMA_COLLECTION=portfolio_knowledge
+
+      # AWS / LocalStack
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - USE_LOCALSTACK=true
+
+      # S3 Buckets
+      - S3_RAW_BUCKET=portfolio-raw
+      - S3_EMBEDDINGS_BUCKET=portfolio-embeddings
+      - S3_CONFIG_BUCKET=portfolio-config
+
+      # DynamoDB Tables
+      - DYNAMODB_DOCUMENT_TABLE=document_registry
+      - DYNAMODB_CHUNKS_TABLE=embedding_chunks
+      - DYNAMODB_JOBS_TABLE=ingestion_jobs
+
+      # SQS Queues
+      - SQS_INGESTION_QUEUE_URL=http://localstack:4566/000000000000/portfolio-ingestion-queue
+      - SQS_EMBEDDING_QUEUE_URL=http://localstack:4566/000000000000/portfolio-embedding-queue
+
+      # LLM Configuration (Claude)
+      - LLM_PROVIDER=claude
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+      - LLM_MODEL=claude-3-5-sonnet-20241022
+      # Ollama Embeddings
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - EMBED_MODEL=nomic-embed-text
+      # Fallback (OpenAI)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+      # Processing
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=200
+
+      # Application
+      - PYTHONPATH=/app
+      - DEBUG_MODE=true
+      - DATA_DIR=/data
+    volumes:
+      - ./data:/data
+      - ./api:/app/api
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      chromadb:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    networks:
+      - portfolio-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # React Frontend
+  ui:
+    container_name: portfolio-ui
+    build:
+      context: .
+      dockerfile: ./ui/Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_CHROMA_URL=http://localhost:8001
+    depends_on:
+      - api
+    networks:
+      - portfolio-network
+    restart: unless-stopped
+
+  # AWS CLI Helper Container (for testing)
+  aws-cli:
+    container_name: portfolio-aws-cli
+    image: amazon/aws-cli:latest
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    depends_on:
+      - localstack
+    networks:
+      - portfolio-network
+    entrypoint: /bin/sh
+    command: -c "while true; do sleep 3600; done"
+    profiles:
+      - tools
+
+volumes:
+  chroma-data:
+  localstack-data:
+
+networks:
+  portfolio-network:
+    name: portfolio-network
+    driver: bridge

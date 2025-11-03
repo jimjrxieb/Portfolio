@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 # Import route modules
 from routes.chat import router as chat_router
-from routes.avatar import router as avatar_router
+from routes.actions import router as actions_router
 from routes.health import router as health_router
 from routes.uploads import router as uploads_router
 from routes.rag import router as rag_router
@@ -69,7 +69,7 @@ async def security_headers(request: Request, call_next):
         "script-src 'self' 'unsafe-inline'; "
         "style-src 'self' 'unsafe-inline'; "
         "img-src 'self' data: https:; "
-        "connect-src 'self' https://api.openai.com; "
+        "connect-src 'self' https://api.anthropic.com https://api.openai.com; "
         "frame-ancestors 'none';"
     )
 
@@ -127,7 +127,7 @@ def health_check():
 # Include routers
 app.include_router(health_router, prefix="/api", tags=["health"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
-app.include_router(avatar_router, prefix="/api", tags=["avatar"])
+app.include_router(actions_router, tags=["avatar"])  # Already has /api/actions/avatar prefix
 app.include_router(uploads_router, prefix="/api", tags=["uploads"])
 app.include_router(rag_router, prefix="/api/rag", tags=["rag"])
 app.include_router(validation_router, prefix="/api/validation", tags=["validation"])

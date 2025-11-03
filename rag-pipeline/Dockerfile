@@ -1,32 +1,36 @@
-FROM jupyter/datascience-notebook:latest
+# RAG Pipeline Ingestion Container
+FROM python:3.11-slim
 
-USER root
-# Security: Switch to non-root user
-RUN adduser --disabled-password --gecos '' appuser
-USER appuser
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
-# Install additional system dependencies
-RUN apt-get update && apt-get install -y \
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-USER $NB_UID
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Install Python packages for RAG pipeline
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+# Copy ingestion script
+COPY ingest_to_chroma.py .
 
-# Copy RAG pipeline code
-COPY . /app/
-WORKDIR /app
+# Create non-root user for security
+RUN useradd -m -r -u 1000 appuser && \
+    chown -R appuser:appuser /app
 
-# Create directories
-RUN mkdir -p /app/notebooks /app/knowledge /app/chroma
+# Create data directories
+RUN mkdir -p /app/new-rag-data /app/processed-rag-data && \
+    chown -R appuser:appuser /app
 
-# Copy Jupyter configuration
-COPY jupyter_lab_config.py /home/$NB_USER/.jupyter/
+# Switch to non-root user
+USER appuser
 
-EXPOSE 8888 8000
-
-# Start both Jupyter Lab and RAG API
-CMD ["bash", "start-services.sh"]
+# Run ingestion pipeline
+CMD ["python3", "ingest_to_chroma.py"]

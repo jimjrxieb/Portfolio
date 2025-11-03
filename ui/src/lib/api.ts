@@ -1,5 +1,5 @@
 export const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export type ChatRequest = {
   message: string;
@@ -30,7 +30,7 @@ export async function chat(
     context: null,
   };
 
-  const r = await fetch(`${API_BASE}/chat`, {
+  const r = await fetch(`${API_BASE}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(backendRequest),
@@ -51,7 +51,7 @@ export async function chat(
       response.text_response ||
       "I'm having trouble responding right now.",
     citations: [],
-    model: 'gojo-avatar',
+    model: 'sheyla-avatar',
   };
 }
 
@@ -74,7 +74,7 @@ export async function talkAvatar(payload: {
   text: string;
   voice?: string; // server decides default if omitted
 }): Promise<{ url: string }> {
-  const r = await fetch(`${API_BASE}/api/avatar/talk`, {
+  const r = await fetch(`${API_BASE}/api/actions/avatar/talk`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

@@ -12,11 +12,11 @@ import uuid
 from settings import (
     LLM_PROVIDER,
     LLM_MODEL,
-    GOJO_SYSTEM_PROMPT,
+    SYSTEM_PROMPT,
     RAG_NAMESPACE,
 )
 from engines.rag_engine import RAGEngine
-from engines.llm_engine import LLMEngine
+from engines.llm_interface import LLMEngine
 from routes.validation import validate_response, ValidationRequest
 
 # Import Sheyla's conversation engine
@@ -74,10 +74,30 @@ class ChatResponse(BaseModel):
     avatar_info: dict = Field(default={}, description="Avatar metadata")
 
 
-# Initialize engines
-rag_engine = RAGEngine()
-llm_engine = LLMEngine()
+# Initialize engines (lazy load to avoid startup crashes)
+rag_engine = None
+llm_engine = None
 conversation_engine = ConversationEngine()
+
+def get_rag_engine():
+    global rag_engine
+    if rag_engine is None:
+        try:
+            rag_engine = RAGEngine()
+        except Exception as e:
+            print(f"Warning: RAG engine initialization failed: {e}")
+            rag_engine = None
+    return rag_engine
+
+def get_llm_engine():
+    global llm_engine
+    if llm_engine is None:
+        try:
+            llm_engine = LLMEngine()
+        except Exception as e:
+            print(f"Warning: LLM engine initialization failed: {e}")
+            llm_engine = None
+    return llm_engine
 
 # Store conversation contexts (in production, use Redis or database)
 conversation_store = {}
@@ -105,9 +125,11 @@ async def chat_with_sheyla(request: ChatRequest):
         if request.include_citations:
             try:
                 # Query knowledge base for relevant information
-                rag_docs = rag_engine.search(
-                    request.message, k=3, namespace=request.namespace
-                )
+                engine = get_rag_engine()
+                if engine:
+                    rag_docs = engine.search(request.message, n_results=3)
+                else:
+                    rag_docs = []
                 rag_results = [doc.text for doc in rag_docs]
 
                 # Create citations
@@ -163,7 +185,8 @@ async def chat_with_sheyla(request: ChatRequest):
             # Continue without validation if it fails
 
         # Step 4: Get follow-up suggestions
-        follow_up_suggestions = conversation_engine.get_follow_up_suggestions(context)
+        # TODO: Implement get_follow_up_suggestions in ConversationEngine
+        follow_up_suggestions = []
 
         # Step 5: Prepare response
         return ChatResponse(
@@ -173,9 +196,9 @@ async def chat_with_sheyla(request: ChatRequest):
             session_id=session_id,
             follow_up_suggestions=follow_up_suggestions,
             avatar_info={
-                "name": "Gojo",
+                "name": "Sheyla",
                 "locale": "en-US",
-                "description": "Professional male with white hair and crystal blue eyes, confident voice",
+                "description": "Warm and welcoming AI assistant with natural southern charm",
             },
         )
 
@@ -199,7 +222,7 @@ async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
 
         # Prepare messages for LLM
         messages = [
-            {"role": "system", "content": GOJO_SYSTEM_PROMPT},
+            {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"{message}{context_text}"},
         ]
 

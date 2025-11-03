@@ -59,7 +59,7 @@ HALLUCINATION_TRAPS = [
     ),
     HallucinationTrap(
         name="wrong_avatar_identity",
-        pattern=r"(I am|My name is|I'm)\s+(?!Gojo|representing Jimmie)",
+        pattern=r"(I am|My name is|I'm)\s+(?!Sheyla|representing Jimmie)",
         description="Claims wrong identity or avatar name",
         severity="critical",
     ),
