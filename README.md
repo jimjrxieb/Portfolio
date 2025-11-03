@@ -6,7 +6,7 @@
 
 [![Production Ready](https://img.shields.io/badge/status-production-green)](https://linksmlm.com)
 [![Security](https://img.shields.io/badge/security-hardened-blue)](./GP-copilot/GP-COPILOT-ASSESSMENT-REPORT.md)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5)](./charts/portfolio/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5)](./infrastructure/)
 
 ---
 
@@ -46,9 +46,10 @@ An intelligent portfolio platform featuring **Gojo**, an AI assistant powered by
 
 **Infrastructure**
 - Docker (non-root, multi-stage builds)
-- Kubernetes + Helm charts
+- Kubernetes (3 deployment methods: kubectl, Terraform, Helm+ArgoCD)
+- Policy-as-Code (OPA/Conftest + Gatekeeper)
 - Cloudflare Tunnel (public exposure)
-- GitHub Actions (CI/CD)
+- GitHub Actions (CI/CD with security validation)
 
 ### System Components
 
@@ -62,13 +63,18 @@ Portfolio/
 ├── ui/                       # React frontend
 │   ├── src/components/      # UI components + 3D avatar
 │   └── Dockerfile           # Production container
+├── infrastructure/          # 3 deployment methods (beginner → advanced)
+│   ├── method1-simple-kubectl/      # Quick kubectl deployment
+│   ├── method2-terraform-localstack/ # Terraform + LocalStack
+│   ├── method3-helm-argocd/         # Production GitOps
+│   ├── shared-gk-policies/          # Gatekeeper runtime policies
+│   └── shared-security/             # Network policies & RBAC
+├── conftest-policies/       # CI/CD policy validation (OPA)
 ├── rag-pipeline/            # Data ingestion & ChromaDB management
 ├── data/
 │   ├── knowledge/           # 20+ markdown source documents
 │   └── chroma/              # Persistent vector database
-├── charts/portfolio/        # Kubernetes Helm deployment
-├── docs/                    # Development documentation
-└── scripts/                 # Deployment automation
+└── docs/                    # Development documentation
 ```
 
 ---
@@ -241,7 +247,22 @@ docker-compose logs -f
 
 ### Production Deployment
 
-**Kubernetes with Helm**
+**3 Deployment Methods** (choose based on your experience level):
+
+#### Method 1: Simple Kubernetes (⭐ Beginner - 5 minutes)
+```bash
+cd infrastructure/method1-simple-kubectl
+kubectl apply -f .
+```
+
+#### Method 2: Terraform + LocalStack (⭐⭐ Intermediate - 15 minutes)
+```bash
+cd infrastructure/method2-terraform-localstack
+terraform init
+terraform apply
+```
+
+#### Method 3: Helm + ArgoCD (⭐⭐⭐ Advanced - 30+ minutes)
 ```bash
 # Build and push containers
 docker build -t ghcr.io/jimjrxieb/portfolio-api:latest ./api
@@ -250,17 +271,56 @@ docker push ghcr.io/jimjrxieb/portfolio-api:latest
 docker push ghcr.io/jimjrxieb/portfolio-ui:latest
 
 # Deploy with Helm
-helm upgrade --install portfolio ./charts/portfolio \
+helm upgrade --install portfolio ./infrastructure/method3-helm-argocd/helm-chart/portfolio \
   --namespace portfolio \
   --create-namespace \
-  --values ./charts/portfolio/values.prod.yaml
+  --values ./infrastructure/method3-helm-argocd/helm-chart/portfolio/values.prod.yaml
 
-# Check deployment
-kubectl get pods -n portfolio
-kubectl logs -f deployment/portfolio-api -n portfolio
+# Or use ArgoCD (GitOps)
+kubectl apply -f ./infrastructure/method3-helm-argocd/argocd/portfolio-application.yaml
 ```
 
-See [Kubernetes Deployment Guide](./docs/deployment/KUBERNETES_READY.md) for detailed instructions.
+**📚 Full Documentation**: See [infrastructure/README.md](./infrastructure/README.md) for detailed deployment guides, comparison table, and security best practices.
+
+---
+
+## Infrastructure & Deployment
+
+### 3-Method Approach
+
+This project offers **3 deployment methods** for different skill levels and use cases:
+
+| Method | Difficulty | Time | Tools | Use Case |
+|--------|-----------|------|-------|----------|
+| **[Method 1](./infrastructure/method1-simple-kubectl/)** | ⭐ Beginner | 5 min | kubectl | Learning K8s basics |
+| **[Method 2](./infrastructure/method2-terraform-localstack/)** | ⭐⭐ Intermediate | 15 min | Terraform + LocalStack | Testing AWS services locally |
+| **[Method 3](./infrastructure/method3-helm-argocd/)** | ⭐⭐⭐ Advanced | 30+ min | Helm + ArgoCD | Production GitOps |
+
+### Security & Policy Enforcement
+
+**Two-Layer Defense (Industry Best Practice)**:
+
+1. **CI/CD Policies** ([conftest-policies/](./conftest-policies/))
+   - Validates manifests during CI/CD (shift-left security)
+   - 150+ policy tests covering container security, image security, resource limits
+   - Blocks deployments before they reach production
+
+2. **Runtime Policies** ([shared-gk-policies/](./infrastructure/shared-gk-policies/))
+   - Gatekeeper admission controller blocks non-compliant pods
+   - ConstraintTemplates for security, governance, and compliance
+   - Last line of defense at cluster level
+
+**Additional Security** ([shared-security/](./infrastructure/shared-security/)):
+- Network policies (default-deny, DNS allow)
+- RBAC roles and bindings
+- Pod Security Standards
+- CIS Kubernetes Benchmark compliance
+
+### Learning Path
+
+**New to Kubernetes?** → Start with [Method 1](./infrastructure/method1-simple-kubectl/)
+**Ready for Infrastructure as Code?** → Move to [Method 2](./infrastructure/method2-terraform-localstack/)
+**Ready for Production?** → Graduate to [Method 3](./infrastructure/method3-helm-argocd/)
 
 ---
 
