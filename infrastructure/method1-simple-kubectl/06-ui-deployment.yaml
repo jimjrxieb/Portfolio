@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-ui
+  namespace: portfolio
+  labels:
+    app: portfolio-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-ui
+  template:
+    metadata:
+      labels:
+        app: portfolio-ui
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: ui
+          image: ghcr.io/shadow-link-industries/portfolio-ui:main-latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: VITE_API_BASE_URL
+              value: "http://portfolio.localtest.me/api"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-ui
+  namespace: portfolio
+spec:
+  selector:
+    app: portfolio-ui
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

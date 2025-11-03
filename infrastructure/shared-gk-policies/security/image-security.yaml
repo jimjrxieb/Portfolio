@@ -1,0 +1,99 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: portfolioimagesecurity
+  annotations:
+    metadata.gatekeeper.sh/title: "Portfolio Image Security Policy"
+    metadata.gatekeeper.sh/version: 1.0.0
+    description: "Enforces container image security policies for Portfolio platform"
+spec:
+  crd:
+    spec:
+      names:
+        kind: PortfolioImageSecurity
+      validation:
+        type: object
+        properties:
+          allowedRegistries:
+            description: "List of allowed container registries"
+            type: array
+            items:
+              type: string
+          blockedTags:
+            description: "List of blocked image tags"
+            type: array
+            items:
+              type: string
+          requireDigests:
+            description: "Require image digests instead of tags"
+            type: boolean
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package portfolioimagesecurity
+
+        # Deny latest tags in production namespace
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          endswith(container.image, ":latest")
+          input.review.object.metadata.namespace == "portfolio"
+          msg := sprintf("Container '%s' uses 'latest' tag which is not allowed in portfolio namespace", [container.name])
+        }
+
+        # Require trusted registries
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          image := container.image
+          not starts_with_allowed_registry(image)
+          msg := sprintf("Container '%s' uses untrusted registry. Allowed: ghcr.io/jimjrxieb/, chromadb/, registry.k8s.io/", [container.name])
+        }
+
+        # Require image tags to be specified
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not contains(container.image, ":")
+          msg := sprintf("Container '%s' must specify an image tag", [container.name])
+        }
+
+        # Require imagePullPolicy
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.imagePullPolicy
+          msg := sprintf("Container '%s' must specify imagePullPolicy", [container.name])
+        }
+
+        # Helper function to check allowed registries
+        starts_with_allowed_registry(image) {
+          startswith(image, "ghcr.io/jimjrxieb/")
+        }
+
+        starts_with_allowed_registry(image) {
+          startswith(image, "chromadb/")
+        }
+
+        starts_with_allowed_registry(image) {
+          startswith(image, "registry.k8s.io/")
+        }
+
+        starts_with_allowed_registry(image) {
+          startswith(image, "docker.io/library/")
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: PortfolioImageSecurity
+metadata:
+  name: portfolio-image-security
+  namespace: portfolio
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment"]
+      namespaces: ["portfolio"]
+  parameters:
+    allowedRegistries:
+      - "ghcr.io/jimjrxieb/"
+      - "chromadb/"
+      - "registry.k8s.io/"
+    blockedTags:
+      - "latest"
+    requireDigests: false

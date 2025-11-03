@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-api
+  namespace: portfolio
+  labels:
+    app: portfolio-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-api
+  template:
+    metadata:
+      labels:
+        app: portfolio-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: api
+          image: ghcr.io/shadow-link-industries/portfolio-api:main-latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: LLM_PROVIDER
+              value: "claude"
+            - name: LLM_MODEL
+              value: "claude-3-5-sonnet-20241022"
+            - name: OLLAMA_URL
+              value: "http://host.docker.internal:11434"
+            - name: EMBED_MODEL
+              value: "nomic-embed-text"
+            - name: API_PORT
+              value: "8000"
+            - name: API_HOST
+              value: "0.0.0.0"
+            - name: CHROMA_HOST
+              value: "chroma"
+            - name: CHROMA_PORT
+              value: "8000"
+            - name: RAG_NAMESPACE
+              value: "portfolio"
+            - name: DATA_DIR
+              value: "/data"
+            - name: CLAUDE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: portfolio-api-secrets
+                  key: CLAUDE_API_KEY
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: portfolio-api-secrets
+                  key: OPENAI_API_KEY
+            - name: ELEVENLABS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: portfolio-api-secrets
+                  key: ELEVENLABS_API_KEY
+            - name: DID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: portfolio-api-secrets
+                  key: DID_API_KEY
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-api
+  namespace: portfolio
+spec:
+  selector:
+    app: portfolio-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP

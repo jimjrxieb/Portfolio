@@ -1,0 +1,97 @@
+# Production configuration for linksmlm.com deployment
+# Used for live production deployment with Cloudflare tunnel
+
+# Image Configuration
+image:
+  repository: ghcr.io/jimjrxieb/portfolio-api
+  tag: "main-dev"
+  pullPolicy: IfNotPresent
+
+ui:
+  image:
+    repository: ghcr.io/jimjrxieb/portfolio-ui
+    tag: "main-dev"
+    pullPolicy: IfNotPresent
+
+# Ingress Configuration for linksmlm.com
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://linksmlm.com"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+  host: linksmlm.com
+  tls: false  # Cloudflare handles TLS
+
+# Resource configuration - optimized for local KinD
+resources:
+  api:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+  ui:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "512Mi"
+
+# ChromaDB Configuration - ENABLED for production
+chroma:
+  enabled: true
+  image:
+    repository: chromadb/chroma
+    tag: "0.4.18"
+    pullPolicy: IfNotPresent
+  service:
+    port: 8000
+  persistence:
+    enabled: true
+    size: 5Gi
+    # Use hostPath for local KinD - data will be copied in
+    hostPath: /data/chroma
+
+# Persistence Configuration
+persistence:
+  enabled: true
+  storageClass: ""  # Use default
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+# Environment Variables - Production
+env:
+  api:
+    DEBUG_MODE: "false"
+    LOG_LEVEL: "INFO"
+    LLM_PROVIDER: "claude"
+    LLM_MODEL: "claude-3-5-sonnet-20241022"
+    OLLAMA_URL: "http://localhost:11434"
+    EMBED_MODEL: "nomic-embed-text"
+    API_PORT: "8000"
+    API_HOST: "0.0.0.0"
+    CORS_ALLOW_ORIGINS: "https://linksmlm.com,http://localhost:8080"
+    RAG_NAMESPACE: "portfolio"
+    CHROMA_URL: "http://portfolio-chroma:8000"
+    DATA_DIR: "/data"
+    TTS_ENGINE: "disabled"
+    AVATAR_ENGINE: "disabled"
+  ui:
+    VITE_API_BASE_URL: "https://linksmlm.com/api"
+
+# Security - slightly relaxed for local development
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
+# Network Policy - disabled for easier local testing
+networkPolicy:
+  enabled: false

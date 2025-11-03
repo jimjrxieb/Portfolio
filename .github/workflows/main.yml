@@ -327,24 +327,24 @@ jobs:
 
         # Verify policy templates are valid
         echo "🧪 Verifying OPA policy templates..."
-        ./conftest verify --policy policies/ || echo "Policy template verification failed"
+        ./conftest verify --policy conftest-policies/ || echo "Policy template verification failed"
 
         # Test Helm rendered manifests if they exist
         if [ -f "/tmp/rendered-manifests.yaml" ]; then
           echo "🧪 Testing Helm manifests against enterprise policies..."
-          ./conftest test /tmp/rendered-manifests.yaml --policy policies/ || echo "Policy violations found in Helm manifests"
+          ./conftest test /tmp/rendered-manifests.yaml --policy conftest-policies/ || echo "Policy violations found in Helm manifests"
         fi
 
-        # Test K8s manifests
-        if [ -d "k8s" ]; then
-          echo "🧪 Testing K8s manifests against enterprise policies..."
-          find k8s/ -name "*.yaml" -type f -exec ./conftest test {} --policy policies/ \; || echo "Policy violations found in K8s manifests"
+        # Test Method 1 (Simple kubectl) manifests
+        if [ -d "infrastructure/method1-simple-kubectl" ]; then
+          echo "🧪 Testing Method 1 (kubectl) manifests against enterprise policies..."
+          ./conftest test infrastructure/method1-simple-kubectl/*.yaml --policy conftest-policies/ || echo "Policy violations found in Method 1 manifests"
         fi
 
-        # Test ArgoCD applications
-        if [ -d "argocd" ]; then
+        # Test Method 3 (Helm+ArgoCD) ArgoCD applications
+        if [ -d "infrastructure/method3-helm-argocd/argocd" ]; then
           echo "🧪 Testing ArgoCD applications..."
-          find argocd/ -name "*.yaml" -type f -exec kubectl apply --dry-run=client -f {} \; || echo "ArgoCD validation issues found"
+          find infrastructure/method3-helm-argocd/argocd/ -name "*.yaml" -type f -exec kubectl apply --dry-run=client -f {} \; || echo "ArgoCD validation issues found"
         fi
 
         echo "✅ Enterprise policy validation complete"
