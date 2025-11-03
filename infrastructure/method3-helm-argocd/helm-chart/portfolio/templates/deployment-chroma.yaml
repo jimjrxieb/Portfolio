@@ -1,0 +1,113 @@
+{{- if .Values.chroma.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "portfolio.fullname" . }}-chroma
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "portfolio.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: chroma
+  template:
+    metadata:
+      labels:
+        {{- include "portfolio.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: chroma
+    spec:
+      serviceAccountName: {{ include "portfolio.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: chroma
+          image: "{{ .Values.chroma.image.repository }}:{{ .Values.chroma.image.tag }}"
+          imagePullPolicy: {{ .Values.chroma.image.pullPolicy }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.securityContext.runAsGroup }}
+            readOnlyRootFilesystem: false  # ChromaDB needs to write temp files
+            allowPrivilegeEscalation: false
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: CHROMA_DB_IMPL
+              value: "chromadb.db.impl.sqlite.SqliteDB"
+            - name: PERSIST_DIRECTORY
+              value: "/chroma/chroma"
+          ports:
+            - name: http
+              containerPort: {{ .Values.chroma.service.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: {{ .Values.chroma.service.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: {{ .Values.chroma.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          volumeMounts:
+            {{- if .Values.chroma.persistence.enabled }}
+            - name: chroma-data
+              mountPath: /chroma/chroma
+            {{- end }}
+            # Temporary volumes for read-only root filesystem
+            - name: tmp
+              mountPath: /tmp
+            - name: var-tmp
+              mountPath: /var/tmp
+            - name: var-cache
+              mountPath: /var/cache
+      volumes:
+        {{- if .Values.chroma.persistence.enabled }}
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: portfolio-chroma
+        {{- end }}
+        # Temporary volumes for read-only root filesystem
+        - name: tmp
+          emptyDir: {}
+        - name: var-tmp
+          emptyDir: {}
+        - name: var-cache
+          emptyDir: {}
+---
+# PVC is manually created with hostPath PV (see k8s-chroma-pv.yaml)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "portfolio.fullname" . }}-chroma
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.chroma.service.port }}
+      targetPort: {{ .Values.chroma.service.port }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "portfolio.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: chroma
+{{- end }}

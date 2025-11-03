@@ -1,0 +1,5 @@
+# LocalStack Environment Configuration
+# Copy this file to terraform.tfvars and customize as needed
+
+project_name = "portfolio"
+aws_region   = "us-east-1"

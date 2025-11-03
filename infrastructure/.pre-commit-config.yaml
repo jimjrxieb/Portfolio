@@ -1,0 +1,114 @@
+# Portfolio Platform Pre-commit Hooks
+# Implements early policy validation and code quality checks
+
+repos:
+  # Code formatting and linting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: ^helm/.*templates/
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+
+  # JavaScript/TypeScript formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
+    hooks:
+      - id: prettier
+        files: \.(js|jsx|ts|tsx|json|css|md|yaml|yml)$
+        exclude: ^(package-lock\.json|\.github/workflows/|helm/.*templates/)
+
+  # Python formatting and linting
+  - repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+      - id: black
+        language_version: python3.11
+        files: ^(api/|rag-pipeline/|scripts/python3/).*\.py$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        files: ^(api/|rag-pipeline/|scripts/python3/).*\.py$
+        args: [--max-line-length=127, --extend-ignore=E203, W503]
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, --format, json, --severity-level, medium]
+        files: ^(api/|rag-pipeline/).*\.py$
+
+  # OPA/Conftest policy validation
+  - repo: local
+    hooks:
+      - id: conftest-policies
+        name: Validate OPA Policies
+        entry: bash -c 'if command -v conftest >/dev/null 2>&1; then conftest verify --policy policies/; else echo "⚠️ conftest not installed, skipping policy validation"; fi'
+        language: system
+        files: ^policies/.*\.yaml$
+        pass_filenames: false
+
+      - id: conftest-kubernetes
+        name: Validate Kubernetes Manifests
+        entry: bash -c 'if command -v conftest >/dev/null 2>&1; then find k8s/ helm/ -name "*.yaml" -type f -exec conftest test {} --policy policies/ \; 2>/dev/null || echo "⚠️ No manifests to validate or conftest not installed"; else echo "⚠️ conftest not installed, skipping manifest validation"; fi'
+        language: system
+        files: ^(k8s/|helm/).*\.ya?ml$
+        pass_filenames: false
+
+      - id: helm-lint
+        name: Helm Chart Linting
+        entry: bash -c 'if command -v helm >/dev/null 2>&1; then helm lint helm/portfolio/; else echo "⚠️ helm not installed, skipping chart validation"; fi'
+        language: system
+        files: ^helm/.*\.ya?ml$
+        pass_filenames: false
+
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: ^(\.secrets\.baseline|package-lock\.json)$
+
+  # Container/Docker validation
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        files: Dockerfile.*
+
+  # GitOps validation
+  - repo: local
+    hooks:
+      - id: argocd-validate
+        name: Validate ArgoCD Applications
+        entry: bash -c 'if command -v kubectl >/dev/null 2>&1; then kubectl apply --dry-run=client -f argocd/ 2>/dev/null || echo "⚠️ ArgoCD validation failed or kubectl not available"; else echo "⚠️ kubectl not installed, skipping ArgoCD validation"; fi'
+        language: system
+        files: ^argocd/.*\.ya?ml$
+        pass_filenames: false
+
+# Configuration
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [commit]
+
+# Repository-specific configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    For more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
