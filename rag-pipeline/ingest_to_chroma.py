@@ -204,7 +204,8 @@ class OllamaIngestionPipeline:
         # Prepare documents
         documents = []
         for i, chunk in enumerate(chunks):
-            doc_id = hashlib.md5(f"{file_path.name}_{i}_{self.embedding_model}".encode()).hexdigest()
+            # Fixed: Using hashlib.sha256 for better security and setting usedforsecurity=False
+            doc_id = hashlib.sha256(f"{file_path.name}_{i}_{self.embedding_model}".encode(), usedforsecurity=False).hexdigest()
             documents.append({
                 "id": doc_id,
                 "text": chunk,
@@ -239,7 +240,12 @@ class OllamaIngestionPipeline:
                     if len(clean_text) < 50:
                         continue
 
-                    # Create document
+                    # Fixed: Use hashlib.sha256 for stronger security
+                    import hashlib
+
+                    doc_id = hashlib.sha256(
+                    f"{file_path.name}_{line_num}_{self.embedding_model}".encode()
+                    ).hexdigest()
                     doc_id = hashlib.md5(
                         f"{file_path.name}_{line_num}_{self.embedding_model}".encode()
                     ).hexdigest()

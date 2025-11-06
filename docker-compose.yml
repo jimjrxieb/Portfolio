@@ -5,12 +5,12 @@ services:
   chromadb:
     image: chromadb/chroma:latest
     ports:
-      - "8001:8000"
+    - "8001:8000"
     volumes:
-      - ./data/chroma:/chroma/data
+    - ./data/chroma:/chroma/data
     environment:
-      - CHROMA_DB_IMPL=duckdb+parquet
-      - CHROMA_PERSIST_DIRECTORY=/chroma/data
+    - CHROMA_DB_IMPL=duckdb+parquet
+    - CHROMA_PERSIST_DIRECTORY=/chroma/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -19,31 +19,34 @@ services:
       retries: 3
 
   # API Backend Service (Claude + RAG)
+    security_opt:
+    - no-new-privileges:true
+    read_only: true
   api:
     build:
       context: .
       dockerfile: ./api/Dockerfile
     ports:
-      - "8000:8000"
+    - "8000:8000"
     environment:
       # ChromaDB
-      - CHROMA_URL=http://chromadb:8000
-      - DATA_DIR=/home/jimmie/linkops-industries/Portfolio/data
+    - CHROMA_URL=http://chromadb:8000
+    - DATA_DIR=/home/jimmie/linkops-industries/Portfolio/data
       # LLM Configuration (Claude)
-      - LLM_PROVIDER=claude
-      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
-      - LLM_MODEL=claude-3-5-sonnet-20241022
+    - LLM_PROVIDER=claude
+    - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+    - LLM_MODEL=claude-3-5-sonnet-20241022
       # Ollama Embeddings
-      - OLLAMA_URL=http://host.docker.internal:11434
-      - EMBED_MODEL=nomic-embed-text
+    - OLLAMA_URL=http://host.docker.internal:11434
+    - EMBED_MODEL=nomic-embed-text
       # Fallback (OpenAI)
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - PYTHONPATH=/app
+    - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    - PYTHONPATH=/app
     volumes:
-      - ./data/chroma:/home/jimmie/linkops-industries/Portfolio/data/chroma
-      - ./data/uploads:/home/jimmie/linkops-industries/Portfolio/data/uploads
+    - ./data/chroma:/home/jimmie/linkops-industries/Portfolio/data/chroma
+    - ./data/uploads:/home/jimmie/linkops-industries/Portfolio/data/uploads
     depends_on:
-      - chromadb
+    - chromadb
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -51,7 +54,7 @@ services:
       retries: 3
     restart: unless-stopped
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+    - "host.docker.internal:host-gateway"
 
   # Frontend UI Service
   ui:
@@ -59,12 +62,12 @@ services:
       context: .
       dockerfile: ./ui/Dockerfile
     ports:
-      - "3000:80"
+    - "3000:80"
     environment:
-      - VITE_API_URL=http://localhost:8000
-      - VITE_CHROMA_URL=http://localhost:8001
+    - VITE_API_URL=http://localhost:8000
+    - VITE_CHROMA_URL=http://localhost:8001
     depends_on:
-      - api
+    - api
     restart: unless-stopped
 
   # Local Development Only - RAG Pipeline for data ingestion
