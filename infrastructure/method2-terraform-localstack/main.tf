@@ -36,7 +36,7 @@ provider "aws" {
 
 # Storage Module (S3, DynamoDB, SQS)
 module "storage" {
-  source = "../../modules/storage"
+  source = "./modules/aws-resources/storage"
 
   project_name = var.project_name
   environment  = "localstack"

@@ -13,11 +13,11 @@ from datetime import datetime, timedelta
 
 # Import route modules
 from routes.chat import router as chat_router
-from routes.actions import router as actions_router
+# from routes.actions import router as actions_router  # UNUSED - No actions.py locally
 from routes.health import router as health_router
-from routes.uploads import router as uploads_router
-from routes.rag import router as rag_router
-from routes.validation import router as validation_router
+# from routes.uploads import router as uploads_router  # UNUSED - Not called by frontend
+# from routes.rag import router as rag_router  # UNUSED - Not called by frontend
+# from routes.validation import router as validation_router  # UNUSED - Not called by frontend
 
 # Create FastAPI app
 app = FastAPI(
@@ -127,10 +127,10 @@ def health_check():
 # Include routers
 app.include_router(health_router, prefix="/api", tags=["health"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
-app.include_router(actions_router, tags=["avatar"])  # Already has /api/actions/avatar prefix
-app.include_router(uploads_router, prefix="/api", tags=["uploads"])
-app.include_router(rag_router, prefix="/api/rag", tags=["rag"])
-app.include_router(validation_router, prefix="/api/validation", tags=["validation"])
+# app.include_router(actions_router, tags=["avatar"])  # UNUSED - Avatar endpoints not called
+# app.include_router(uploads_router, prefix="/api", tags=["uploads"])  # UNUSED
+# app.include_router(rag_router, prefix="/api/rag", tags=["rag"])  # UNUSED
+# app.include_router(validation_router, prefix="/api/validation", tags=["validation"])  # UNUSED
 
 
 # Root endpoint

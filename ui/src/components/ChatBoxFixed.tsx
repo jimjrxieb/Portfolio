@@ -9,7 +9,7 @@ import { API_BASE } from '../lib/api';
 interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'jade';
+  sender: 'user' | 'sheyla';
   timestamp: Date;
 }
 
@@ -43,7 +43,7 @@ const ChatBoxFixed: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE}/chat`, {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,14 +63,14 @@ const ChatBoxFixed: React.FC = () => {
 
       const data = await response.json();
 
-      const jadeMessage: ChatMessage = {
-        id: Date.now() + '-jade',
-        text: data.response || "I'm having trouble responding right now.",
-        sender: 'jade',
+      const sheylaMessage: ChatMessage = {
+        id: Date.now() + '-sheyla',
+        text: data.answer || data.response || "I'm having trouble responding right now.",
+        sender: 'sheyla',
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, jadeMessage]);
+      setMessages(prev => [...prev, sheylaMessage]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
 
@@ -78,7 +78,7 @@ const ChatBoxFixed: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: Date.now() + '-error',
         text: `Sorry—something went wrong reaching my brain.\n${err instanceof Error ? err.message : 'Unknown error'}`,
-        sender: 'jade',
+        sender: 'sheyla',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -102,7 +102,7 @@ const ChatBoxFixed: React.FC = () => {
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {messages.length === 0 && (
           <div className="text-center text-gray-500 py-8">
-            <p>👋 Hi! I'm Jade, Jimmie's AI assistant.</p>
+            <p>👋 Hi! I'm Sheyla, Jimmie's AI assistant.</p>
             <p className="text-sm mt-1">
               Ask me about his DevSecOps or AI/ML work...
             </p>
@@ -134,7 +134,7 @@ const ChatBoxFixed: React.FC = () => {
             <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                <span className="text-sm">Jade is thinking...</span>
+                <span className="text-sm">Sheyla is thinking...</span>
               </div>
             </div>
           </div>

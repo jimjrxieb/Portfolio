@@ -20,11 +20,29 @@ class Doc:
 
 class RAGEngine:
     def __init__(self):
-        from settings import CHROMA_DIR
-        chroma_dir = str(CHROMA_DIR)
-        os.makedirs(chroma_dir, exist_ok=True)
+        from settings import CHROMA_URL, CHROMA_DIR
 
-        self.client = chromadb.PersistentClient(path=chroma_dir)
+        # Use HTTP client for Kubernetes deployment, fallback to PersistentClient for local dev
+        chroma_url = os.getenv("CHROMA_URL", CHROMA_URL)
+        use_http_client = chroma_url and not chroma_url.startswith("file://")
+
+        if use_http_client:
+            # Parse HTTP URL for host and port
+            import re
+            match = re.match(r'http://([^:]+):(\d+)', chroma_url)
+            if match:
+                host, port = match.groups()
+                self.client = chromadb.HttpClient(host=host, port=int(port))
+                logger.info(f"Connected to ChromaDB server at {chroma_url}")
+            else:
+                raise ValueError(f"Invalid CHROMA_URL format: {chroma_url}")
+        else:
+            # Fallback to PersistentClient for local development
+            chroma_dir = str(CHROMA_DIR)
+            os.makedirs(chroma_dir, exist_ok=True)
+            self.client = chromadb.PersistentClient(path=chroma_dir)
+            logger.info(f"Using local ChromaDB at {chroma_dir}")
+
         self.namespace = os.getenv("RAG_NAMESPACE", "portfolio")
 
         # Initialize with current active collection

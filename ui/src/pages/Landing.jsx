@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react';
 import ChatPanel from '../components/ChatPanel.tsx';
 import Projects from '../components/Projects.tsx';
 
 export default function Landing() {
-  const [showIntroModal, setShowIntroModal] = useState(false);
-
-  useEffect(() => {
-    const hasSeenIntro = localStorage.getItem('gojo-intro-seen');
-    if (!hasSeenIntro) {
-      setShowIntroModal(true);
-    }
-  }, []);
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-ink via-ink to-crystal-900"
@@ -49,7 +40,7 @@ export default function Landing() {
                   </p>
                   <div className="flex gap-4 text-sm">
                     <a
-                      href="https://linkedin.com/in/jimmie-coleman"
+                      href="https://www.linkedin.com/in/jimmie-coleman-jr-564a8a199/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-crystal-400 hover:text-crystal-300 underline"
@@ -69,50 +60,59 @@ export default function Landing() {
 
                 {/* Professional Overview */}
                 <div className="bg-snow/10 rounded-lg p-4 border border-white/5">
-                  <h3 className="text-gojo-primary font-semibold mb-3">
-                    **DevSecOps Engineer | AI Systems Implementation**
+                  <h3 className="text-gojo-primary font-semibold mb-2">
+                    Production AI Portfolio Platform
                   </h3>
-                  <p className="text-gojo-secondary text-sm leading-relaxed mb-4">
-                    CKA & CompTIA Security+ certified with production experience
-                    in containerized AI systems. This portfolio demonstrates
-                    practical implementation across three areas:
+                  <p className="text-crystal-400 text-sm mb-3">
+                    Full-Stack RAG System | Enterprise DevSecOps | Policy-as-Code
+                  </p>
+                  <p className="text-gojo-secondary text-xs leading-relaxed mb-4">
+                    This live portfolio showcases production-grade AI/ML engineering with enterprise security practices. Every component demonstrates hands-on expertise in modern DevSecOps workflows.
                   </p>
 
-                  <ul className="text-gojo-secondary text-sm leading-relaxed space-y-2 mb-4">
-                    <li>
-                      <strong className="text-gojo-primary">
-                        DevSecOps Automation
-                      </strong>{' '}
-                      - GitHub Actions CI/CD pipeline with ArgoCD deployment and
-                      integrated security scanning
-                    </li>
-                    <li>
-                      <strong className="text-gojo-primary">
-                        RAG Document Processing
-                      </strong>{' '}
-                      - Vector embeddings and semantic search for enterprise
-                      document analysis using ChromaDB and sentence transformers
-                    </li>
-                    <li>
-                      <strong className="text-gojo-primary">
-                        Production AI Deployment
-                      </strong>{' '}
-                      - Containerized chatbot systems with Docker/Kubernetes,
-                      implementing retrieval-augmented generation for business
-                      document queries
-                    </li>
-                  </ul>
+                  <div className="space-y-3 text-sm">
+                    <div className="bg-snow/5 rounded p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">🧠</span>
+                        <strong className="text-gojo-primary">AI/RAG Stack</strong>
+                      </div>
+                      <ul className="text-gojo-secondary text-xs space-y-1 ml-7">
+                        <li>• ChromaDB (2,656+ vectors) + Ollama embeddings</li>
+                        <li>• Claude API (Anthropic) for production LLM</li>
+                        <li>• FastAPI backend with semantic search &lt;100ms</li>
+                        <li>• React/Vite frontend with real-time chat</li>
+                      </ul>
+                    </div>
 
-                  <p className="text-gojo-secondary text-sm leading-relaxed mb-3">
-                    The Jade chatbot showcases end-to-end RAG implementation:
-                    document chunking, vector storage, semantic search, and LLM
-                    response generation. Built for real enterprise use cases
-                    with proper error handling and caching.
-                  </p>
+                    <div className="bg-snow/5 rounded p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">🔒</span>
+                        <strong className="text-gojo-primary">Security & Policy</strong>
+                      </div>
+                      <ul className="text-gojo-secondary text-xs space-y-1 ml-7">
+                        <li>• OPA/Conftest CI/CD policy validation (150+ tests)</li>
+                        <li>• Gatekeeper runtime admission control</li>
+                        <li>• Network policies + RBAC + Pod Security Standards</li>
+                        <li>• Multi-scanner pipeline: Trivy, Semgrep, Bandit, GitLeaks</li>
+                      </ul>
+                    </div>
 
-                  <p className="text-crystal-400 text-sm font-medium">
-                    <strong>Technical stack:</strong> Python, Docker,
-                    Kubernetes, ChromaDB, OpenAI APIs, sentence-transformers
+                    <div className="bg-snow/5 rounded p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">☁️</span>
+                        <strong className="text-gojo-primary">Infrastructure & CI/CD</strong>
+                      </div>
+                      <ul className="text-gojo-secondary text-xs space-y-1 ml-7">
+                        <li>• Kubernetes (3 deployment methods: kubectl → Terraform → Helm+ArgoCD)</li>
+                        <li>• GitHub Actions: parallel security scans → build → deploy</li>
+                        <li>• Cloudflare Tunnel for secure public access</li>
+                        <li>• Docker multi-stage builds, non-root containers</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <p className="text-crystal-400 text-xs font-medium mt-4">
+                    <strong>Tech Stack:</strong> Python, TypeScript, React, FastAPI, ChromaDB, Ollama, Claude, Kubernetes, OPA/Rego, GitHub Actions, Cloudflare
                   </p>
                 </div>
               </div>
@@ -195,13 +195,6 @@ export default function Landing() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-crystal-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gold-500/10 rounded-full blur-2xl"></div>
       </div>
-
-      {/* IP-Safe Intro Modal */}
-      {showIntroModal && (
-        <div className="text-center text-yellow-400 p-4">
-          Intro Modal Placeholder
-        </div>
-      )}
     </div>
   );
 }

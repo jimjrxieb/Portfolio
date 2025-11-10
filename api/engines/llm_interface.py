@@ -1,9 +1,6 @@
 import os
 import logging
 from typing import AsyncGenerator
-from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
-import torch
-import threading
 
 logger = logging.getLogger(__name__)
 
@@ -11,13 +8,12 @@ logger = logging.getLogger(__name__)
 class LLMEngine:
     """
     Unified LLM Engine supporting multiple providers:
-    - Claude (Anthropic) - Recommended
-    - OpenAI (GPT models)
-    - Local (HuggingFace Transformers)
+    - Claude (Anthropic) - Primary and recommended
+    - Local (HuggingFace Transformers) - Optional fallback
     """
 
     def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "claude")  # claude, openai, or local
+        self.provider = os.getenv("LLM_PROVIDER", "claude")  # claude or local
         self.model_name = os.getenv("LLM_MODEL")
 
         if self.provider == "local":
@@ -31,19 +27,16 @@ class LLMEngine:
                 logger.error("CLAUDE_API_KEY not set! Claude provider will fail.")
                 raise ValueError("CLAUDE_API_KEY environment variable is required for Claude provider")
             logger.info(f"Using Claude provider with model: {self.claude_model}")
-        elif self.provider == "openai":
-            self.openai_api_key = os.getenv("OPENAI_API_KEY")
-            self.openai_model = self.model_name or "gpt-4o-mini"
-            if not self.openai_api_key:
-                logger.error("OPENAI_API_KEY not set! OpenAI provider will fail.")
-                raise ValueError("OPENAI_API_KEY environment variable is required for OpenAI provider")
-            logger.info(f"Using OpenAI provider with model: {self.openai_model}")
         else:
-            raise ValueError(f"Unknown LLM provider: {self.provider}. Use 'claude', 'openai', or 'local'")
+            raise ValueError(f"Unknown LLM provider: {self.provider}. Use 'claude' or 'local'")
 
     def _load_local_model(self):
-        """Load local transformers model"""
+        """Load local transformers model (lazy import dependencies)"""
         try:
+            # Only import transformers and torch when actually using local models
+            from transformers import AutoTokenizer, AutoModelForCausalLM
+            import torch
+
             logger.info(f"Loading local model: {self.model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name,
@@ -70,12 +63,11 @@ class LLMEngine:
         if self.provider == "claude":
             async for chunk in self._generate_claude(prompt, max_tokens):
                 yield chunk
-        elif self.provider == "openai":
-            async for chunk in self._generate_openai(prompt, max_tokens):
-                yield chunk
-        else:
+        elif self.provider == "local":
             async for chunk in self._generate_local(prompt, max_tokens):
                 yield chunk
+        else:
+            raise ValueError(f"Unsupported provider: {self.provider}")
 
     async def _generate_claude(self, prompt: str, max_tokens: int) -> AsyncGenerator[str, None]:
         """Generate using Claude (Anthropic) API with streaming"""
@@ -99,36 +91,16 @@ class LLMEngine:
             logger.error(f"Claude API error: {e}", exc_info=True)
             yield f"Error: Unable to generate response. {str(e)}"
 
-    async def _generate_openai(self, prompt: str, max_tokens: int) -> AsyncGenerator[str, None]:
-        """Generate using OpenAI API with streaming"""
-        try:
-            from openai import AsyncOpenAI
-
-            client = AsyncOpenAI(api_key=self.openai_api_key)
-
-            logger.info(f"Calling OpenAI API with model: {self.openai_model}")
-
-            response = await client.chat.completions.create(
-                model=self.openai_model,
-                messages=[{"role": "user", "content": prompt}],
-                stream=True,
-                max_tokens=max_tokens,
-                temperature=0.7,
-            )
-
-            async for chunk in response:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-
-        except Exception as e:
-            logger.error(f"OpenAI API error: {e}", exc_info=True)
-            yield f"Error: Unable to generate response. {str(e)}"
-
     async def _generate_local(
         self, prompt: str, max_tokens: int
     ) -> AsyncGenerator[str, None]:
         """Generate using local HuggingFace model with streaming"""
         try:
+            # Lazy import for local model dependencies
+            from transformers import TextIteratorStreamer
+            import torch
+            import threading
+
             logger.info(f"Generating with local model: {self.model_name}")
 
             inputs = self.tokenizer.encode(prompt, return_tensors="pt")
@@ -160,6 +132,97 @@ class LLMEngine:
         except Exception as e:
             logger.error(f"Local generation error: {e}", exc_info=True)
             yield f"Error: Unable to generate response. {str(e)}"
+
+    async def chat_completion(self, messages: list, max_tokens: int = 1024) -> dict:
+        """
+        Non-streaming chat completion (for simple request/response)
+        messages: list of {"role": "system"|"user"|"assistant", "content": str}
+        Returns: {"content": str, "model": str}
+        """
+        try:
+            if self.provider == "claude":
+                return await self._chat_completion_claude(messages, max_tokens)
+            elif self.provider == "local":
+                return await self._chat_completion_local(messages, max_tokens)
+            else:
+                raise ValueError(f"Unsupported provider: {self.provider}")
+        except Exception as e:
+            logger.error(f"Chat completion error: {e}", exc_info=True)
+            return {
+                "content": f"I'm having trouble generating a response right now. Error: {str(e)}",
+                "model": f"{self.provider}/error",
+            }
+
+    async def _chat_completion_claude(self, messages: list, max_tokens: int) -> dict:
+        """Chat completion using Claude (Anthropic) API"""
+        try:
+            from anthropic import AsyncAnthropic
+
+            client = AsyncAnthropic(api_key=self.claude_api_key)
+
+            # Extract system message if present
+            system_message = None
+            api_messages = []
+            for msg in messages:
+                if msg["role"] == "system":
+                    system_message = msg["content"]
+                else:
+                    api_messages.append(msg)
+
+            logger.info(f"Calling Claude API with model: {self.claude_model}")
+
+            response = await client.messages.create(
+                model=self.claude_model,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                system=system_message if system_message else None,
+                messages=api_messages,
+            )
+
+            return {
+                "content": response.content[0].text,
+                "model": self.claude_model,
+            }
+
+        except Exception as e:
+            logger.error(f"Claude API error: {e}", exc_info=True)
+            raise
+
+    async def _chat_completion_local(self, messages: list, max_tokens: int) -> dict:
+        """Chat completion using local HuggingFace model"""
+        try:
+            import torch
+
+            # Combine messages into a prompt
+            prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+            prompt += "\nassistant:"
+
+            logger.info(f"Generating with local model: {self.model_name}")
+
+            inputs = self.tokenizer.encode(prompt, return_tensors="pt")
+            if torch.cuda.is_available():
+                inputs = inputs.to("cuda")
+
+            outputs = self.model.generate(
+                input_ids=inputs,
+                max_length=len(inputs[0]) + max_tokens,
+                do_sample=True,
+                temperature=0.7,
+                pad_token_id=self.tokenizer.eos_token_id,
+            )
+
+            response_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            # Remove the prompt from response
+            response_text = response_text[len(prompt):].strip()
+
+            return {
+                "content": response_text,
+                "model": self.model_name,
+            }
+
+        except Exception as e:
+            logger.error(f"Local generation error: {e}", exc_info=True)
+            raise
 
 
 # Global instance

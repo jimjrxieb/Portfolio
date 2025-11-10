@@ -1,5 +1,5 @@
 export const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  import.meta.env.VITE_API_BASE_URL || '';
 
 export type ChatRequest = {
   message: string;
@@ -47,43 +47,13 @@ export async function chat(
   // Map backend response to frontend format
   return {
     answer:
+      response.answer ||
       response.response ||
       response.text_response ||
       "I'm having trouble responding right now.",
     citations: [],
     model: 'sheyla-avatar',
   };
-}
-
-export async function makeAvatar(
-  form: FormData
-): Promise<{ avatar_id: string }> {
-  const r = await fetch(`${API_BASE}/api/actions/avatar/create`, {
-    method: 'POST',
-    body: form,
-  });
-  if (!r.ok) {
-    const detail = await safeJson(r);
-    throw new Error(`Avatar create failed: ${JSON.stringify(detail)}`);
-  }
-  return r.json();
-}
-
-export async function talkAvatar(payload: {
-  avatar_id: string;
-  text: string;
-  voice?: string; // server decides default if omitted
-}): Promise<{ url: string }> {
-  const r = await fetch(`${API_BASE}/api/actions/avatar/talk`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!r.ok) {
-    const detail = await safeJson(r);
-    throw new Error(`Avatar talk failed: ${JSON.stringify(detail)}`);
-  }
-  return r.json();
 }
 
 async function safeJson(r: Response) {

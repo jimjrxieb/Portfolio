@@ -85,6 +85,15 @@ resource "aws_dynamodb_table" "document_registry" {
     projection_type = "ALL"
   }
 
+  # Customer-managed KMS encryption (when enabled)
+  dynamic "server_side_encryption" {
+    for_each = var.use_customer_managed_encryption ? [1] : []
+    content {
+      enabled     = true
+      kms_key_arn = aws_kms_key.storage[0].arn
+    }
+  }
+
   tags = merge(var.tags, {
     Name        = "${var.project_name}-document-registry"
     Purpose     = "Document metadata tracking"
@@ -121,6 +130,15 @@ resource "aws_dynamodb_table" "embedding_chunks" {
     projection_type = "ALL"
   }
 
+  # Customer-managed KMS encryption (when enabled)
+  dynamic "server_side_encryption" {
+    for_each = var.use_customer_managed_encryption ? [1] : []
+    content {
+      enabled     = true
+      kms_key_arn = aws_kms_key.storage[0].arn
+    }
+  }
+
   tags = merge(var.tags, {
     Name        = "${var.project_name}-embedding-chunks"
     Purpose     = "Chunk-level embedding metadata"
@@ -154,6 +172,15 @@ resource "aws_dynamodb_table" "ingestion_jobs" {
     hash_key        = "status"
     range_key       = "started_at"
     projection_type = "ALL"
+  }
+
+  # Customer-managed KMS encryption (when enabled)
+  dynamic "server_side_encryption" {
+    for_each = var.use_customer_managed_encryption ? [1] : []
+    content {
+      enabled     = true
+      kms_key_arn = aws_kms_key.storage[0].arn
+    }
   }
 
   tags = merge(var.tags, {
@@ -215,6 +242,7 @@ resource "aws_sqs_queue_redrive_policy" "ingestion_queue" {
 resource "aws_cloudwatch_log_group" "document_intake" {
   name              = "/aws/lambda/${var.project_name}-document-intake"
   retention_in_days = 7
+  kms_key_id        = var.use_customer_managed_encryption ? aws_kms_key.storage[0].arn : null
 
   tags = merge(var.tags, {
     Name        = "${var.project_name}-document-intake-logs"
@@ -225,6 +253,7 @@ resource "aws_cloudwatch_log_group" "document_intake" {
 resource "aws_cloudwatch_log_group" "document_processor" {
   name              = "/aws/lambda/${var.project_name}-document-processor"
   retention_in_days = 7
+  kms_key_id        = var.use_customer_managed_encryption ? aws_kms_key.storage[0].arn : null
 
   tags = merge(var.tags, {
     Name        = "${var.project_name}-document-processor-logs"
@@ -235,6 +264,7 @@ resource "aws_cloudwatch_log_group" "document_processor" {
 resource "aws_cloudwatch_log_group" "embedding_generator" {
   name              = "/aws/lambda/${var.project_name}-embedding-generator"
   retention_in_days = 7
+  kms_key_id        = var.use_customer_managed_encryption ? aws_kms_key.storage[0].arn : null
 
   tags = merge(var.tags, {
     Name        = "${var.project_name}-embedding-generator-logs"

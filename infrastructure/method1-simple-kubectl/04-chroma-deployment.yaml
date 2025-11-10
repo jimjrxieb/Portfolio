@@ -15,27 +15,18 @@ spec:
       labels:
         app: chroma
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 10001
-        runAsGroup: 10001
-        fsGroup: 10001
       containers:
         - name: chroma
-          image: chromadb/chroma:0.4.18
+          image: chromadb/chroma:0.5.18
           imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 10001
-            runAsGroup: 10001
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
           ports:
             - containerPort: 8000
               name: http
+          env:
+            - name: IS_PERSISTENT
+              value: "TRUE"
+            - name: ANONYMIZED_TELEMETRY
+              value: "FALSE"
           resources:
             requests:
               cpu: "100m"
@@ -46,14 +37,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /chroma/chroma
-            - name: tmp
-              mountPath: /tmp
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: chroma-data
-        - name: tmp
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

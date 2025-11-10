@@ -7,6 +7,7 @@ interface Project {
   status: string;
   icon: string;
   highlights: string[];
+  repoUrl?: string;
 }
 
 interface Tool {
@@ -21,174 +22,115 @@ interface ToolCategory {
   tools: Tool[];
 }
 
-type ProjectKey = 'linkops' | 'jade' | 'whis' | 'portfolio';
-type CategoryKey = 'devops' | 'aiml' | 'security';
+type ProjectKey = 'gpcopilot' | 'interview' | 'jade';
+type CategoryKey = 'languages' | 'aiml' | 'cloud' | 'security' | 'devops';
 
 // Constants
 const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
-  linkops: {
-    title: 'LinkOps AI-BOX',
-    description: 'Enterprise AI deployment platform',
-    status: 'Product Ready',
-    icon: '🚀',
+  gpcopilot: {
+    title: 'GP-Copilot - AI Security Automation',
+    description: '6-phase consulting workflow with 20+ integrated scanners',
+    status: 'Production',
+    icon: '🔒',
     highlights: [
-      'Turnkey AI solution for businesses',
-      'Privacy-focused on-premise deployment',
-      'Dual-speed CI/CD workflows',
-      'Enterprise-grade security & compliance',
-      'Scalable RAG architecture',
+      'RAG with ChromaDB (2,656+ vectors) for security pattern search',
+      'Ollama + Qwen2.5-Coder for automated code remediation',
+      'Gitleaks, Trivy, Bandit, Semgrep, Checkov, Kubescape integration',
+      'OPA/Rego policy generation + Conftest validation',
+      'Gatekeeper admission control for Kubernetes',
+      'SOC2, ISO 27001, PCI-DSS compliance mapping',
+      'JSON scan results → AI fixes → compliance reports → executive summaries',
+    ],
+  },
+  interview: {
+    title: 'AI-Powered Interview Platform',
+    description: 'Secure cloud architecture with AWS services',
+    status: 'Deployed',
+    icon: '🚀',
+    repoUrl: 'https://github.com/jimjrxieb/ai-powered-project',
+    highlights: [
+      'Next.js + TypeScript + Drizzle ORM + AWS SDK',
+      'S3 + KMS encryption, DynamoDB sessions, Secrets Manager',
+      'GitHub Actions: secrets scan → SAST → audit → container scan → deploy',
+      'Proper .gitignore, environment vars, IAM least privilege',
+      'ArgoCD GitOps deployment with branch-based environments',
+      'LocalStack for cost-free AWS service mocking',
     ],
   },
   jade: {
-    title: 'ZRS-COPILOT',
-    description: 'AI property management assistant',
-    status: 'ZRS Integration',
-    icon: '🏠',
+    title: 'Portfolio AI Assistant - Sheyla',
+    description: 'RAG-powered portfolio chatbot with production deployment',
+    status: 'Active',
+    icon: '🤖',
     highlights: [
-      'Intelligent property management automation',
-      'Tenant communication & screening',
-      'Maintenance request processing',
-      'Financial reporting & analytics',
-      'Integration with existing property systems',
-    ],
-  },
-  whis: {
-    title: 'GP-COPILOT',
-    description: 'Policy as Code Enforcement & Audit Automation',
-    status: 'GuidePoint Deployment',
-    icon: '🛡️',
-    highlights: [
-      'OPA (Open Policy Agent) policy enforcement automation',
-      'Gatekeeper constraint validation & compliance checking',
-      'Automated security audit report generation',
-      'Policy-as-Code testing with OPA test framework',
-      'Kubernetes admission control & governance',
-      'Real-time compliance monitoring & alerting',
-      'Infrastructure policy enforcement (IaC validation)',
-    ],
-  },
-  portfolio: {
-    title: 'Interactive Portfolio',
-    description: 'RAG-powered AI portfolio platform',
-    status: 'Live Demo',
-    icon: '🎭',
-    highlights: [
-      'Jade AI assistant with RAG knowledge base',
-      'LangChain-style batch processing pipeline',
-      'ChromaDB vector storage (391+ documents)',
-      'sentence-transformers embeddings',
-      'OpenAI GPT-4o-mini integration',
-      'React/TypeScript frontend with FastAPI backend',
-      'Honest, grounded AI responses about experience',
+      'FastAPI backend + Claude API (Anthropic) + ChromaDB',
+      'Semantic search with 2,656+ embedded document vectors',
+      'React frontend with real-time chat interface',
+      'Kubernetes deployment with Cloudflare Tunnel',
+      'Response validation and anti-hallucination detection',
+      'Production deployment at https://linksmlm.com',
     ],
   },
 } as const;
 
 const TOOL_CATEGORIES: Record<CategoryKey, ToolCategory> = {
-  devops: {
-    title: 'DevSecOps Stack',
-    icon: '🚀',
+  languages: {
+    title: 'Languages & Frameworks',
+    icon: '💻',
     tools: [
-      {
-        name: 'Docker',
-        description: 'Containerization & microservices',
-        level: 'Advanced',
-      },
-      {
-        name: 'Kubernetes',
-        description: 'Container orchestration',
-        level: 'Intermediate',
-      },
-      {
-        name: 'GitHub Actions',
-        description: 'CI/CD automation pipelines',
-        level: 'Advanced',
-      },
-      {
-        name: 'Trivy',
-        description: 'Security vulnerability scanning',
-        level: 'Intermediate',
-      },
-      {
-        name: 'Cloudflare Tunnel',
-        description: 'Secure networking & deployment',
-        level: 'Intermediate',
-      },
-      {
-        name: 'Linting Tools',
-        description: 'Code quality & formatting',
-        level: 'Advanced',
-      },
+      { name: 'Python', description: 'Primary language for AI/ML & automation', level: 'Expert' },
+      { name: 'TypeScript', description: 'Type-safe JavaScript for production apps', level: 'Advanced' },
+      { name: 'Rego (OPA)', description: 'Policy-as-Code for compliance automation', level: 'Advanced' },
+      { name: 'Bash', description: 'Shell scripting & automation', level: 'Advanced' },
+      { name: 'YAML', description: 'Configuration & Infrastructure-as-Code', level: 'Expert' },
     ],
   },
   aiml: {
-    title: 'AI/ML Technologies',
-    icon: '🤖',
+    title: 'AI/ML Stack',
+    icon: '🧠',
     tools: [
-      {
-        name: 'OpenAI GPT-4o',
-        description: 'Large language model integration',
-        level: 'Advanced',
-      },
-      {
-        name: 'ChromaDB',
-        description: 'Vector database for RAG',
-        level: 'Advanced',
-      },
-      {
-        name: 'Python',
-        description: 'AI/ML development & automation',
-        level: 'Advanced',
-      },
-      {
-        name: 'FastAPI',
-        description: 'High-performance API backends',
-        level: 'Advanced',
-      },
-      {
-        name: 'RAG Systems',
-        description: 'Retrieval-augmented generation',
-        level: 'Intermediate',
-      },
-      {
-        name: 'Azure TTS',
-        description: 'Text-to-speech integration',
-        level: 'Intermediate',
-      },
+      { name: 'ChromaDB', description: 'Vector database (2,656+ embeddings)', level: 'Expert' },
+      { name: 'Ollama', description: 'Local LLM inference engine', level: 'Advanced' },
+      { name: 'Qwen2.5-Coder', description: 'Code generation & remediation', level: 'Advanced' },
+      { name: 'sentence-transformers', description: 'Text embeddings & semantic search', level: 'Advanced' },
+      { name: 'LangGraph', description: 'Workflow orchestration for agents', level: 'Intermediate' },
+      { name: 'RAG Systems', description: 'Retrieval-augmented generation architecture', level: 'Expert' },
+    ],
+  },
+  cloud: {
+    title: 'Cloud & Infrastructure',
+    icon: '☁️',
+    tools: [
+      { name: 'Kubernetes (CKA)', description: 'Container orchestration', level: 'Expert' },
+      { name: 'Docker', description: 'Containerization & microservices', level: 'Expert' },
+      { name: 'Helm', description: 'Kubernetes package manager', level: 'Advanced' },
+      { name: 'Terraform', description: 'Infrastructure-as-Code provisioning', level: 'Advanced' },
+      { name: 'AWS (S3/KMS/DynamoDB)', description: 'Cloud services & storage', level: 'Advanced' },
+      { name: 'LocalStack', description: 'Local AWS testing (cost-conscious)', level: 'Intermediate' },
     ],
   },
   security: {
     title: 'Security & Compliance',
     icon: '🛡️',
     tools: [
-      {
-        name: 'SAST/DAST',
-        description: 'Static/Dynamic analysis',
-        level: 'Advanced',
-      },
-      {
-        name: 'Trivy',
-        description: 'Vulnerability scanning',
-        level: 'Advanced',
-      },
-      { name: 'OWASP ZAP', description: 'Security testing', level: 'Advanced' },
-      { name: 'Falco', description: 'Runtime security', level: 'Intermediate' },
-      {
-        name: 'OPA Gatekeeper',
-        description: 'Policy enforcement',
-        level: 'Advanced',
-      },
-      {
-        name: 'CIS Benchmarks',
-        description: 'Security standards',
-        level: 'Advanced',
-      },
-      { name: 'RBAC/ABAC', description: 'Access control', level: 'Expert' },
-      {
-        name: 'Network Policies',
-        description: 'Network security',
-        level: 'Advanced',
-      },
+      { name: '20+ Security Scanners', description: 'Gitleaks, Trivy, Bandit, Semgrep, etc.', level: 'Expert' },
+      { name: 'OPA/Conftest', description: 'Policy-as-Code enforcement', level: 'Expert' },
+      { name: 'Gatekeeper', description: 'Kubernetes admission control', level: 'Advanced' },
+      { name: 'CIS Benchmarks', description: 'Security hardening standards', level: 'Advanced' },
+      { name: 'CVE Analysis', description: 'Vulnerability assessment', level: 'Advanced' },
+      { name: 'CompTIA Security+', description: 'Certified security professional', level: 'Expert' },
+    ],
+  },
+  devops: {
+    title: 'DevOps & CI/CD',
+    icon: '⚙️',
+    tools: [
+      { name: 'GitHub Actions', description: 'Multi-stage CI/CD pipelines', level: 'Expert' },
+      { name: 'ArgoCD', description: 'GitOps continuous deployment', level: 'Advanced' },
+      { name: 'GitOps', description: 'Branch-based multi-environment workflows', level: 'Advanced' },
+      { name: 'PostgreSQL', description: 'Relational database', level: 'Intermediate' },
+      { name: 'SQLite', description: 'Embedded database', level: 'Advanced' },
+      { name: 'DynamoDB', description: 'NoSQL cloud database', level: 'Intermediate' },
     ],
   },
 } as const;
@@ -234,12 +176,24 @@ const ProjectCard: React.FC<{
       <div className="mt-3 pt-3 border-t border-white/10">
         <div className="grid grid-cols-1 gap-2">
           {project.highlights.map((highlight, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <span className="text-crystal-400">•</span>
+            <div key={index} className="flex items-start gap-2">
+              <span className="text-crystal-400 mt-1">•</span>
               <span className="text-gojo-secondary text-xs">{highlight}</span>
             </div>
           ))}
         </div>
+        {project.repoUrl && (
+          <div className="mt-3 pt-3 border-t border-white/10">
+            <a
+              href={project.repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-crystal-400 hover:text-crystal-300 text-xs underline"
+            >
+              <span>📂</span> View Repository on GitHub
+            </a>
+          </div>
+        )}
       </div>
     )}
   </button>
@@ -313,7 +267,7 @@ export default function Projects() {
     null
   );
   const [selectedProject, setSelectedProject] = useState<ProjectKey | null>(
-    'linkops'
+    'gpcopilot'
   );
 
   const toggleCategory = (key: CategoryKey) => {
@@ -326,10 +280,22 @@ export default function Projects() {
 
   return (
     <div className="space-y-4" data-dev="projects">
+      {/* Certifications Banner */}
+      <div className="bg-gradient-to-r from-crystal-500/10 to-gold-500/10 border border-crystal-500/20 rounded-lg p-4">
+        <h4 className="text-gojo-primary font-semibold mb-2 flex items-center gap-2">
+          <span>🎓</span> Certifications
+        </h4>
+        <div className="text-sm space-y-1">
+          <div className="text-gojo-primary">✅ CKA (Certified Kubernetes Administrator)</div>
+          <div className="text-gojo-primary">✅ CompTIA Security+</div>
+          <div className="text-crystal-400">🔄 AWS AI Practitioner (In Progress)</div>
+        </div>
+      </div>
+
       {/* Project Selector */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
         <h4 className="text-gojo-primary font-semibold mb-3">
-          Copilot Projects
+          Featured Projects
         </h4>
         <div className="space-y-2">
           {(Object.entries(FEATURED_PROJECTS) as [ProjectKey, Project][]).map(
@@ -361,43 +327,25 @@ export default function Projects() {
         )}
       </div>
 
-      {/* Journey Section */}
+      {/* Best Practices */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
         <h4 className="text-gojo-primary font-semibold mb-3">
-          Development Journey
+          Demonstrated Practices
         </h4>
-        <div className="text-gojo-secondary text-sm mb-3">
-          4 months of intensive AI & DevOps learning, combining traditional
-          DevOps practices with cutting-edge AI capabilities.
-        </div>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 gap-2 text-xs">
           {[
-            {
-              title: 'Passion-Driven',
-              subtitle: 'AI capabilities & innovation',
-              color: 'crystal-400',
-            },
-            {
-              title: 'Rapid Learning',
-              subtitle: 'Modern tech stack',
-              color: 'gold-400',
-            },
-            {
-              title: 'Practical Focus',
-              subtitle: 'Real-world applications',
-              color: 'jade-400',
-            },
-            {
-              title: 'Integration',
-              subtitle: 'DevOps + AI/ML',
-              color: 'crystal-300',
-            },
-          ].map((item, index) => (
-            <div key={index}>
-              <div className={`text-${item.color} font-semibold`}>
-                {item.title}
-              </div>
-              <div className="text-gojo-secondary text-xs">{item.subtitle}</div>
+            'Production-grade error handling & logging',
+            'Secrets management (never commit credentials)',
+            'Git branching with intentional vulnerabilities for testing',
+            'Automated security scanning in CI/CD',
+            'Infrastructure-as-Code (Terraform, K8s manifests)',
+            'Compliance evidence generation',
+            'Cost-conscious development (LocalStack before AWS)',
+            'Comprehensive documentation',
+          ].map((practice, index) => (
+            <div key={index} className="flex items-start gap-2">
+              <span className="text-jade-400">✅</span>
+              <span className="text-gojo-secondary">{practice}</span>
             </div>
           ))}
         </div>

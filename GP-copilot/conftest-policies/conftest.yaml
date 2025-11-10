@@ -1,0 +1,24 @@
+# Conftest Configuration
+# CI/CD policy validation for Kubernetes manifests
+
+# Policy directory (relative to this file)
+policy:
+  - .
+
+# Output format
+output:
+  - stdout
+  - json
+
+# Fail on warnings
+fail-on-warn: false
+
+# Combine results
+combine: false
+
+# Namespaces to test (if policies use namespaces)
+namespace:
+  - main
+
+# Trace for debugging (set to false for production)
+trace: false

@@ -15,12 +15,11 @@ numpy>=1.21.0,<2.0
 
 # LLM Providers
 anthropic>=0.39.0  # Claude API (primary)
-openai>=1.0.0      # OpenAI API (optional fallback)
 
 # HTTP Client for Ollama
 requests>=2.31.0   # Required for Ollama embeddings API
 
-# ChromaDB for vector storage (lightweight client)
-chromadb>=1.1.0
+# ChromaDB for vector storage (must match server version 0.5.18)
+chromadb==0.5.18
 
 

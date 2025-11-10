@@ -1,6 +1,10 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
+# Build arguments for Vite environment variables
+ARG VITE_API_BASE_URL=""
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Copy package files for better layer caching
 COPY ui/package*.json ./
 RUN --mount=type=cache,target=/root/.npm \

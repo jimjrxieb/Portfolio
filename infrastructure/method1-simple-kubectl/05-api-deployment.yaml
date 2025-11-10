@@ -40,7 +40,7 @@ spec:
             - name: LLM_PROVIDER
               value: "claude"
             - name: LLM_MODEL
-              value: "claude-3-5-sonnet-20241022"
+              value: "claude-3-haiku-20240307"
             - name: OLLAMA_URL
               value: "http://host.docker.internal:11434"
             - name: EMBED_MODEL
@@ -53,10 +53,14 @@ spec:
               value: "chroma"
             - name: CHROMA_PORT
               value: "8000"
+            - name: CHROMA_URL
+              value: "file:///chroma-data"
             - name: RAG_NAMESPACE
               value: "portfolio"
             - name: DATA_DIR
               value: "/data"
+            - name: CHROMA_DIR
+              value: "/chroma-data"
             - name: CLAUDE_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -89,11 +93,16 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
+            - name: chroma-data
+              mountPath: /chroma-data
       volumes:
         - name: data
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: chroma-data
 ---
 apiVersion: v1
 kind: Service

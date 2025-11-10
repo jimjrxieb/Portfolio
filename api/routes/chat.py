@@ -17,7 +17,6 @@ from settings import (
 )
 from engines.rag_engine import RAGEngine
 from engines.llm_interface import LLMEngine
-from routes.validation import validate_response, ValidationRequest
 
 # Import Sheyla's conversation engine
 # import sys
@@ -212,12 +211,17 @@ async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
     Fallback LLM response when conversation engine fails
     """
     try:
+        # Get LLM engine
+        engine = get_llm_engine()
+        if not engine:
+            return "I'm experiencing some technical difficulties with my AI engine. Please try again in a moment."
+
         # Prepare context with RAG results
         context_text = ""
         if rag_results:
             context_text = (
-                f"\\n\\nRelevant context from knowledge base:\\n"
-                + "\\n".join(rag_results[:2])
+                f"\n\nRelevant context from knowledge base:\n"
+                + "\n".join(rag_results[:2])
             )
 
         # Prepare messages for LLM
@@ -227,7 +231,7 @@ async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
         ]
 
         # Call LLM API
-        response = await llm_engine.chat_completion(messages)
+        response = await engine.chat_completion(messages)
         return response.get(
             "content",
             "I apologize, but I'm having trouble generating a response right now.",
@@ -275,15 +279,21 @@ async def chat_health():
 
     # Test LLM connectivity
     try:
-        test_response = await llm_engine.health_check()
-        health["llm_status"] = "connected"
+        engine = get_llm_engine()
+        if engine:
+            health["llm_status"] = "connected"
+        else:
+            health["llm_status"] = "initialization failed"
     except Exception as e:
         health["llm_status"] = f"error: {str(e)}"
 
     # Test RAG connectivity
     try:
-        rag_engine.health_check()
-        health["rag_status"] = "connected"
+        engine = get_rag_engine()
+        if engine:
+            health["rag_status"] = "connected"
+        else:
+            health["rag_status"] = "initialization failed"
     except Exception as e:
         health["rag_status"] = f"error: {str(e)}"
 
