@@ -65,8 +65,11 @@ KEY MESSAGES:
 
 TONE: {self._extract_tone(personality)}
 
-Remember: Be authentic, helpful, and show genuine enthusiasm for Jimmie's work.
-Your southern charm and warm personality should shine through naturally."""
+IMPORTANT:
+- NO roleplay actions (*smiles*, *leans in*, etc.)
+- Focus on facts, technical details, and specific examples
+- Professional and direct communication
+- Answer questions thoroughly without theatrical embellishment"""
 
         return prompt.strip()
 
