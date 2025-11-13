@@ -47,6 +47,7 @@ An intelligent portfolio platform featuring **Gojo**, an AI assistant powered by
 **Infrastructure**
 - Docker (non-root, multi-stage builds)
 - Kubernetes (3 deployment methods: kubectl, Terraform, Helm+ArgoCD)
+- AWS Services (Secrets Manager, Lambda, CloudWatch, S3, DynamoDB - via LocalStack)
 - Policy-as-Code (OPA/Conftest + Gatekeeper)
 - Cloudflare Tunnel (public exposure)
 - GitHub Actions (CI/CD with security validation)
@@ -256,11 +257,48 @@ kubectl apply -f .
 ```
 
 #### Method 2: Terraform + LocalStack (⭐⭐ Intermediate - 15 minutes)
+
+**What You'll Get:**
+- Full AWS service simulation (Secrets Manager, Lambda, CloudWatch, S3, DynamoDB, SQS)
+- Production-grade infrastructure patterns running locally
+- Kubernetes application deployment (UI + API + ChromaDB)
+- IAM roles and policies for Lambda functions
+- Infrastructure as Code with Terraform modules
+
 ```bash
 cd infrastructure/method2-terraform-localstack
+
+# Start LocalStack (AWS service emulator)
+docker run -d --name localstack -p 4566:4566 \
+  -e SERVICES=s3,dynamodb,sqs,secretsmanager,lambda,logs,cloudwatch,events,iam \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  localstack/localstack:latest
+
+# Set API keys as Terraform variables
+export TF_VAR_claude_api_key="$CLAUDE_API_KEY"
+export TF_VAR_openai_api_key="${OPENAI_API_KEY:-}"
+export TF_VAR_elevenlabs_api_key="${ELEVENLABS_API_KEY:-}"
+export TF_VAR_did_api_key="${DID_API_KEY:-}"
+
+# Deploy infrastructure
 terraform init
 terraform apply
+
+# Verify Lambda function
+aws --endpoint-url=http://localhost:4566 lambda list-functions
+
+# Check Secrets Manager
+aws --endpoint-url=http://localhost:4566 secretsmanager list-secrets
+
+# View CloudWatch logs
+aws --endpoint-url=http://localhost:4566 logs tail /aws/lambda/portfolio-chat-handler
 ```
+
+**Architecture Deployed:**
+- **AWS Resources**: 5 secrets, 1 Lambda function, S3 bucket, DynamoDB table, SQS queue
+- **Kubernetes**: portfolio namespace with UI/API/ChromaDB deployments
+- **Networking**: Ingress controller for HTTP routing
+- **Security**: IAM policies, Secrets Manager integration, non-root containers
 
 #### Method 3: Helm + ArgoCD (⭐⭐⭐ Advanced - 30+ minutes)
 ```bash
@@ -290,11 +328,11 @@ kubectl apply -f ./infrastructure/method3-helm-argocd/argocd/portfolio-applicati
 
 This project offers **3 deployment methods** for different skill levels and use cases:
 
-| Method | Difficulty | Time | Tools | Use Case |
-|--------|-----------|------|-------|----------|
-| **[Method 1](./infrastructure/method1-simple-kubectl/)** | ⭐ Beginner | 5 min | kubectl | Learning K8s basics |
-| **[Method 2](./infrastructure/method2-terraform-localstack/)** | ⭐⭐ Intermediate | 15 min | Terraform + LocalStack | Testing AWS services locally |
-| **[Method 3](./infrastructure/method3-helm-argocd/)** | ⭐⭐⭐ Advanced | 30+ min | Helm + ArgoCD | Production GitOps |
+| Method | Difficulty | Time | Tools | Use Case | AWS Services |
+|--------|-----------|------|-------|----------|--------------|
+| **[Method 1](./infrastructure/method1-simple-kubectl/)** | ⭐ Beginner | 5 min | kubectl | Learning K8s basics | None |
+| **[Method 2](./infrastructure/method2-terraform-localstack/)** | ⭐⭐ Intermediate | 15 min | Terraform + LocalStack | Testing AWS services locally | Lambda, Secrets Manager, CloudWatch, S3, DynamoDB, SQS |
+| **[Method 3](./infrastructure/method3-helm-argocd/)** | ⭐⭐⭐ Advanced | 30+ min | Helm + ArgoCD | Production GitOps | Optional (cloud-agnostic) |
 
 ### Security & Policy Enforcement
 
