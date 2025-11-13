@@ -1,0 +1,37 @@
+# Pre-commit hooks for Portfolio project
+# See https://pre-commit.com for more information
+
+repos:
+  # Detect secrets and sensitive information
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: Detect secrets
+        args:
+          - '--baseline'
+          - '.secrets.baseline'
+        exclude: |
+          (?x)^(
+            package-lock\.json|
+            pnpm-lock\.yaml|
+            yarn\.lock|
+            \.env\.example|
+            data/chroma/.*|
+            rag-pipeline/processed-rag-data/.*
+          )$
+
+  # Critical security checks only
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        name: Check for large files
+        args: ['--maxkb=5120']  # 5MB limit
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+
+# Global configuration
+default_install_hook_types: [pre-push]
+default_stages: [pre-push]
+fail_fast: false

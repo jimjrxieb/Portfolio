@@ -10,7 +10,7 @@ if command -v kind &> /dev/null; then
     CLUSTER_TYPE="kind"
     echo "📦 Using kind for local deployment"
 elif command -v minikube &> /dev/null; then
-    CLUSTER_TYPE="minikube" 
+    CLUSTER_TYPE="minikube"
     echo "📦 Using minikube for local deployment"
 else
     echo "❌ Please install kind or minikube first"
@@ -49,5 +49,5 @@ echo ""
 echo "🎤 Try these interview questions:"
 echo "  • Tell me about yourself"
 echo "  • What's your DevOps experience?"
-echo "  • Explain your AI/ML background"  
+echo "  • Explain your AI/ML background"
 echo "  • Tell me about the Afterlife project"

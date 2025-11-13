@@ -37,7 +37,7 @@ echo "🔍 Verification commands:"
 echo "  # Get API info and connectivity status"
 echo "  curl -sS \$API/api/debug/state | jq"
 echo
-echo "  # Check LLM health"  
+echo "  # Check LLM health"
 echo "  curl -sS \$API/api/health/llm | jq"
 echo
 echo "  # Check RAG health and document count"

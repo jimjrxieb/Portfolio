@@ -15,7 +15,7 @@ call_api() {
     local endpoint="$1"
     local method="${2:-GET}"
     local data="${3:-}"
-    
+
     if [ "$method" = "POST" ] && [ -n "$data" ]; then
         curl -sS --max-time "$TIMEOUT" -X POST \
             -H 'Content-Type: application/json' \
@@ -76,7 +76,7 @@ if COUNT_RESULT=$(call_api "/api/actions/rag/count"); then
     COUNT=$(echo "$COUNT_RESULT" | jq -r '.count')
     NAMESPACE=$(echo "$COUNT_RESULT" | jq -r '.namespace')
     echo "✓ $COUNT documents in '$NAMESPACE'"
-    
+
     if [ "$COUNT" -eq 0 ]; then
         echo "    ⚠️  No documents found - RAG may need seeding"
     fi
@@ -158,7 +158,7 @@ echo "   - ✓ Security headers"
 echo
 echo "🔧 If any checks failed:"
 echo "   - Debug: Check LLM_PROVIDER, LLM_MODEL, LLM_API_BASE"
-echo "   - RAG: Check CHROMA_URL and run RAG ingestion" 
+echo "   - RAG: Check CHROMA_URL and run RAG ingestion"
 echo "   - Chat: Verify API routes and model connectivity"
 echo "   - Avatar: Check for default assets and fallback handling"
 echo "   - CORS: Verify allowed origins for UI domain"

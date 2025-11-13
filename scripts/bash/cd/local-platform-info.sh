@@ -41,7 +41,7 @@ if kubectl get application portfolio -n argocd >/dev/null 2>&1; then
     APP_HEALTH=$(kubectl get application portfolio -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null || echo "Unknown")
     APP_SYNC=$(kubectl get application portfolio -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
     echo "  Status: Health=$APP_HEALTH, Sync=$APP_SYNC"
-    
+
     if kubectl get pods -n $NAMESPACE >/dev/null 2>&1; then
         echo "  Pods:"
         kubectl get pods -n $NAMESPACE --no-headers | awk '{print "    " $1 " (" $3 ")"}'

@@ -4,7 +4,7 @@
 
 set -e
 
-# Configuration  
+# Configuration
 REGISTRY="docker.io"
 IMAGE_NAME="linksrobot/portfolio"
 NAMESPACE="portfolio"

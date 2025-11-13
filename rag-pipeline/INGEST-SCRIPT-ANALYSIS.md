@@ -1,16 +1,16 @@
 # RAG Ingestion Scripts Analysis
-**Date**: 2025-11-13  
+**Date**: 2025-11-13
 **Scripts Analyzed**: ingest_clean.py, process_new_documents.py
 
 ---
 
 ## Executive Summary
 
-✅ **Sanitization**: Proper text cleaning (null bytes, encoding, whitespace)  
-✅ **Chunking**: 1000 words with 200-word overlap (good semantic coherence)  
-✅ **Labeling**: Rich metadata (source, chunk_index, timestamps, model)  
-✅ **Vectorization**: 768-dim embeddings via Ollama nomic-embed-text  
-❌ **Relationships**: NO graph relationships between projects/experience  
+✅ **Sanitization**: Proper text cleaning (null bytes, encoding, whitespace)
+✅ **Chunking**: 1000 words with 200-word overlap (good semantic coherence)
+✅ **Labeling**: Rich metadata (source, chunk_index, timestamps, model)
+✅ **Vectorization**: 768-dim embeddings via Ollama nomic-embed-text
+❌ **Relationships**: NO graph relationships between projects/experience
 
 ---
 
@@ -21,14 +21,14 @@
 def clean_text(text: str) -> str:
     # Remove null bytes and control characters
     text = ''.join(char for char in text if ord(char) >= 32 or char in '\n\t')
-    
+
     # Remove excessive blank lines (keep max 2)
     while '\n\n\n' in text:
         text = text.replace('\n\n\n', '\n\n')
-    
+
     # Remove trailing/leading whitespace
     text = text.strip()
-    
+
     return text
 ```
 
@@ -54,27 +54,27 @@ def clean_text(text: str) -> str:
 ```python
 def chunk_text(text: str, chunk_size: int, overlap: int) -> List[str]:
     words = text.split()
-    
+
     # If text is short, return as single chunk
     if len(words) <= chunk_size:
         return [text]
-    
+
     chunks = []
     start = 0
-    
+
     while start < len(words):
         # Get chunk
         end = start + chunk_size
         chunk_words = words[start:end]
         chunks.append(' '.join(chunk_words))
-        
+
         # Move start position (with overlap)
         start += chunk_size - overlap
-        
+
         # Stop if we're at the end
         if end >= len(words):
             break
-    
+
     return chunks
 ```
 
@@ -229,16 +229,16 @@ metadata = {
 ```python
 def extract_metadata(filepath: Path, chunk: str) -> dict:
     """Extract rich metadata from document and chunk"""
-    
+
     # Parse filename for document type
     doc_type = identify_doc_type(filepath.name)
-    
+
     # Extract entities (projects, companies, skills)
     entities = extract_entities(chunk)
-    
+
     # Detect section from content
     section = detect_section(chunk)
-    
+
     return {
         "source": filepath.name,
         "doc_type": doc_type,  # bio, project, experience, faq
@@ -253,10 +253,10 @@ def extract_metadata(filepath: Path, chunk: str) -> dict:
 ```python
 def semantic_chunk(text: str, max_words: int = 1000) -> List[str]:
     """Chunk by semantic boundaries (paragraphs, sections)"""
-    
+
     # Split by markdown headers first
     sections = split_by_headers(text)
-    
+
     # Then chunk large sections while preserving paragraphs
     chunks = []
     for section in sections:
@@ -265,7 +265,7 @@ def semantic_chunk(text: str, max_words: int = 1000) -> List[str]:
             chunks.extend(chunk_by_paragraphs(section, max_words))
         else:
             chunks.append(section)
-    
+
     return chunks
 ```
 
@@ -273,7 +273,7 @@ def semantic_chunk(text: str, max_words: int = 1000) -> List[str]:
 ```python
 def extract_relationships(doc_type: str, content: str) -> dict:
     """Extract relationships between entities"""
-    
+
     relationships = {
         "projects": [],
         "skills": [],
@@ -281,17 +281,17 @@ def extract_relationships(doc_type: str, content: str) -> dict:
         "technologies": [],
         "related_to": []
     }
-    
+
     if doc_type == "project":
         relationships["projects"] = extract_project_name(content)
         relationships["skills"] = extract_skills(content)
         relationships["technologies"] = extract_tech_stack(content)
-    
+
     elif doc_type == "experience":
         relationships["companies"] = extract_companies(content)
         relationships["projects"] = extract_mentioned_projects(content)
         relationships["skills"] = extract_demonstrated_skills(content)
-    
+
     return relationships
 ```
 
@@ -341,7 +341,7 @@ python3 ingest_clean.py
 - **Relationships**: ❌ MISSING (0/10) - NO graph or entity relationships
 
 ### For Interview/Demo Purposes
-**Current State**: ACCEPTABLE for basic RAG retrieval  
+**Current State**: ACCEPTABLE for basic RAG retrieval
 **Ideal State**: ENHANCED metadata + relationship extraction
 
 ### Recommendation

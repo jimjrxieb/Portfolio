@@ -169,7 +169,7 @@ resource "aws_iam_policy" "lambda_secrets_access" {
 # resource "aws_cloudwatch_log_group" "secrets_audit" {
 #   name              = "/aws/secretsmanager/${var.project_name}"
 #   retention_in_days = 7
-# 
+#
 #   tags = {
 #     Project     = var.project_name
 #     Environment = var.environment

@@ -428,13 +428,13 @@ def create_grounded_prompt(query: str, context_chunks: List[Dict]) -> str:
     """Create prompt that forces grounding to provided context"""
 
     if not context_chunks:
-        return f"""You are Sheyla, Jimmie's portfolio assistant. 
+        return f"""You are Sheyla, Jimmie's portfolio assistant.
 
 CONTEXT: No relevant context found in knowledge base.
 
 USER QUESTION: {query}
 
-INSTRUCTIONS: 
+INSTRUCTIONS:
 - Since no relevant context was provided, you must say "I don't have sufficient context to answer that question accurately."
 - Suggest checking the knowledge base or asking a more specific question.
 - Do NOT make up information or rely on general knowledge.

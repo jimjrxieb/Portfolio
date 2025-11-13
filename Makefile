@@ -50,7 +50,7 @@ deploy-kind: build-kind
 	@echo "🌐 Open http://portfolio.localtest.me"
 	@echo "🔍 Health: curl -s http://portfolio.localtest.me/api/health"
 
-# MINIKUBE targets  
+# MINIKUBE targets
 build-minikube:
 	@echo "🔨 Starting minikube with ingress..."
 	minikube start

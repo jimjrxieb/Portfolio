@@ -40,7 +40,7 @@ data:
                     - ALL
                   readOnlyRootFilesystem: "false"  # Allow for our use case
                   runAsNonRoot: true
-      
+
       - name: disallow-privileged
         match:
           any:
@@ -56,7 +56,7 @@ data:
               containers:
               - securityContext:
                   privileged: "false"
-      
+
       - name: require-resource-limits
         match:
           any:
@@ -82,11 +82,11 @@ data:
     - rule: Detect privileged container
       desc: Detect privileged container in portfolio namespace
       condition: >
-        k8s_audit and ka.verb=create and ka.target.pod 
+        k8s_audit and ka.verb=create and ka.target.pod
         and ka.target.ns={{ .Release.Namespace }}
         and container and container.privileged=true
       output: >
-        Privileged container created (user=%ka.user.name verb=%ka.verb 
+        Privileged container created (user=%ka.user.name verb=%ka.verb
         pod=%ka.target.pod container=%container.name)
       priority: CRITICAL
 
@@ -97,7 +97,7 @@ data:
         and ka.target.ns={{ .Release.Namespace }}
         and container and container.cap_add exists
       output: >
-        Container with added capabilities (user=%ka.user.name verb=%ka.verb 
+        Container with added capabilities (user=%ka.user.name verb=%ka.verb
         pod=%ka.target.pod container=%container.name caps=%container.cap_add)
       priority: WARNING
 
@@ -108,7 +108,7 @@ data:
         and (fd.name startswith /etc or fd.name startswith /root
         or fd.name startswith /var/run or fd.name startswith /usr/bin)
       output: >
-        Write to sensitive directory (user=%user.name command=%proc.cmdline 
+        Write to sensitive directory (user=%user.name command=%proc.cmdline
         file=%fd.name container=%container.name)
       priority: HIGH
 {{- end }}

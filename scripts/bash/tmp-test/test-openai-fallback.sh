@@ -37,7 +37,7 @@ echo "✅ 2. Testing OpenAI connectivity"
 if DEBUG_RESULT=$(curl -sS --max-time 15 "$API_BASE/api/debug/state"); then
     echo "Debug response:"
     echo "$DEBUG_RESULT" | jq '{provider, model, llm_ok, chroma_ok}'
-    
+
     LLM_OK=$(echo "$DEBUG_RESULT" | jq -r '.llm_ok')
     if [ "$LLM_OK" = "true" ]; then
         echo "✅ OpenAI LLM connection successful"
@@ -57,31 +57,31 @@ CHAT_PAYLOAD='{"message":"Hello! Can you tell me about Jade at ZRS Management?",
 if CHAT_RESULT=$(curl -sS --max-time 20 -X POST "$API_BASE/api/chat" \
     -H 'Content-Type: application/json' \
     -d "$CHAT_PAYLOAD"); then
-    
+
     if echo "$CHAT_RESULT" | jq -e '.answer' >/dev/null 2>&1; then
         echo "✅ Chat successful with GPT-4o mini!"
         echo "Model: $(echo "$CHAT_RESULT" | jq -r '.model')"
         echo "Citations: $(echo "$CHAT_RESULT" | jq -r '.citations | length')"
         echo "Answer preview: $(echo "$CHAT_RESULT" | jq -r '.answer' | head -c 100)..."
-        
+
         echo
         echo "🎯 DIAGNOSIS: Your API routes and UI integration are working!"
         echo "   The issue was with Ollama/local connectivity, not your code."
         echo "   You can now:"
         echo "   1. Keep using GPT-4o mini as fallback (fast, cheap: \$0.15/1M input tokens)"
         echo "   2. Or fix your Ollama/Chroma setup and switch back"
-        
+
     else
         echo "❌ Chat failed - response format issue"
         echo "Response: $(echo "$CHAT_RESULT" | jq . || echo "$CHAT_RESULT")"
-        
+
         echo
         echo "🎯 DIAGNOSIS: Issue is in your API routes or request format"
         echo "   Not a connectivity problem - check /api/chat endpoint implementation"
     fi
 else
     echo "❌ Chat request failed completely"
-    
+
     echo
     echo "🎯 DIAGNOSIS: Issue is with CORS, routing, or UI → API communication"
     echo "   Check VITE_API_BASE in UI .env and CORS_ORIGINS in API"

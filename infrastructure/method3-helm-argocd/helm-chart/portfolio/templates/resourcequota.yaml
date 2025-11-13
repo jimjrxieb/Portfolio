@@ -42,7 +42,7 @@ spec:
       cpu: "10m"
       memory: "64Mi"
       ephemeral-storage: "10Mi"
-  
+
   # Pod limits
   - type: Pod
     max:
@@ -53,8 +53,8 @@ spec:
       cpu: "50m"
       memory: "128Mi"
       ephemeral-storage: "50Mi"
-  
-  # PVC limits  
+
+  # PVC limits
   - type: PersistentVolumeClaim
     max:
       storage: "50Gi"

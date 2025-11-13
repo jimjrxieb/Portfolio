@@ -100,7 +100,10 @@
       "Bash(docker tag:*)",
       "Bash(~/.cloudflared/config.yml)",
       "Bash(kill:*)",
-      "Bash(sudo systemctl stop:*)"
+      "Bash(sudo systemctl stop:*)",
+      "Bash(detect-secrets scan:*)",
+      "Bash(pre-commit install:*)",
+      "Bash(pre-commit run:*)"
     ],
     "deny": [],
     "ask": []

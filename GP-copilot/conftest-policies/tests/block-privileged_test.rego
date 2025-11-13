@@ -14,10 +14,10 @@ test_deny_privileged_pod {
       }]
     }
   }
-  
+
   # Run the policy
   result := deny with input as input
-  
+
   # Assert it denies
   count(result) == 1
 }
@@ -35,9 +35,9 @@ test_allow_non_privileged_pod {
       }]
     }
   }
-  
+
   result := deny with input as input
-  
+
   # Assert it allows (no denials)
   count(result) == 0
 }
