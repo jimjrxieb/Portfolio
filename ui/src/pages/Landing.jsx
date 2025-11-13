@@ -93,7 +93,7 @@ export default function Landing() {
                         <li>• OPA/Conftest CI/CD policy validation (150+ tests)</li>
                         <li>• Gatekeeper runtime admission control</li>
                         <li>• Network policies + RBAC + Pod Security Standards</li>
-                        <li>• Multi-scanner pipeline: Trivy, Semgrep, Bandit, GitLeaks</li>
+                        <li>• 6-tool security pipeline: detect-secrets, Semgrep, Trivy, Bandit, Safety, npm</li>
                       </ul>
                     </div>
 
