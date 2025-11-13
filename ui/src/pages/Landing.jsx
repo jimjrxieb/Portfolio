@@ -72,51 +72,6 @@ export default function Landing() {
                   <p className="text-gojo-secondary text-xs leading-relaxed mb-4">
                     <strong className="text-gojo-primary">AI/ML Engineering:</strong> The chat interface you&apos;re using right now is powered by a production RAG pipeline processing real-time semantic search across 2,656+ vector embeddings. When you ask a question, the FastAPI backend queries ChromaDB&apos;s vector database (using Ollama&apos;s nomic-embed-text for 768-dimensional embeddings) to retrieve relevant context from comprehensive technical documentation covering DevSecOps practices, project architecture, and deployment methods. The system then constructs a prompt with source citations and sends it to Claude API (Anthropic&apos;s claude-3-haiku-20240307 model) for natural language generation, returning responses with relevance scores in under 100ms. The ingestion pipeline demonstrates practical ML engineering: markdown documents are sanitized, intelligently chunked (1000 words with 200-word overlap for context preservation), embedded via Ollama, and stored in versioned ChromaDB collections supporting atomic swaps for zero-downtime knowledge base updates. This architecture showcases the complete ML lifecycle from data processing to production inference.
                   </p>
-
-                  <div className="space-y-3 text-sm">
-                    <div className="bg-snow/5 rounded p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">🧠</span>
-                        <strong className="text-gojo-primary">AI/RAG Stack</strong>
-                      </div>
-                      <ul className="text-gojo-secondary text-xs space-y-1 ml-7">
-                        <li>• ChromaDB (2,656+ vectors) + Ollama embeddings</li>
-                        <li>• Claude API (Anthropic) for production LLM</li>
-                        <li>• FastAPI backend with semantic search &lt;100ms</li>
-                        <li>• React/Vite frontend with real-time chat</li>
-                      </ul>
-                    </div>
-
-                    <div className="bg-snow/5 rounded p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">🔒</span>
-                        <strong className="text-gojo-primary">Security & Policy</strong>
-                      </div>
-                      <ul className="text-gojo-secondary text-xs space-y-1 ml-7">
-                        <li>• OPA/Conftest CI/CD policy validation (150+ tests)</li>
-                        <li>• Gatekeeper runtime admission control</li>
-                        <li>• Network policies + RBAC + Pod Security Standards</li>
-                        <li>• 6-tool security pipeline: detect-secrets, Semgrep, Trivy, Bandit, Safety, npm</li>
-                      </ul>
-                    </div>
-
-                    <div className="bg-snow/5 rounded p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">☁️</span>
-                        <strong className="text-gojo-primary">Infrastructure & CI/CD</strong>
-                      </div>
-                      <ul className="text-gojo-secondary text-xs space-y-1 ml-7">
-                        <li>• Kubernetes (3 deployment methods: kubectl → Terraform → Helm+ArgoCD)</li>
-                        <li>• GitHub Actions: parallel security scans → build → deploy</li>
-                        <li>• Cloudflare Tunnel for secure public access</li>
-                        <li>• Docker multi-stage builds, non-root containers</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <p className="text-crystal-400 text-xs font-medium mt-4">
-                    <strong>Tech Stack:</strong> Python, TypeScript, React, FastAPI, ChromaDB, Ollama, Claude, Kubernetes, OPA/Rego, GitHub Actions, Cloudflare
-                  </p>
                 </div>
               </div>
 

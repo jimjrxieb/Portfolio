@@ -103,7 +103,11 @@
       "Bash(sudo systemctl stop:*)",
       "Bash(detect-secrets scan:*)",
       "Bash(pre-commit install:*)",
-      "Bash(pre-commit run:*)"
+      "Bash(pre-commit run:*)",
+      "Bash(npm view:*)",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(Trivy, Bandit, Safety, npm\"\n- Matches actual GitHub Actions workflow implementation\n- Consistent with README and knowledge base documentation\n\nBuilt new Docker image: ghcr.io/jimjrxieb/portfolio-ui:landing-update\nDeployed to Kubernetes portfolio-ui pod\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
