@@ -19,6 +19,8 @@ build/
 .env.production
 *.log
 .env
+**/02-secrets.yaml
+infrastructure/**/secrets.yaml
 
 # Model files and data
 models/chroma/
