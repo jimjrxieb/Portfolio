@@ -18,8 +18,9 @@ COPY api/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code (includes personality files, engines, routes)
+# Copy application code
 COPY api/ /app/
+COPY backend/ /app/backend/
 
 # Create non-root user for security
 RUN useradd -m -r -u 1000 appuser && \

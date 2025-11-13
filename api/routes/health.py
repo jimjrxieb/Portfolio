@@ -4,7 +4,10 @@ Provides system status, component health, and configuration info
 """
 
 from fastapi import APIRouter
-import settings
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from backend import settings
 import httpx
 import os
 from datetime import datetime

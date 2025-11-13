@@ -9,14 +9,18 @@ from typing import List, Optional
 import uuid
 
 # Import our clean modules
-from settings import (
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from backend.settings import (
     LLM_PROVIDER,
     LLM_MODEL,
     SYSTEM_PROMPT,
     RAG_NAMESPACE,
 )
-from engines.rag_engine import RAGEngine
-from engines.llm_interface import LLMEngine
+from backend.engines.rag_engine import RAGEngine
+from backend.engines.llm_interface import LLMEngine
 
 # Import Sheyla's conversation engine
 # import sys
@@ -129,16 +133,18 @@ async def chat_with_sheyla(request: ChatRequest):
                     rag_docs = engine.search(request.message, n_results=3)
                 else:
                     rag_docs = []
-                rag_results = [doc.text for doc in rag_docs]
+
+                # rag_docs is a list of dicts with 'text', 'metadata', 'score'
+                rag_results = [doc.get("text", "") for doc in rag_docs]
 
                 # Create citations
                 citations = [
                     Citation(
                         text=(
-                            doc.text[:200] + "..." if len(doc.text) > 200 else doc.text
+                            doc.get("text", "")[:200] + "..." if len(doc.get("text", "")) > 200 else doc.get("text", "")
                         ),
-                        source=getattr(doc, "source", "Knowledge Base"),
-                        relevance_score=getattr(doc, "score", 0.8),
+                        source=doc.get("metadata", {}).get("source", "Knowledge Base"),
+                        relevance_score=1.0 - doc.get("score", 0.5),  # ChromaDB uses distance, smaller is better
                     )
                     for doc in rag_docs
                 ]
@@ -158,30 +164,31 @@ async def chat_with_sheyla(request: ChatRequest):
             response_text = await _fallback_llm_response(request.message, rag_results)
 
         # Step 3: Validate response for hallucinations and grounding
-        context_sources = [citation.source for citation in citations]
-        try:
-            validation_result = await validate_response(
-                ValidationRequest(
-                    response_text=response_text,
-                    question=request.message,
-                    context_sources=context_sources,
-                )
-            )
-
-            # If validation fails critically, use a safer fallback response
-            if (
-                not validation_result.is_valid
-                and validation_result.confidence_score < 0.3
-            ):
-                response_text = (
-                    "I need to stay grounded in the information I have about Jimmie's work. "
-                    "Could you ask me something more specific about LinkOps AI-BOX, "
-                    "his DevSecOps experience, or the ZRS Management project?"
-                )
-
-        except Exception as e:
-            print(f"Validation error: {e}")
-            # Continue without validation if it fails
+        # TODO: Re-enable validation when validation module is available
+        # context_sources = [citation.source for citation in citations]
+        # try:
+        #     validation_result = await validate_response(
+        #         ValidationRequest(
+        #             response_text=response_text,
+        #             question=request.message,
+        #             context_sources=context_sources,
+        #         )
+        #     )
+        #
+        #     # If validation fails critically, use a safer fallback response
+        #     if (
+        #         not validation_result.is_valid
+        #         and validation_result.confidence_score < 0.3
+        #     ):
+        #         response_text = (
+        #             "I need to stay grounded in the information I have about Jimmie's work. "
+        #             "Could you ask me something more specific about LinkOps AI-BOX, "
+        #             "his DevSecOps experience, or the ZRS Management project?"
+        #         )
+        #
+        # except Exception as e:
+        #     print(f"Validation error: {e}")
+        #     # Continue without validation if it fails
 
         # Step 4: Get follow-up suggestions
         # TODO: Implement get_follow_up_suggestions in ConversationEngine
@@ -220,7 +227,7 @@ async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
         context_text = ""
         if rag_results:
             context_text = (
-                f"\n\nRelevant context from knowledge base:\n"
+                "\n\nRelevant context from knowledge base:\n"
                 + "\n".join(rag_results[:2])
             )
 

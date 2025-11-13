@@ -55,7 +55,7 @@ DEBUG_MODE = os.getenv("DEBUG_MODE", "true").lower() == "true"
 
 # System Prompts - Load from personality files
 try:
-    from personality.loader import load_system_prompt
+    from backend.personality.loader import load_system_prompt
     SYSTEM_PROMPT = load_system_prompt()
 except Exception as e:
     # Fallback if personality files can't be loaded

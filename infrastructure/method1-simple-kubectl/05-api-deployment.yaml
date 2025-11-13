@@ -22,7 +22,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: api
-          image: ghcr.io/shadow-link-industries/portfolio-api:main-latest
+          image: ghcr.io/jimjrxieb/portfolio-api:backend-v1
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
@@ -54,13 +54,11 @@ spec:
             - name: CHROMA_PORT
               value: "8000"
             - name: CHROMA_URL
-              value: "file:///chroma-data"
+              value: "http://chroma:8000"
             - name: RAG_NAMESPACE
               value: "portfolio"
             - name: DATA_DIR
               value: "/data"
-            - name: CHROMA_DIR
-              value: "/chroma-data"
             - name: CLAUDE_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -93,16 +91,11 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
-            - name: chroma-data
-              mountPath: /chroma-data
       volumes:
         - name: data
           emptyDir: {}
         - name: tmp
           emptyDir: {}
-        - name: chroma-data
-          persistentVolumeClaim:
-            claimName: chroma-data
 ---
 apiVersion: v1
 kind: Service

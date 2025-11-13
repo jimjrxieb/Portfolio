@@ -20,7 +20,7 @@ class Doc:
 
 class RAGEngine:
     def __init__(self):
-        from settings import CHROMA_URL, CHROMA_DIR
+        from backend.settings import CHROMA_URL, CHROMA_DIR
 
         # Use HTTP client for Kubernetes deployment, fallback to PersistentClient for local dev
         chroma_url = os.getenv("CHROMA_URL", CHROMA_URL)
