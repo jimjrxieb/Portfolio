@@ -1,6 +1,6 @@
-# Portfolio - AI-Powered Professional Showcase
+# Production AI Portfolio Platform
 
-> Full-stack portfolio platform with RAG-powered AI assistant, 3D avatar, and comprehensive knowledge base
+> Full-stack RAG system demonstrating enterprise DevSecOps practices and production-grade AI/ML engineering
 
 **Live Demo**: [https://linksmlm.com](https://linksmlm.com)
 
@@ -12,17 +12,20 @@
 
 ## Overview
 
-An intelligent portfolio platform featuring **Gojo**, an AI assistant powered by Retrieval-Augmented Generation (RAG), that answers questions about professional experience, projects, and technical expertise. The system combines modern AI/ML technologies with production-grade DevSecOps practices.
+**DevSecOps Implementation**: This project demonstrates production-ready DevSecOps workflows with comprehensive security automation throughout the development lifecycle. The CI/CD pipeline leverages GitHub Actions with parallel security scanning (detect-secrets for secrets detection, Semgrep for SAST analysis, Trivy for container vulnerability scanning, Bandit for Python security, and Safety for dependency vulnerabilities). Policy-as-Code is enforced through OPA/Conftest in CI (150+ tests validating Kubernetes manifests) and Gatekeeper for runtime admission control. Infrastructure is deployed using three progressive methods—simple kubectl manifests, Terraform with LocalStack for AWS service simulation, and production-grade Helm charts with ArgoCD GitOps—showcasing the evolution from beginner to enterprise approaches. Security is hardened with Kubernetes Network Policies, RBAC, Pod Security Standards, non-root Docker containers with multi-stage builds, and pre-commit hooks preventing secret commits. Public access is secured through Cloudflare Tunnel, eliminating exposed ports while maintaining TLS encryption.
+
+**AI/ML Architecture**: The system implements a production RAG (Retrieval-Augmented Generation) pipeline using ChromaDB as the vector database with 2,656+ embeddings generated from comprehensive technical documentation. Ollama (nomic-embed-text model) handles local embedding generation for 768-dimensional vectors, while Claude API (Anthropic's claude-3-haiku-20240307) serves as the production LLM for natural language responses. The FastAPI backend provides async endpoints with semantic search completing in <100ms, processing user queries through ChromaDB similarity search, context retrieval, and LLM response generation with source citations. The ingestion pipeline processes markdown documents through sanitization, intelligent chunking (1000 words with 200-word overlap), embedding generation, and storage in versioned ChromaDB collections supporting atomic swaps for zero-downtime updates. The React/Vite frontend delivers real-time chat with a professional AI assistant (Sheyla) trained on DevSecOps expertise, project portfolios, and technical knowledge, demonstrating practical applications of modern AI/ML technologies in production environments.
 
 ### Key Features
 
-- **RAG-Powered Chat**: Semantic search over 20+ knowledge base documents with GPT-4o mini
-- **3D Avatar**: Interactive Three.js/VRM avatar with lip-sync and animation
-- **Response Validation**: Anti-hallucination detection with confidence scoring
-- **Multi-Provider LLM**: OpenAI primary, local Qwen fallback for cost optimization
-- **Voice Synthesis**: ElevenLabs TTS integration for natural speech
-- **Version Management**: Atomic RAG collection swaps for zero-downtime updates
-- **Production Ready**: Kubernetes deployment with Helm, rate limiting, security headers
+- **Semantic Search**: ChromaDB vector database with 2,656+ embeddings, <100ms query response time
+- **Production LLM**: Claude API (Anthropic) with Haiku model for cost-optimized inference
+- **Local Embeddings**: Ollama nomic-embed-text for 768-dimensional vector generation
+- **Policy Enforcement**: OPA/Conftest CI validation + Gatekeeper runtime admission control
+- **Security Automation**: 6-tool security pipeline (detect-secrets, Semgrep, Trivy, Bandit, Safety, npm audit)
+- **GitOps Deployment**: Three deployment methods showing kubectl → Terraform → Helm+ArgoCD progression
+- **Zero-Downtime Updates**: Versioned ChromaDB collections with atomic swaps
+- **Secrets Management**: Automated sync from .env to Kubernetes secrets with pre-commit validation
 
 ---
 
@@ -30,27 +33,36 @@ An intelligent portfolio platform featuring **Gojo**, an AI assistant powered by
 
 ### Technology Stack
 
-**Backend (Python)**
-- FastAPI 0.104.1 + Uvicorn (async web framework)
-- ChromaDB 1.1.0+ (vector database with persistent storage)
-- sentence-transformers/all-MiniLM-L6-v2 (384-dim embeddings)
-- PyTorch 2.6.0 (GPU/CPU support)
-- OpenAI GPT-4o mini (primary LLM)
-- Qwen/Qwen2.5-1.5B-Instruct (local fallback LLM)
+#### Backend (Python 3.11)
 
-**Frontend (React)**
-- React 18.2.0 + TypeScript/TSX
-- Vite 5.1.0 (build tool)
-- Three.js 0.164.1 + VRM (3D avatar rendering)
+- FastAPI + Uvicorn (async web framework)
+- ChromaDB 0.5.18+ (vector database, persistent SQLite storage)
+- Anthropic Claude API (claude-3-haiku-20240307 for production LLM)
+- Ollama (nomic-embed-text for 768-dim local embeddings)
+- Pydantic (request/response validation)
+
+#### Frontend (TypeScript/React)
+
+- React 18.2.0 + TypeScript
+- Vite 6.4.1 (build tool, esbuild 0.27.0)
 - Material-UI 7.3.2 + Tailwind CSS 4.1.12
+- Nginx (production static file serving)
 
-**Infrastructure**
-- Docker (non-root, multi-stage builds)
-- Kubernetes (3 deployment methods: kubectl, Terraform, Helm+ArgoCD)
-- AWS Services (Secrets Manager, Lambda, CloudWatch, S3, DynamoDB - via LocalStack)
-- Policy-as-Code (OPA/Conftest + Gatekeeper)
-- Cloudflare Tunnel (public exposure)
-- GitHub Actions (CI/CD with security validation)
+#### Infrastructure & Security
+
+- Docker (multi-stage builds, non-root containers, distroless base images)
+- Kubernetes (Docker Desktop, 3-pod architecture: UI, API, ChromaDB)
+- GitHub Actions (parallel security scanning: detect-secrets, Semgrep, Trivy, Bandit, Safety)
+- OPA/Conftest (CI policy validation, 150+ Rego tests)
+- Gatekeeper (runtime admission control)
+- Cloudflare Tunnel (TLS-encrypted public access)
+- Pre-commit hooks (secrets detection, linting)
+
+#### Deployment Methods (Progressive Complexity)
+
+1. Method 1: Simple kubectl manifests (beginner-friendly)
+2. Method 2: Terraform + LocalStack (AWS service simulation)
+3. Method 3: Helm + ArgoCD (production GitOps)
 
 ### System Components
 
