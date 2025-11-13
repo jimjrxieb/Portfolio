@@ -31,15 +31,19 @@ from backend.engines.llm_interface import LLMEngine
 
 # Temporary placeholders until conversation engine is available
 class ConversationContext:
-    def __init__(self, **kwargs):
-        pass
+    def __init__(self, session_id=None, messages=None, **kwargs):
+        self.session_id = session_id
+        self.messages = messages or []
+        self.user_focus = kwargs.get('user_focus', [])
+        self.mentioned_projects = kwargs.get('mentioned_projects', [])
 
 class ConversationEngine:
     def __init__(self):
         pass
 
-    def generate_response(self, context):
-        return {"response": "Conversation engine not yet available"}
+    def generate_response(self, question=None, context=None, rag_results=None):
+        """Placeholder that raises exception to trigger fallback LLM response"""
+        raise NotImplementedError("Using fallback LLM response")
 
 router = APIRouter()
 
