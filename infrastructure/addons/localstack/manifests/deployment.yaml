@@ -27,17 +27,15 @@ spec:
           protocol: TCP
         env:
         - name: SERVICES
-          value: "s3,dynamodb,sqs,lambda,cloudformation,sts,iam"
+          value: "s3,dynamodb,sqs"
         - name: DEBUG
-          value: "1"
-        - name: DATA_DIR
-          value: "/tmp/localstack/data"
-        - name: DOCKER_HOST
-          value: "unix:///var/run/docker.sock"
+          value: "0"
+        - name: PERSISTENCE
+          value: "0"
         - name: HOSTNAME_EXTERNAL
-          value: "localhost"
-        - name: LOCALSTACK_HOST
-          value: "localhost:4566"
+          value: "localstack.localstack.svc.cluster.local"
+        - name: EAGER_SERVICE_LOADING
+          value: "1"
         resources:
           requests:
             cpu: 500m
@@ -45,15 +43,3 @@ spec:
           limits:
             cpu: 2000m
             memory: 2Gi
-        volumeMounts:
-        - name: localstack-data
-          mountPath: /tmp/localstack
-        - name: docker-sock
-          mountPath: /var/run/docker.sock
-      volumes:
-      - name: localstack-data
-        emptyDir: {}
-      - name: docker-sock
-        hostPath:
-          path: /var/run/docker.sock
-          type: Socket
