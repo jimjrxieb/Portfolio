@@ -14,13 +14,34 @@ dist/
 build/
 *.egg-info/
 
-# Environment and secrets
-.env.local
-.env.production
+# Environment and secrets - COMPREHENSIVE PROTECTION
+.env*
+!.env.example
 *.log
-.env
+**/secrets.yaml
 **/02-secrets.yaml
 infrastructure/**/secrets.yaml
+**/*credentials*
+**/*password*
+**/*secret*
+**/*api-key*
+**/*apikey*
+**/config.json
+.claude/settings.local.json
+.secrets.baseline
+**/*token*
+**/*private-key*
+**/.npmrc
+**/.pypirc
+
+# Sensitive docs that might contain credentials
+docs/
+**/SECURITY_INCIDENT*.md
+**/LOCAL-PLATFORM-SUMMARY.md
+**/PIPELINE_INFO.md
+**/deployment-notes.md
+**/*-credentials.md
+**/*API*.md
 
 # Model files and data
 models/chroma/
