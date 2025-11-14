@@ -13,7 +13,6 @@ interface Project {
 interface Tool {
   name: string;
   description: string;
-  level: 'Intermediate' | 'Advanced' | 'Expert';
   link?: string;
 }
 
@@ -79,58 +78,58 @@ const TOOL_CATEGORIES: Record<CategoryKey, ToolCategory> = {
     title: 'Cloud & Infrastructure (IaC)',
     icon: '☁️',
     tools: [
-      { name: 'Kubernetes (CKA Certified)', description: '3 deployment methods: kubectl → Terraform → Helm+ArgoCD', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
-      { name: 'Terraform + LocalStack', description: 'IaC with AWS service simulation (cost-conscious)', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method2-terraform-localstack' },
-      { name: 'Terraform Projects', description: 'Modular, multi-environment infrastructure provisioning', level: 'Advanced', link: 'https://github.com/jimjrxieb/Terraform_project' },
-      { name: 'Docker Multi-Stage Builds', description: 'Non-root containers, security contexts, optimization', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'Helm Charts', description: 'Kubernetes package manager for production deployments', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd' },
-      { name: 'AWS (S3/KMS/Secrets Manager)', description: 'Cloud services, encryption, secrets management', level: 'Advanced', link: 'https://github.com/jimjrxieb/ai-powered-project' },
+      { name: 'Kubernetes (CKA Certified)', description: '3 deployment methods: kubectl → Terraform → Helm+ArgoCD', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
+      { name: 'Terraform + LocalStack', description: 'IaC with AWS service simulation (cost-conscious)', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method2-terraform-localstack' },
+      { name: 'Terraform Projects', description: 'Modular, multi-environment infrastructure provisioning', link: 'https://github.com/jimjrxieb/Terraform_project' },
+      { name: 'Docker Multi-Stage Builds', description: 'Non-root containers, security contexts, optimization', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
+      { name: 'Helm Charts', description: 'Kubernetes package manager for production deployments', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd' },
+      { name: 'AWS (S3/KMS/Secrets Manager)', description: 'Cloud services, encryption, secrets management', link: 'https://github.com/jimjrxieb/ai-powered-project' },
     ],
   },
   devops: {
     title: 'CI/CD & Automation',
     icon: '⚙️',
     tools: [
-      { name: 'GitHub Actions', description: '6-tool parallel security scanning pipeline', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml' },
-      { name: 'ArgoCD GitOps', description: 'Automated pull-based deployments with sync policies', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd' },
-      { name: 'Python Automation', description: 'FastAPI, async/await, RAG pipelines, CLI tools', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'Bash/Shell Scripting', description: 'Infrastructure automation and provisioning scripts', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
-      { name: 'Pre-commit Hooks', description: 'Local secrets detection and security validation', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.pre-commit-config.yaml' },
+      { name: 'GitHub Actions', description: '6-tool parallel security scanning pipeline', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml' },
+      { name: 'ArgoCD GitOps', description: 'Automated pull-based deployments with sync policies', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd' },
+      { name: 'Python Automation', description: 'FastAPI, async/await, RAG pipelines, CLI tools', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
+      { name: 'Bash/Shell Scripting', description: 'Infrastructure automation and provisioning scripts', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
+      { name: 'Pre-commit Hooks', description: 'Local secrets detection and security validation', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.pre-commit-config.yaml' },
     ],
   },
   security: {
     title: 'Security & Compliance (DevSecOps)',
     icon: '🛡️',
     tools: [
-      { name: 'OPA/Conftest Policies', description: '13 policies, 11 automated tests in CI pipeline', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies' },
-      { name: 'Gatekeeper Admission Control', description: 'Runtime Kubernetes policy enforcement', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure' },
-      { name: 'CompTIA Security+ Certified', description: 'Security hardening, compliance, vulnerability mgmt', level: 'Expert' },
-      { name: '6-Tool Security Pipeline', description: 'detect-secrets, Semgrep, Trivy, Bandit, Safety, npm', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml' },
-      { name: 'Network Policies + RBAC', description: 'Zero-trust networking, least-privilege access', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
-      { name: 'Secrets Management', description: 'Never commit credentials, Kubernetes secrets automation', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/infrastructure/method1-simple-kubectl/create-secrets-from-env.sh' },
+      { name: 'OPA/Conftest Policies', description: '13 policies, 11 automated tests in CI pipeline', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies' },
+      { name: 'Gatekeeper Admission Control', description: 'Runtime Kubernetes policy enforcement', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure' },
+      { name: 'CompTIA Security+ Certified', description: 'Security hardening, compliance, vulnerability mgmt' },
+      { name: '6-Tool Security Pipeline', description: 'detect-secrets, Semgrep, Trivy, Bandit, Safety, npm', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml' },
+      { name: 'Network Policies + RBAC', description: 'Zero-trust networking, least-privilege access', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
+      { name: 'Secrets Management', description: 'Never commit credentials, Kubernetes secrets automation', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/infrastructure/method1-simple-kubectl/create-secrets-from-env.sh' },
     ],
   },
   aiml: {
     title: 'AI/ML Engineering',
     icon: '🧠',
     tools: [
-      { name: 'Production RAG Systems', description: 'ChromaDB + Ollama + Claude API (2,656+ embeddings)', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
-      { name: 'Ollama Local Inference', description: 'nomic-embed-text, qwen2.5-coder models', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
-      { name: 'LangGraph Agents', description: 'Workflow orchestration for AI automation', level: 'Intermediate' },
-      { name: 'Vector Databases', description: 'Semantic search, intelligent chunking, embeddings', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
-      { name: 'Claude API Integration', description: 'Production LLM with FastAPI async endpoints', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'ML Model Training', description: 'Fine-tuning LLMs, policy generation from historical data', level: 'Intermediate' },
+      { name: 'Production RAG Systems', description: 'ChromaDB + Ollama + Claude API (2,656+ embeddings)', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
+      { name: 'Ollama Local Inference', description: 'nomic-embed-text, qwen2.5-coder models', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
+      { name: 'LangGraph Agents', description: 'Workflow orchestration for AI automation' },
+      { name: 'Vector Databases', description: 'Semantic search, intelligent chunking, embeddings', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
+      { name: 'Claude API Integration', description: 'Production LLM with FastAPI async endpoints', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
+      { name: 'ML Model Training', description: 'Fine-tuning LLMs, policy generation from historical data' },
     ],
   },
   languages: {
     title: 'Languages & Scripting',
     icon: '💻',
     tools: [
-      { name: 'Python', description: 'FastAPI, async, automation, AI/ML pipelines', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'TypeScript', description: 'React, type-safe production frontends', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/ui' },
-      { name: 'Rego (OPA)', description: 'Policy-as-Code for compliance automation', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies' },
-      { name: 'Bash/Shell', description: 'Infrastructure automation and provisioning', level: 'Advanced', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/scripts' },
-      { name: 'YAML/JSON', description: 'Configuration, IaC, Kubernetes manifests', level: 'Expert', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure' },
+      { name: 'Python', description: 'FastAPI, async, automation, AI/ML pipelines', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
+      { name: 'TypeScript', description: 'React, type-safe production frontends', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/ui' },
+      { name: 'Rego (OPA)', description: 'Policy-as-Code for compliance automation', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies' },
+      { name: 'Bash/Shell', description: 'Infrastructure automation and provisioning', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/scripts' },
+      { name: 'YAML/JSON', description: 'Configuration, IaC, Kubernetes manifests', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure' },
     ],
   },
 } as const;
@@ -200,18 +199,9 @@ const ProjectCard: React.FC<{
 );
 
 const ToolItem: React.FC<{ tool: Tool }> = ({ tool }) => {
-  const levelStyles = useMemo(() => {
-    const styles = {
-      Expert: 'bg-crystal-500/20 text-crystal-300',
-      Advanced: 'bg-gold-500/20 text-gold-300',
-      Intermediate: 'bg-jade-500/20 text-jade-300',
-    };
-    return styles[tool.level];
-  }, [tool.level]);
-
   return (
-    <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-b-0">
-      <div className="flex-1">
+    <div className="py-2 border-b border-white/5 last:border-b-0">
+      <div>
         {tool.link ? (
           <a
             href={tool.link}
@@ -226,9 +216,6 @@ const ToolItem: React.FC<{ tool: Tool }> = ({ tool }) => {
         )}
         <div className="text-gojo-secondary text-xs">{tool.description}</div>
       </div>
-      <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ml-2 ${levelStyles}`}>
-        {tool.level}
-      </span>
     </div>
   );
 };
