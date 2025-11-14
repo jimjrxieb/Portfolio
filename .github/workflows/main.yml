@@ -346,18 +346,18 @@ jobs:
 
         # Verify policy templates are valid
         echo "🧪 Verifying OPA policy templates..."
-        ./conftest verify --policy conftest-policies/ || echo "Policy template verification failed"
+        ./conftest verify --policy GP-copilot/conftest-policies/ || echo "Policy template verification failed"
 
         # Test Helm rendered manifests if they exist
         if [ -f "/tmp/rendered-manifests.yaml" ]; then
           echo "🧪 Testing Helm manifests against enterprise policies..."
-          ./conftest test /tmp/rendered-manifests.yaml --policy conftest-policies/ || echo "Policy violations found in Helm manifests"
+          ./conftest test /tmp/rendered-manifests.yaml --policy GP-copilot/conftest-policies/ || echo "Policy violations found in Helm manifests"
         fi
 
         # Test Method 1 (Simple kubectl) manifests
         if [ -d "infrastructure/method1-simple-kubectl" ]; then
           echo "🧪 Testing Method 1 (kubectl) manifests against enterprise policies..."
-          ./conftest test infrastructure/method1-simple-kubectl/*.yaml --policy conftest-policies/ || echo "Policy violations found in Method 1 manifests"
+          ./conftest test infrastructure/method1-simple-kubectl/*.yaml --policy GP-copilot/conftest-policies/ || echo "Policy violations found in Method 1 manifests"
         fi
 
         # Test Method 3 (Helm+ArgoCD) ArgoCD applications
@@ -368,11 +368,11 @@ jobs:
 
         echo "✅ Enterprise policy validation complete"
         echo ""
-        echo "🔒 Policies Validated:"
-        echo "   ✅ Container Security Contexts"
-        echo "   ✅ Image Security (trusted registries)"
-        echo "   ✅ Resource Limits and Governance"
-        echo "   ✅ Pod Security Standards (Baseline/Restricted)"
+        echo "🔒 13 Policies Validated (11 automated tests):"
+        echo "   ✅ Container Security: non-root, security contexts, privilege restrictions"
+        echo "   ✅ Image Security: trusted registries, tag requirements, pull policies"
+        echo "   ✅ Resource Governance: CPU/memory limits, resource constraints"
+        echo "   ✅ Pod Security: privilege escalation prevention, dropped capabilities"
 
   deploy:
     runs-on: ubuntu-latest
@@ -432,7 +432,7 @@ jobs:
         echo "  • Bandit: Python security analysis ✅"
         echo "  • Safety: Python dependency vulnerabilities ✅"
         echo "  • npm audit: Node.js dependency vulnerabilities ✅"
-        echo "  • Conftest/OPA: Policy as Code validation ✅"
+        echo "  • Conftest/OPA: 13 policies, 11 automated tests ✅"
         echo ""
         echo "📊 SARIF Generation:"
         echo "  • All security tools generate SARIF reports"
@@ -440,10 +440,10 @@ jobs:
         echo "  • Enterprise-grade security reporting"
         echo ""
         echo "🏗️ Platform Architecture:"
-        echo "  • 3-service simplified setup (API+Jade, UI, ChromaDB)"
-        echo "  • ChromaDB vector database (391+ documents)"
-        echo "  • Integrated Jade-Brain AI assistant"
-        echo "  • React/TypeScript UI with FastAPI backend"
+        echo "  • 3-service setup (API, UI, ChromaDB)"
+        echo "  • ChromaDB vector database (2,656+ embeddings)"
+        echo "  • Production RAG with Ollama + Claude API"
+        echo "  • React/Vite UI with FastAPI backend"
         echo "  • ArgoCD deployment ready"
         echo ""
         echo "🔗 Next Steps:"
