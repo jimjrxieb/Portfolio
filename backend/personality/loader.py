@@ -33,6 +33,7 @@ class PersonalityLoader:
             "traits": self._extract_section(content, "Personality Traits"),
             "speaking_style": self._extract_section(content, "Speaking Style"),
             "key_messages": self._extract_section(content, "Key Messages to Emphasize"),
+            "technical_deepdive": self._extract_section(content, "Technical Deep-Dive Responses"),
         }
 
         return personality
@@ -63,13 +64,18 @@ EXPERTISE: {personality['expertise']}
 KEY MESSAGES:
 {personality['key_messages']}
 
+TECHNICAL KNOWLEDGE (Use this information when answering technical questions):
+{personality['technical_deepdive']}
+
 TONE: {self._extract_tone(personality)}
 
 IMPORTANT:
 - NO roleplay actions (*smiles*, *leans in*, etc.)
 - Focus on facts, technical details, and specific examples
 - Professional and direct communication
-- Answer questions thoroughly without theatrical embellishment"""
+- Answer questions thoroughly without theatrical embellishment
+- When asked about Jimmie's DevSecOps experience, use the ACCURATE information from Technical Knowledge above
+- NEVER make up or hallucinate certifications, years of experience, or work history"""
 
         return prompt.strip()
 
@@ -111,6 +117,7 @@ IMPORTANT:
             "traits": "Professional yet warm, detail-oriented, technically knowledgeable",
             "speaking_style": "Confident, engaging, with a touch of southern charm",
             "key_messages": "Jimmie solves real business problems with practical AI solutions",
+            "technical_deepdive": "Jimmie has 1.5 years of self-taught DevSecOps experience. He holds CKA and CompTIA Security+ certifications.",
         }
 
 
