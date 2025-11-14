@@ -28,18 +28,18 @@ type CategoryKey = 'languages' | 'aiml' | 'cloud' | 'security' | 'devops';
 // Constants
 const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
   gpcopilot: {
-    title: 'GP-Copilot - AI Security Automation',
-    description: '6-phase consulting workflow with 20+ integrated scanners',
+    title: 'GP-Copilot - Cloud Security Automation Platform',
+    description: 'Intelligent agents for Kubernetes, OPA policies, and CI/CD pipelines',
     status: 'Production',
     icon: '🔒',
     highlights: [
-      'RAG with ChromaDB (2,656+ vectors) for security pattern search',
-      'Ollama + Qwen2.5-Coder for automated code remediation',
-      'Gitleaks, Trivy, Bandit, Semgrep, Checkov, Kubescape integration',
-      'OPA/Rego policy generation + Conftest validation',
-      'Gatekeeper admission control for Kubernetes',
-      'SOC2, ISO 27001, PCI-DSS compliance mapping',
-      'JSON scan results → AI fixes → compliance reports → executive summaries',
+      'Kubernetes Agent: Automated security hardening and compliance validation',
+      'OPA Agent: Dynamic policy generation using machine learning models',
+      'GHA Pipeline Fix Agent: Automated CI/CD security remediation',
+      'Two ML models: Train on historical data + fresh scans to improve OPA policies',
+      'ML-enhanced K8s builds: Learn from deployment patterns to generate secure configs',
+      'Intelligent policy suggestions based on codebase analysis',
+      'Automated security fixes with context-aware remediation',
     ],
   },
   interview: {
