@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+  namespace: localstack
+  labels:
+    app: localstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+      - name: localstack
+        image: localstack/localstack:latest
+        ports:
+        - containerPort: 4566
+          name: edge
+          protocol: TCP
+        - containerPort: 4571
+          name: elasticsearch
+          protocol: TCP
+        env:
+        - name: SERVICES
+          value: "s3,dynamodb,sqs,lambda,cloudformation,sts,iam"
+        - name: DEBUG
+          value: "1"
+        - name: DATA_DIR
+          value: "/tmp/localstack/data"
+        - name: DOCKER_HOST
+          value: "unix:///var/run/docker.sock"
+        - name: HOSTNAME_EXTERNAL
+          value: "localhost"
+        - name: LOCALSTACK_HOST
+          value: "localhost:4566"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        volumeMounts:
+        - name: localstack-data
+          mountPath: /tmp/localstack
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: localstack-data
+        emptyDir: {}
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket

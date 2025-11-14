@@ -1,0 +1,82 @@
+# Prometheus Helm chart values for Docker Desktop K8s
+# Chart: prometheus-community/prometheus
+
+# Alertmanager disabled for local development
+alertmanager:
+  enabled: false
+
+# Prometheus server configuration
+server:
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: 1000m
+      memory: 4Gi
+
+  # Retention period for metrics
+  retention: "15d"
+
+  global:
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    evaluation_interval: 30s
+
+# Node exporter for host metrics
+nodeExporter:
+  enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Pushgateway for batch job metrics
+pushgateway:
+  enabled: false
+
+# Kube-state-metrics for Kubernetes object metrics
+kube-state-metrics:
+  enabled: true
+
+# Additional scrape configs for Portfolio application
+serverFiles:
+  prometheus.yml:
+    scrape_configs:
+      - job_name: 'portfolio-api'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - portfolio
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: portfolio-api
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+
+      - job_name: 'portfolio-ui'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - portfolio
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: portfolio-ui
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
