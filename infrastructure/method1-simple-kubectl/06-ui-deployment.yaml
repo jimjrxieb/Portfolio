@@ -20,6 +20,8 @@ spec:
         runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: ui
           image: ghcr.io/shadow-link-industries/portfolio-ui:main-latest

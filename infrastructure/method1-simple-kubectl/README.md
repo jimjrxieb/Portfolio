@@ -11,12 +11,83 @@
 
 - Docker Desktop with Kubernetes enabled
 - kubectl configured
+- helm installed (for Gatekeeper)
+- Python 3.6+ installed
 - Ollama running locally (for embeddings)
 - NGINX Ingress Controller installed
+- `.env` file in project root with API keys
 
 ---
 
-## Quick Start
+## Deployment Methods
+
+### Method A: Python Orchestration (Recommended)
+
+Use the automated Python deployment script that handles everything in the correct order:
+
+```bash
+cd infrastructure/method1-simple-kubectl
+
+# Full deployment with Gatekeeper, OPA policies, app, and Cloudflare
+python3 deploy.py
+
+# Skip Gatekeeper if already installed
+python3 deploy.py --skip-gatekeeper
+
+# Skip Cloudflare tunnel
+python3 deploy.py --skip-cloudflare
+
+# Skip secrets if already created
+python3 deploy.py --skip-secrets
+```
+
+**What it deploys:**
+1. OPA Gatekeeper (policy enforcement)
+2. OPA Policies from `GP-copilot/gatekeeper-temps/`
+3. Portfolio Application (namespace, secrets, storage, services)
+4. Cloudflare Tunnel (optional)
+
+### Method B: Manual Step-by-Step
+
+For more control, run individual Python scripts and kubectl commands:
+
+#### Step 1: Install Gatekeeper
+```bash
+python3 00-install-gatekeeper.py
+```
+
+#### Step 2: Deploy OPA Policies
+```bash
+python3 00-deploy-opa-policies.py
+```
+
+#### Step 3: Create Namespace & Secrets
+```bash
+kubectl apply -f 01-namespace.yaml
+python3 00-create-secrets.py  # Creates from .env file
+```
+
+#### Step 4: Deploy Application
+```bash
+kubectl apply -f 03-chroma-pv-local.yaml
+kubectl apply -f 04-chroma-deployment.yaml
+kubectl apply -f 05-api-deployment.yaml
+kubectl apply -f 06-ui-deployment.yaml
+kubectl apply -f 07-ingress.yaml
+```
+
+#### Step 5: Deploy Cloudflare (Optional)
+```bash
+python3 99-deploy-cloudflare.py
+```
+
+### Method C: Traditional kubectl (Basic)
+
+Simple kubectl deployment without Gatekeeper or OPA policies:
+
+---
+
+## Quick Start (Method C - Basic)
 
 ### 1. Install NGINX Ingress Controller (if not installed)
 

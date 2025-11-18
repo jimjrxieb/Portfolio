@@ -4,11 +4,28 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+
+  // Critical for production builds - ensures assets load correctly
+  base: '/',
+
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    // Ensure consistent chunk naming
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+
   server: {
     host: true,
     port: 5173,
@@ -22,6 +39,7 @@ export default defineConfig({
       },
     },
   },
+
   preview: {
     port: 5173,
     strictPort: true,

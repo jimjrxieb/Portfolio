@@ -70,10 +70,35 @@ data/uploads/
 rag-pipeline/new-rag-data/
 rag-pipeline/processed-rag-data/
 
-# Terraform
+# Terraform - State and cache
 *.tfstate
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+
+# Terraform - Variable files with secrets (CRITICAL: Never commit these!)
+terraform.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
 terraform.tfvars.backup
 *.tfvars.json
+!terraform.tfvars.example
+
+# Terraform - Plan files (may contain sensitive data)
+tfplan
+*.tfplan
+*.tfplan.json
+
+# Terraform - Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform - CLI configuration files
+.terraformrc
+terraform.rc
+
+# Terraform - Crash log files
+crash.log
+crash.*.log

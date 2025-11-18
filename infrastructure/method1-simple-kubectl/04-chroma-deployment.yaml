@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chroma
+  name: chromadb
   namespace: portfolio
   labels:
     app: chroma
@@ -15,10 +15,25 @@ spec:
       labels:
         app: chroma
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-        - name: chroma
+        - name: chromadb
           image: chromadb/chroma:0.5.18
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8000
               name: http
@@ -37,15 +52,24 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /chroma/chroma
+            - name: tmp
+              mountPath: /tmp
+            - name: log-config
+              mountPath: /chroma/chromadb/log_config.yml
+              subPath: log_config.yml
       volumes:
         - name: data
-          persistentVolumeClaim:
-            claimName: chroma-data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: log-config
+          configMap:
+            name: chroma-log-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: chroma
+  name: chromadb
   namespace: portfolio
 spec:
   selector:

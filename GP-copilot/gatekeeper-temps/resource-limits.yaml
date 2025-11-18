@@ -1,0 +1,94 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: portfolioresourcelimits
+  annotations:
+    metadata.gatekeeper.sh/title: "Portfolio Resource Limits Policy"
+    metadata.gatekeeper.sh/version: 1.0.0
+    description: "Enforces resource limits and requests for Portfolio platform"
+spec:
+  crd:
+    spec:
+      names:
+        kind: PortfolioResourceLimits
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            maxCpu:
+              description: "Maximum CPU limit"
+              type: string
+            maxMemory:
+              description: "Maximum memory limit"
+              type: string
+            requireRequests:
+              description: "Require resource requests"
+              type: boolean
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package portfolioresourcelimits
+
+        # Require CPU limits
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.limits.cpu
+          msg := sprintf("Container '%s' must specify CPU limits", [container.name])
+        }
+
+        # Require memory limits
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.limits.memory
+          msg := sprintf("Container '%s' must specify memory limits", [container.name])
+        }
+
+        # Require CPU requests
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.requests.cpu
+          msg := sprintf("Container '%s' must specify CPU requests", [container.name])
+        }
+
+        # Require memory requests
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.requests.memory
+          msg := sprintf("Container '%s' must specify memory requests", [container.name])
+        }
+
+        # Check maximum CPU limit (2 cores for portfolio workloads)
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          cpu_limit := container.resources.limits.cpu
+          cpu_limit_value := parse_cpu(cpu_limit)
+          cpu_limit_value > 2000  # 2000m = 2 cores
+          msg := sprintf("Container '%s' CPU limit (%s) exceeds maximum allowed (2000m)", [container.name, cpu_limit])
+        }
+
+        # Helper function to parse CPU values
+        parse_cpu(cpu_string) = result {
+          endswith(cpu_string, "m")
+          result := to_number(trim_suffix(cpu_string, "m"))
+        }
+
+        parse_cpu(cpu_string) = result {
+          not endswith(cpu_string, "m")
+          result := to_number(cpu_string) * 1000  # Convert cores to millicores
+        }
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: PortfolioResourceLimits
+metadata:
+  name: portfolio-resource-limits
+  namespace: portfolio
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+    namespaces: ["portfolio"]
+  parameters:
+    maxCpu: "2000m"
+    maxMemory: "2Gi"
+    requireRequests: true

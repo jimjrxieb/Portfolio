@@ -1,0 +1,47 @@
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+# High Priority Security Fixes for CIS 4.x findings
+
+# Fix 4.2.1: Disable anonymous authentication
+authentication:
+  anonymous:
+    enabled: false
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
+
+# Fix 4.2.2: Set authorization mode to Webhook (not AlwaysAllow)
+authorization:
+  mode: Webhook
+
+# Fix 4.2.4: Disable read-only port for security
+readOnlyPort: 0
+
+# Fix 4.2.5: Set streaming connection idle timeout (not 0)
+streamingConnectionIdleTimeout: 5m
+
+# Fix 4.2.6: Protect kernel defaults
+protectKernelDefaults: true
+
+# Fix 4.2.7: Enable iptables util chains
+makeIPTablesUtilChains: true
+
+# Fix 4.2.10: TLS configuration
+tlsCertFile: /var/lib/kubelet/pki/kubelet.crt
+tlsPrivateKeyFile: /var/lib/kubelet/pki/kubelet.key
+
+# Fix 4.2.11: Enable certificate rotation
+rotateCertificates: true
+
+# Fix 4.2.13: Strong cryptographic ciphers
+tlsCipherSuites:
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+
+# Additional security hardening
+eventRecordQPS: 5
+featureGates:
+  RotateKubeletServerCertificate: true
