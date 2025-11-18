@@ -32,7 +32,7 @@ spec:
         violation[{"msg": msg}] {
           container := input.review.object.spec.template.spec.containers[_]
           container.securityContext.runAsUser == 0
-          msg := sprintf("Container '%s' cannot run as root (UID 0). Use runAsUser: 10001", [container.name])
+          msg := sprintf("Container '%s' cannot run as root (UID 0). Allowed UIDs: %v", [container.name, input.parameters.allowedUsers])
         }
 
         # Require security context to be set
@@ -54,6 +54,28 @@ spec:
           container := input.review.object.spec.template.spec.containers[_]
           container.securityContext.allowPrivilegeEscalation == true
           msg := sprintf("Container '%s' cannot allow privilege escalation", [container.name])
+        }
+
+        # Validate against allowed users list
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          uid := container.securityContext.runAsUser
+          uid != 0  # Already handled above
+          count(input.parameters.allowedUsers) > 0
+          not allowed_user(uid)
+          msg := sprintf("Container '%s' uses disallowed UID %d. Allowed UIDs: %v", [container.name, uid, input.parameters.allowedUsers])
+        }
+
+        allowed_user(uid) {
+          input.parameters.allowedUsers[_] == uid
+        }
+
+        # Require runAsNonRoot
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          container.securityContext
+          not container.securityContext.runAsNonRoot
+          msg := sprintf("Container '%s' must set runAsNonRoot: true", [container.name])
         }
 
         # Require read-only root filesystem where possible

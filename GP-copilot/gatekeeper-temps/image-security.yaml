@@ -46,7 +46,7 @@ spec:
           container := input.review.object.spec.template.spec.containers[_]
           image := container.image
           not starts_with_allowed_registry(image)
-          msg := sprintf("Container '%s' uses untrusted registry. Allowed: ghcr.io/jimjrxieb/, chromadb/, registry.k8s.io/", [container.name])
+          msg := sprintf("Container '%s' uses untrusted registry. Allowed: ghcr.io/jimjrxieb/, ghcr.io/shadow-link-industries/, chromadb/, registry.k8s.io/", [container.name])
         }
 
         # Require image tags to be specified
@@ -61,6 +61,15 @@ spec:
           container := input.review.object.spec.template.spec.containers[_]
           not container.imagePullPolicy
           msg := sprintf("Container '%s' must specify imagePullPolicy", [container.name])
+        }
+
+        # Require image digests if enabled
+        violation[{"msg": msg}] {
+          input.parameters.requireDigests
+          container := input.review.object.spec.template.spec.containers[_]
+          contains(container.image, ":")
+          not contains(container.image, "@sha256:")
+          msg := sprintf("Container '%s' must use image digest (@sha256:...) instead of tag", [container.name])
         }
 
         # Helper function to check allowed registries
@@ -80,9 +89,7 @@ spec:
           startswith(image, "registry.k8s.io/")
         }
 
-        starts_with_allowed_registry(image) {
-          startswith(image, "docker.io/library/")
-        }
+        # REMOVED docker.io/library/ - security risk!
 ---
 apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: PortfolioImageSecurity
@@ -98,6 +105,7 @@ spec:
   parameters:
     allowedRegistries:
       - "ghcr.io/jimjrxieb/"
+      - "ghcr.io/shadow-link-industries/"
       - "chromadb/"
       - "registry.k8s.io/"
     blockedTags:

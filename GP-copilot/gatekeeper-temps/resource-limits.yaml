@@ -66,6 +66,39 @@ spec:
           msg := sprintf("Container '%s' CPU limit (%s) exceeds maximum allowed (2000m)", [container.name, cpu_limit])
         }
 
+        # Check maximum memory limit
+        violation[{"msg": msg}] {
+          input.parameters.maxMemory
+          container := input.review.object.spec.template.spec.containers[_]
+          memory_limit := container.resources.limits.memory
+          memory_limit_value := parse_memory(memory_limit)
+          max_memory_value := parse_memory(input.parameters.maxMemory)
+          memory_limit_value > max_memory_value
+          msg := sprintf("Container '%s' memory limit (%s) exceeds maximum allowed (%s)", [container.name, memory_limit, input.parameters.maxMemory])
+        }
+
+        # Validate CPU request <= limit
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          container.resources.requests.cpu
+          container.resources.limits.cpu
+          cpu_request := parse_cpu(container.resources.requests.cpu)
+          cpu_limit := parse_cpu(container.resources.limits.cpu)
+          cpu_request > cpu_limit
+          msg := sprintf("Container '%s' CPU request (%s) exceeds its limit (%s)", [container.name, container.resources.requests.cpu, container.resources.limits.cpu])
+        }
+
+        # Validate memory request <= limit
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          container.resources.requests.memory
+          container.resources.limits.memory
+          memory_request := parse_memory(container.resources.requests.memory)
+          memory_limit := parse_memory(container.resources.limits.memory)
+          memory_request > memory_limit
+          msg := sprintf("Container '%s' memory request (%s) exceeds its limit (%s)", [container.name, container.resources.requests.memory, container.resources.limits.memory])
+        }
+
         # Helper function to parse CPU values
         parse_cpu(cpu_string) = result {
           endswith(cpu_string, "m")
@@ -75,6 +108,37 @@ spec:
         parse_cpu(cpu_string) = result {
           not endswith(cpu_string, "m")
           result := to_number(cpu_string) * 1000  # Convert cores to millicores
+        }
+
+        # Helper function to parse memory values
+        parse_memory(mem_string) = result {
+          endswith(mem_string, "Gi")
+          result := to_number(trim_suffix(mem_string, "Gi")) * 1024 * 1024 * 1024
+        }
+
+        parse_memory(mem_string) = result {
+          endswith(mem_string, "G")
+          result := to_number(trim_suffix(mem_string, "G")) * 1000 * 1000 * 1000
+        }
+
+        parse_memory(mem_string) = result {
+          endswith(mem_string, "Mi")
+          result := to_number(trim_suffix(mem_string, "Mi")) * 1024 * 1024
+        }
+
+        parse_memory(mem_string) = result {
+          endswith(mem_string, "M")
+          result := to_number(trim_suffix(mem_string, "M")) * 1000 * 1000
+        }
+
+        parse_memory(mem_string) = result {
+          endswith(mem_string, "Ki")
+          result := to_number(trim_suffix(mem_string, "Ki")) * 1024
+        }
+
+        parse_memory(mem_string) = result {
+          not regex.match("(Gi|G|Mi|M|Ki)$", mem_string)
+          result := to_number(mem_string)
         }
 ---
 apiVersion: constraints.gatekeeper.sh/v1beta1
