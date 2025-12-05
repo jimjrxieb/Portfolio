@@ -22,9 +22,141 @@ spec:
         fsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        # Wait for ChromaDB to be ready before syncing
+        - name: wait-for-chromadb
+          image: busybox:1.36
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for ChromaDB..."
+              for i in $(seq 1 60); do
+                if wget -q -O- http://chromadb:8000/api/v1/heartbeat 2>/dev/null; then
+                  echo "ChromaDB ready!"
+                  exit 0
+                fi
+                sleep 2
+              done
+              echo "ChromaDB timeout - continuing anyway"
+              exit 0
+        # Sync RAG data to ChromaDB on every pod start
+        - name: rag-sync
+          image: python:3.11-slim
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: CHROMADB_URL
+              value: "http://chromadb:8000"
+            - name: OLLAMA_URL
+              value: "http://host.docker.internal:11434"
+            - name: EMBED_MODEL
+              value: "nomic-embed-text"
+            - name: HOME
+              value: "/tmp"
+            - name: PIP_CACHE_DIR
+              value: "/tmp/.cache/pip"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "=== RAG SYNC INIT ==="
+              pip install --no-cache-dir --quiet chromadb==0.5.18 requests
+              python3 << 'EOF'
+              import os, hashlib, requests, chromadb, re
+              from datetime import datetime
+              from pathlib import Path
+
+              CHROMADB_URL = os.environ.get("CHROMADB_URL")
+              OLLAMA_URL = os.environ.get("OLLAMA_URL")
+              EMBED_MODEL = os.environ.get("EMBED_MODEL", "nomic-embed-text")
+
+              def get_embedding(text):
+                  try:
+                      r = requests.post(f"{OLLAMA_URL}/api/embeddings",
+                          json={"model": EMBED_MODEL, "prompt": text}, timeout=60)
+                      return r.json()["embedding"]
+                  except: return [0.0] * 768
+
+              def chunk_text(text, size=1000, overlap=200):
+                  words = text.split()
+                  if len(words) <= size: return [text]
+                  chunks, start = [], 0
+                  while start < len(words):
+                      chunks.append(' '.join(words[start:start+size]))
+                      start += size - overlap
+                      if start + size >= len(words): break
+                  return chunks
+
+              print(f"Connecting to {CHROMADB_URL}...")
+              match = re.match(r'http://([^:]+):(\d+)', CHROMADB_URL)
+              client = chromadb.HttpClient(host=match.group(1), port=int(match.group(2)))
+
+              # Check if collection exists and has data - if so, skip sync entirely
+              try:
+                  col = client.get_collection("portfolio_knowledge")
+                  count = col.count()
+                  if count > 0:
+                      print(f"Collection already has {count} docs - skipping sync")
+                      import sys
+                      sys.exit(0)
+              except Exception as e:
+                  print(f"Collection check failed ({e}) - will create new")
+
+              # Delete old and create fresh
+              try: client.delete_collection("portfolio_knowledge")
+              except: pass
+
+              col = client.get_or_create_collection("portfolio_knowledge",
+                  metadata={"description": "Portfolio KB", "created_at": datetime.now().isoformat()})
+
+              RAG_DIR = Path("/rag-data")
+              files = list(RAG_DIR.glob("*.md"))
+              print(f"Found {len(files)} RAG files")
+
+              total = 0
+              for f in files:
+                  try:
+                      content = f.read_text()
+                      content = ''.join(c for c in content if ord(c) >= 32 or c in '\n\t').strip()
+                      if len(content) < 100: continue
+                      chunks = chunk_text(content)
+                      for i, chunk in enumerate(chunks):
+                          doc_id = hashlib.sha256(f"{f.name}_{i}".encode()).hexdigest()
+                          col.add(ids=[doc_id], embeddings=[get_embedding(chunk)],
+                              documents=[chunk], metadatas=[{"source": f.name, "chunk": i}])
+                          total += 1
+                      print(f"  {f.name}: {len(chunks)} chunks")
+                  except Exception as e: print(f"  {f.name}: ERROR {e}")
+
+              print(f"Synced {total} docs to ChromaDB")
+              EOF
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: rag-data
+              mountPath: /rag-data
+              readOnly: true
       containers:
         - name: api
-          image: ghcr.io/jimjrxieb/portfolio-api:backend-v1
+          image: ghcr.io/jimjrxieb/portfolio-api:backend-v2
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
@@ -52,11 +184,11 @@ spec:
             - name: API_HOST
               value: "0.0.0.0"
             - name: CHROMA_HOST
-              value: "chroma"
+              value: "chromadb"
             - name: CHROMA_PORT
               value: "8000"
             - name: CHROMA_URL
-              value: "http://chroma:8000"
+              value: "http://chromadb:8000"
             - name: RAG_NAMESPACE
               value: "portfolio"
             - name: DATA_DIR
@@ -83,6 +215,9 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+        - name: rag-data
+          configMap:
+            name: rag-data
 ---
 apiVersion: v1
 kind: Service

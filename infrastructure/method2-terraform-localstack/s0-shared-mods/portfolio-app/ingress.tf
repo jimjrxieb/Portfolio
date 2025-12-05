@@ -10,7 +10,7 @@ resource "kubernetes_ingress_v1" "portfolio_api" {
       "nginx.ingress.kubernetes.io/cors-allow-methods" = "GET, POST, OPTIONS"
       "nginx.ingress.kubernetes.io/cors-allow-headers" = "Content-Type, Authorization"
       "nginx.ingress.kubernetes.io/use-regex"          = "true"
-      "nginx.ingress.kubernetes.io/rewrite-target"     = "/$2"
+      "nginx.ingress.kubernetes.io/rewrite-target"     = "/api/$2"
     }
   }
 

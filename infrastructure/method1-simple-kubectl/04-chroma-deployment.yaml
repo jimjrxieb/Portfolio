@@ -59,7 +59,7 @@ spec:
               subPath: log_config.yml
       volumes:
         - name: data
-          emptyDir: {}
+          emptyDir: {}  # Note: Data populated via ingest script or init job
         - name: tmp
           emptyDir: {}
         - name: log-config

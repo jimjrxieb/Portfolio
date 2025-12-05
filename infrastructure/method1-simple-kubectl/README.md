@@ -17,6 +17,23 @@
 - NGINX Ingress Controller installed
 - `.env` file in project root with API keys
 
+### WSL2/Ubuntu: Disable System Nginx
+
+Docker Desktop's K8s LoadBalancer needs port 80. If Ubuntu's nginx is installed, it blocks this:
+
+```bash
+# Check if system nginx is running
+systemctl status nginx
+
+# If running, disable it (one-time fix)
+sudo systemctl disable --now nginx
+
+# Verify port 80 is free
+ss -tlnp | grep :80
+```
+
+After disabling, `kubectl apply -f .` will work and Docker Desktop can bind port 80.
+
 ---
 
 ## Deployment Methods
@@ -84,6 +101,66 @@ python3 99-deploy-cloudflare.py
 ### Method C: Traditional kubectl (Basic)
 
 Simple kubectl deployment without Gatekeeper or OPA policies:
+
+```bash
+cd infrastructure/method1-simple-kubectl
+
+# Step 1: Create namespace
+kubectl apply -f 01-namespace.yaml
+
+# Step 2: Create secrets (REQUIRED - not in yaml files, contains API keys)
+python3 00-create-secrets.py
+
+# Step 3: Create RAG data ConfigMap (for automatic RAG sync)
+kubectl create configmap rag-data \
+  --from-file=../../rag-pipeline/04-processed-rag-data/ \
+  -n portfolio
+
+# Step 4: Apply all other manifests
+kubectl apply -f .
+
+# Step 5 (Optional): Start Cloudflare tunnel for public access
+python3 99-deploy-cloudflare.py
+```
+
+**Important Notes:**
+- Secrets are NOT in yaml files (they contain API keys) - run `00-create-secrets.py` first
+- RAG data ConfigMap must be created via `kubectl create` (too large for `kubectl apply`)
+- The API deployment includes init containers that automatically sync RAG data to ChromaDB on every pod start
+
+### Automatic RAG Sync
+
+The API deployment now includes init containers that:
+1. **wait-for-chromadb**: Waits for ChromaDB to be ready
+2. **rag-sync**: Syncs RAG data from ConfigMap to ChromaDB
+
+This means RAG data is **automatically populated** on every deployment or pod restart - no manual `python run_pipeline.py k8s` needed!
+
+---
+
+## Server Restart Recovery
+
+After a server restart, run the startup script to restore everything:
+
+```bash
+cd infrastructure/method1-simple-kubectl
+./startup.sh
+```
+
+**What it does:**
+
+1. Checks K8s is running
+2. Waits for pods to be healthy
+3. Checks if ChromaDB has data (prompts re-sync if empty)
+4. Starts cloudflared tunnel
+5. Starts port-forward (8090 -> nginx ingress)
+6. Verifies API health
+
+**With full RAG re-sync:**
+
+```bash
+./startup.sh --full
+```
 
 ---
 
@@ -232,6 +309,91 @@ kubectl delete namespace portfolio
 | Service | portfolio-api | ClusterIP for API |
 | Service | portfolio-ui | ClusterIP for UI |
 | Ingress | portfolio | External access via nginx |
+
+---
+
+## Cloudflare Tunnel Setup (Public Access)
+
+The Portfolio is exposed to the internet via **Cloudflare Tunnel** at `linksmlm.com`.
+
+### Architecture
+
+```text
+Internet → linksmlm.com → Cloudflare Edge → cloudflared tunnel
+                                                   ↓
+                                           localhost:8090
+                                                   ↓
+                                    kubectl port-forward (ingress:80)
+                                                   ↓
+                                           nginx ingress
+                                                   ↓
+                                    portfolio-api / portfolio-ui
+```
+
+### Tunnel Requirements
+
+1. **Cloudflare account** with domain configured
+2. **Tunnel created** in Cloudflare Zero Trust dashboard
+3. **Tunnel token** in `.env` file as `CLOUDFLARED_TUNNEL_TOKEN`
+
+### Tunnel Configuration
+
+The cloudflared config file (`~/.cloudflared/config.yml`):
+
+```yaml
+tunnel: <your-tunnel-id>
+credentials-file: /home/<user>/.cloudflared/credentials.json
+
+ingress:
+  - hostname: linksmlm.com
+    service: http://localhost:8090
+  - service: http_status:404
+```
+
+### Running the Tunnel
+
+#### Automated (via deploy script)
+
+```bash
+python3 99-deploy-cloudflare.py
+```
+
+#### Manual Setup
+
+```bash
+# Start cloudflared (background)
+cloudflared tunnel --config ~/.cloudflared/config.yml run &
+
+# Start port-forward to bridge to nginx ingress (background)
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8090:80 &
+```
+
+### Verify Tunnel
+
+```bash
+# Test API health via tunnel chain
+curl -H "Host: linksmlm.com" http://localhost:8090/api/chat/health
+
+# Test from internet (if DNS is configured)
+curl https://linksmlm.com/api/chat/health
+```
+
+### Tunnel Troubleshooting
+
+```bash
+# Check cloudflared is running
+ps aux | grep cloudflared
+
+# Check port-forward is running
+ps aux | grep "port-forward.*8090"
+
+# Check cloudflared logs
+journalctl -u cloudflared -f
+
+# Restart the tunnel
+pkill cloudflared
+cloudflared tunnel --config ~/.cloudflared/config.yml run &
+```
 
 ---
 

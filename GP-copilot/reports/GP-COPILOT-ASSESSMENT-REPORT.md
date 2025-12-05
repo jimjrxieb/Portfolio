@@ -109,11 +109,11 @@ The **Portfolio** project has been assessed by GP-Copilot and is **production-re
 - `01-bio.md` - Professional biography and mission
 - `04-projects.md` - Detailed project descriptions
 - `06-jade.md` - LinkOps AI-BOX technical documentation
-- `zrs-management-case-study.md` - Client case study
+- `zrs-management-case-study.md` - Testing partnership documentation
 - `gojo-golden-set.md` - Q&A validation set
 - DevOps/DevSecOps expertise (Kubernetes, CI/CD, IaC)
 - AI/ML expertise (RAG, LLMs, vector databases)
-- Professional experience (Guidepoint, ZRS Management)
+- Testing partnerships (ZRS Management property reporting)
 - Certifications (CKA, Security+)
 
 **RAG Pipeline**:

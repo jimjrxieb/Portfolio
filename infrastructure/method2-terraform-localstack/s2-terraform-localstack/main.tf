@@ -66,9 +66,10 @@ module "kubernetes_app" {
   namespace   = "portfolio"
   environment = "dev"
 
-  api_image    = "ghcr.io/jimjrxieb/portfolio-api:security-v3"
+  # Use same images as Method 1
+  api_image    = "ghcr.io/jimjrxieb/portfolio-api:backend-v2"
   ui_image     = "ghcr.io/jimjrxieb/portfolio-ui:vite-fix"
-  chroma_image = "chromadb/chroma:0.4.18"
+  chroma_image = "chromadb/chroma:0.5.18"
 
   claude_api_key     = var.claude_api_key
   openai_api_key     = var.openai_api_key
@@ -78,6 +79,10 @@ module "kubernetes_app" {
   api_replicas    = 1
   ui_replicas     = 1
   chroma_replicas = 1
+
+  # Enable RAG sync init containers
+  enable_rag_sync    = true
+  rag_configmap_name = "rag-data"
 
   depends_on = [module.opa_policies]
 }

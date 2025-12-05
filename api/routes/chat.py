@@ -219,7 +219,8 @@ async def chat_with_sheyla(request: ChatRequest):
 
 async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
     """
-    Fallback LLM response when conversation engine fails
+    Fallback LLM response when conversation engine fails.
+    Uses RAG context to ground responses and prevent hallucination.
     """
     try:
         # Get LLM engine
@@ -227,22 +228,48 @@ async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
         if not engine:
             return "I'm experiencing some technical difficulties with my AI engine. Please try again in a moment."
 
-        # Prepare context with RAG results
-        context_text = ""
-        if rag_results:
-            context_text = (
-                "\n\nRelevant context from knowledge base:\n"
-                + "\n".join(rag_results[:2])
-            )
+        # Build grounded system prompt with RAG context
+        grounded_system_prompt = f"""{SYSTEM_PROMPT}
 
-        # Prepare messages for LLM
+CRITICAL GROUNDING INSTRUCTIONS:
+You MUST follow these rules strictly:
+
+1. ONLY use information from the [KNOWLEDGE BASE CONTEXT] section below to answer questions
+2. If the context doesn't contain relevant information, say: "I don't have specific information about that in my knowledge base. I can tell you about Jimmie's DevSecOps experience, AI projects, or security work if you'd like."
+3. DO NOT make up facts, projects, dates, or details not in the context
+4. DO NOT hallucinate or invent information
+5. If you're unsure, acknowledge the limitation rather than guessing
+6. Cite which document your information comes from when possible"""
+
+        # Format RAG context clearly
+        if rag_results:
+            context_section = "\n\n---\n".join(rag_results[:3])
+            context_block = f"""
+
+[KNOWLEDGE BASE CONTEXT]
+The following information is from Jimmie Coleman's verified knowledge base. Use ONLY this information to answer:
+
+{context_section}
+
+[END KNOWLEDGE BASE CONTEXT]
+"""
+        else:
+            context_block = """
+
+[KNOWLEDGE BASE CONTEXT]
+No relevant context was retrieved from the knowledge base for this query.
+Please respond honestly that you don't have specific information available.
+[END KNOWLEDGE BASE CONTEXT]
+"""
+
+        # Prepare messages with clear structure
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"{message}{context_text}"},
+            {"role": "system", "content": grounded_system_prompt},
+            {"role": "user", "content": f"{context_block}\n\n[USER QUESTION]\n{message}"},
         ]
 
-        # Call LLM API
-        response = await engine.chat_completion(messages)
+        # Call LLM API with lower temperature for factual responses
+        response = await engine.chat_completion(messages, max_tokens=1024)
         return response.get(
             "content",
             "I apologize, but I'm having trouble generating a response right now.",

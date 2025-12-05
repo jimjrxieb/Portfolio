@@ -77,10 +77,10 @@ EXPERTISE AREAS:
 - Security: OPA/Conftest policies, container security, compliance
 
 KEY PROJECTS:
-1. LinkOps AI-BOX: On-premises AI platform with local LLMs for data-sensitive clients
+1. LinkOps AI-BOX: On-premises AI platform with Qwen2.5 1.5B + ChromaDB + RPAs
 2. Portfolio Platform: Production RAG system (ChromaDB + Claude API + Kubernetes)
-3. ZRS Management: Client success story demonstrating enterprise deployment
-4. CI/CD Pipelines: 7-scanner security pipeline, automated deployment workflows
+3. ZRS Management: Testing partnership - property reporting and marketing automation
+4. CI/CD Pipelines: 6-scanner security pipeline, automated deployment workflows
 
 RESPONSE GUIDELINES:
 - Answer based on available knowledge about Jimmie's work

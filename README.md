@@ -140,7 +140,7 @@ The system includes sophisticated anti-hallucination detection:
 - DevOps/DevSecOps expertise (Kubernetes, CI/CD, Infrastructure as Code)
 - AI/ML expertise (RAG, LLMs, vector databases)
 - Project descriptions (LinkOps AI-BOX, Afterlife, etc.)
-- Client case studies (ZRS Management)
+- Testing partnerships (ZRS Management property reporting)
 - FAQ and comprehensive portfolio documentation
 
 **Ingestion Pipeline**

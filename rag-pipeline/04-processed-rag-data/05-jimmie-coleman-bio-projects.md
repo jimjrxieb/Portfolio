@@ -51,27 +51,35 @@ Jimmie Coleman is a self-taught DevSecOps Engineer and AI Solutions Architect wi
 ### 1. LinkOps AI-BOX with Jade Assistant (Primary Project)
 
 **Status**: Raising investment for product development
-**Client**: ZRS Management (Orlando) - live deployment
+**Testing Partner**: ZRS Management (Orlando) - property management reporting and marketing automation
 
 **Problem Solved**: Companies want AI but fear security risks and lack technical resources. Cloud solutions expose sensitive data.
 
-**Solution**: Plug-and-play hardware box with industry-specific fine-tuned AI that keeps all data local.
+**Solution**: Plug-and-play hardware box with local AI that keeps all data on-premises.
 
-**Technical Innovation**:
-- Fine-tuned LLM for property management and fair housing compliance
-- Built-in RAG embedder with user-friendly GUI for company data vectorization
-- LangGraph orchestration for custom MCP tools
-- RPA automation capabilities for workflow automation
-- Zero cloud uploads - complete data sovereignty
-- Ask: "How many late rent notices do I need to send?" → Get compliant, automated workflows
+**Technical Stack**:
+- Qwen2.5 1.5B LLM for local inference
+- ChromaDB for vector storage and RAG
+- Custom RPAs for workflow automation
+- Okta session integration for secure data gathering
+
+**Current Capabilities**:
+- Gathers and vectorizes weekly property information through Okta sessions
+- Provides reports for upper management and property owners
+- Queries property data via chatbox (vacancies, move-ins, etc.)
+- Uses company policies and recommended formats for reports
+- Alerts and summarizes work orders for maintenance tracking
+
+**In Development**:
+- Vendor suggestions based on work history, cost, and quality of work
+- Invoice and contractor payment automation (pending permission)
 
 **Business Value**:
-- Immediate productivity gains without technical complexity
-- Data stays on-premises (critical for property management, healthcare, legal)
+- Data stays completely local (critical for property management, healthcare, legal)
 - No ongoing cloud costs or subscription fees
 - Peace of mind for data-sensitive industries
 
-**Tech Stack**: HuggingFace fine-tuned models, RAG embeddings, LangGraph, RPA automation, secure hardware box
+**Tech Stack**: Qwen2.5 1.5B, ChromaDB, RPA automation, Okta integration, secure hardware box
 
 ### 2. Portfolio RAG System (This Project)
 
@@ -99,23 +107,26 @@ Jimmie Coleman is a self-taught DevSecOps Engineer and AI Solutions Architect wi
 - Infrastructure as Code
 - Full-stack development skills
 
-### 3. ZRS Management Deployment
+### 3. ZRS Management Testing Partnership
 
-**Client**: ZRS Management (Orlando, FL)
+**Partner**: ZRS Management (Orlando, FL)
 **Industry**: Property Management
-**Deployment**: Jade Box (LinkOps AI-BOX) for property operations
+**Role**: Built RPAs for reports and marketing automation
 
-**Use Cases**:
-- Automated fair housing compliance checking
-- Late rent notice workflow automation
-- Property management task orchestration
-- Tenant communication automation
+**Technical Implementation**:
+- Jade Box gathers and vectorizes weekly information through Okta sessions
+- Qwen2.5 1.5B LLM with ChromaDB for local RAG
+- Custom RPAs for property reporting workflows
 
-**Results**:
-- Real-world production deployment (not just demo)
-- Immediate productivity gains
-- Complete data privacy (all local processing)
-- Demonstrated product-market fit
+**Current Capabilities**:
+- Property data queries via chatbox (vacancies, move-ins, etc.)
+- Reports for upper management and property owners
+- Uses ZRS policies and recommended formats
+- Work order alerts and summaries
+
+**In Development**:
+- Vendor suggestions based on work history, cost, and quality
+- Invoice and contractor payment automation (pending permission)
 
 ### 4. LinkOps Afterlife (Open Source)
 
@@ -207,16 +218,21 @@ Jimmie Coleman is a self-taught DevSecOps Engineer and AI Solutions Architect wi
 ## Interview Talking Points
 
 ### "Tell me about yourself"
-"I'm a DevSecOps Engineer and AI Solutions Architect currently raising funding for LinkOps AI-BOX - a plug-and-play AI platform for data-sensitive industries. I solve the main problem keeping companies from using AI: security and complexity. My first client, ZRS Management in Orlando, is already using the Jade Box for automated property management workflows. I bridge the gap between fancy AI technology and real-world business needs."
+"I'm a self-taught DevSecOps Engineer and AI Solutions Architect with about 2 years of hands-on experience. I'm currently raising funding for LinkOps AI-BOX - a plug-and-play AI platform for data-sensitive industries. I solve the main problem keeping companies from using AI: security and complexity. I've been testing with ZRS Management in Orlando, building RPAs for property management reporting. I bridge the gap between fancy AI technology and real-world business needs."
 
 ### "What's your biggest technical achievement?"
-"Building the LinkOps AI-BOX with Jade assistant - a complete AI platform that property managers can literally plug in and ask 'How many late rent notices do I need?' and get compliant, automated workflows. It combines a fine-tuned LLM for fair housing compliance, RAG embedding with a GUI for company data, LangGraph for custom tools, and RPA automation - all while keeping sensitive property data completely local. It's innovation meeting practicality."
+"Building the LinkOps AI-BOX with Jade assistant - a complete AI system using Qwen2.5 1.5B, ChromaDB, and custom RPAs. It gathers and vectorizes weekly property information through Okta sessions, provides reports for management, and lets property managers query data via chatbox - like 'How many vacancies do we have?' It alerts on work orders and I'm currently adding vendor suggestions based on work history and cost. All while keeping sensitive property data completely local."
 
 ### "Tell me about your DevSecOps experience"
-"I'm CKA and Security+ certified with hands-on experience building production Kubernetes deployments. I've implemented 5-layer security (Conftest in CI/CD, Gatekeeper for admission control, NetworkPolicies for zero-trust networking, RBAC for least privilege, and pod security contexts). My GitHub shows real projects with Terraform modules, GitOps patterns, and automated security scanning. This Portfolio itself demonstrates 3 different deployment methods for different complexity levels."
+"I'm CKA and Security+ certified with about 2 years of self-taught, hands-on experience building production Kubernetes deployments. I've implemented 5-layer security (Conftest in CI/CD, Gatekeeper for admission control, NetworkPolicies for zero-trust networking, RBAC for least privilege, and pod security contexts). My GitHub shows real projects with Terraform modules, GitOps patterns, and automated security scanning. This Portfolio itself demonstrates 3 different deployment methods for different complexity levels."
 
 ### "What makes you different?"
 "While others build complicated cloud systems, I focus on practical solutions. The Jade Box solves trust - the #1 thing keeping companies from AI. I don't just build technology, I build confidence. My work is about making AI accessible and secure for companies that have been left behind."
+
+## Mentorship & Inspiration
+
+### Constant Young
+Constant Young is Jimmie's mentor and Mr. Frank's second favorite. He is the domain SME (Subject Matter Expert) behind GP-Copilot. Constant set Jimmie on the DevSecOps path, persuading him to obtain his CompTIA Security+ and CKA certifications. Jimmie looks up to Constant like Deku admires All Might in My Hero Academia - he's someone Jimmie truly aspires to be like in the cloud security world. Having a mentor like Constant has been invaluable to Jimmie's professional growth and technical development.
 
 ## Contact & Links
 
@@ -228,7 +244,7 @@ Jimmie Coleman is a self-taught DevSecOps Engineer and AI Solutions Architect wi
 ## Current Focus
 
 1. **Raising investment** for LinkOps AI-BOX product development
-2. **Expanding ZRS deployment** and gathering metrics
+2. **Expanding ZRS testing** and gathering metrics
 3. **Building portfolio** of real-world AI deployments
 4. **Open source contributions** to AI/infrastructure projects
 

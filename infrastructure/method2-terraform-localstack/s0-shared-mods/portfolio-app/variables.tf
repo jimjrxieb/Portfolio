@@ -19,7 +19,7 @@ variable "environment" {
 variable "api_image" {
   description = "Docker image for portfolio API"
   type        = string
-  default     = "ghcr.io/jimjrxieb/portfolio-api:security-v3"
+  default     = "ghcr.io/jimjrxieb/portfolio-api:backend-v2"
 }
 
 variable "ui_image" {
@@ -31,7 +31,7 @@ variable "ui_image" {
 variable "chroma_image" {
   description = "Docker image for ChromaDB"
   type        = string
-  default     = "chromadb/chroma:0.4.18"
+  default     = "chromadb/chroma:0.5.18"
 }
 
 # ============================================================================
@@ -171,4 +171,20 @@ variable "chroma_replicas" {
   description = "Number of ChromaDB replicas"
   type        = number
   default     = 1
+}
+
+# ============================================================================
+# RAG Sync Configuration
+# ============================================================================
+
+variable "enable_rag_sync" {
+  description = "Enable automatic RAG sync via init containers"
+  type        = bool
+  default     = true
+}
+
+variable "rag_configmap_name" {
+  description = "Name of the ConfigMap containing RAG data files"
+  type        = string
+  default     = "rag-data"
 }
