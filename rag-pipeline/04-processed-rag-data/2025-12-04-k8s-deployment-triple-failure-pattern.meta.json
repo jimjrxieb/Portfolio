@@ -1,0 +1,10 @@
+{
+  "source": "2025-12-04-k8s-deployment-triple-failure-pattern.md",
+  "title": "K8s Deployment Triple Failure Pattern",
+  "prepared_at": "2025-12-05T11:25:08.011166",
+  "word_count": 185,
+  "char_count": 1353,
+  "original_format": ".md",
+  "embedding_model": "nomic-embed-text",
+  "embedding_dims": 768
+}

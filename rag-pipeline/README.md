@@ -1,188 +1,217 @@
-# RAG Data Ingestion Pipeline 📊
+# RAG Data Ingestion Pipeline
 
-**Separate service for processing and ingesting data that Jade needs to know**
+**Assembly-line workflow for processing documents into ChromaDB vectors**
 
-## Purpose
-
-This pipeline runs on a **separate port** and handles:
-1. **Data Input**: Raw documents, files, content
-2. **Preprocessing**: Sanitization and formatting
-3. **Intelligence Decision**: Embed vs regular doc storage
-4. **Storage**: Proper organization in `/data` or `/docs`
-
-## Flow Architecture
+## Directory Structure
 
 ```
-Input Box → Sanitize → Preprocess → Decision → Storage → Jade Access
+rag-pipeline/
+├── 00-new-rag-data/           # Drop raw files here (.md, .txt, .json, .jsonl)
+├── 02-prepared-rag-data/      # Sanitized + formatted files (inspection point)
+│   └── prepare_data.py        # Stage 1-3: Discover, Sanitize, Format
+├── 03-ingest-rag-data/        # Embedding station
+│   ├── ingest_data.py         # Stage 4-5: Chunk, Embed, Store, Archive
+│   └── ingest_k8s.sh          # Sync to K8s ChromaDB (production)
+├── 04-processed-rag-data/     # Archive of ingested files
+├── run_pipeline.py            # All-in-one (runs all 5 stages together)
+└── README.md
 ```
 
-### Decision Logic:
-```python
-Ask: "Will someone query this with natural language questions?"
-├── YES → Embed it (ChromaDB) → /data/chroma/
-└── NO  → Regular doc → /docs/ or /data/knowledge/
+## Quick Start
+
+### Option A: Two-Step Pipeline (Recommended)
+
+**Step 1: Prepare** - Sanitize and format raw files
+```bash
+cd rag-pipeline/02-prepared-rag-data
+python prepare_data.py
+```
+- Reads from `00-new-rag-data/`
+- Outputs cleaned `.md` + `.meta.json` sidecars
+- **Inspection point**: Review files before embedding
+
+**Step 2: Ingest** - Embed and store in ChromaDB
+
+```bash
+cd ../03-ingest-rag-data
+
+# Local ChromaDB (dev/backup)
+python ingest_data.py
+
+# OR K8s ChromaDB (production)
+./ingest_k8s.sh
 ```
 
-## Current Setup
+- Reads from `02-prepared-rag-data/`
+- Chunks documents (~512 tokens)
+- Embeds via Ollama `nomic-embed-text` (768-dim)
+- Stores in ChromaDB `portfolio_knowledge` collection
+- Archives to `04-processed-rag-data/`
 
-### Port Configuration
-- **Main API**: Port 8000 (Jade-Brain integration)
-- **RAG Pipeline**: Port 8003 (Data ingestion)
-- **ChromaDB**: Port 8001 (Vector database)
-- **UI**: Port 5173 (Frontend)
+### Option B: All-in-One
 
-### Service Endpoints
-- `POST /ingest` - Process and ingest documents
-- `POST /sanitize` - Clean and preprocess data
-- `POST /decide` - Determine storage strategy
-- `GET /status` - Pipeline health check
-
-## Data Flow
-
-### 1. **Input Processing**
-```
-Raw Data Input → Sanitization → Format Detection
-```
-
-### 2. **Intelligence Decision**
-```python
-def decide_storage_strategy(content, metadata):
-    if is_queryable_content(content):
-        return "embed"  # → ChromaDB
-    else:
-        return "document"  # → Regular storage
-```
-
-### 3. **Storage Routing**
-```
-Embed Decision:
-├── YES → Chunk → Embed → ChromaDB → /data/chroma/
-└── NO  → Organize → File → /docs/ or /data/knowledge/
-```
-
-### 4. **Jade Access**
-```
-Jade Query → RAG Interface → ChromaDB Search → Context → Response
-```
-
-## Usage
-
-### Start Pipeline Service
 ```bash
 cd rag-pipeline
-python3 rag_api.py  # Runs on port 8003
+python run_pipeline.py
+```
+Runs all 5 stages sequentially without inspection points.
+
+## Pipeline Stages
+
+```
+STAGE 1: DISCOVER   → Find raw files in 00-new-rag-data/
+STAGE 2: SANITIZE   → Clean encoding, fix whitespace, remove garbage
+STAGE 3: FORMAT     → Extract metadata, standardize structure
+         ─── INSPECTION POINT (02-prepared-rag-data/) ───
+STAGE 4: CHUNK      → Split into ~512 token semantic chunks
+STAGE 5: EMBED      → Generate 768-dim vectors via Ollama
+STAGE 6: STORE      → Upsert to ChromaDB collection
+STAGE 7: ARCHIVE    → Move to 04-processed-rag-data/
 ```
 
-### Ingest Data via API
-```bash
-curl -X POST http://localhost:8003/ingest \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Jimmie is an AI engineer...",
-    "source": "bio.md",
-    "type": "knowledge"
-  }'
-```
+## Adding New RAG Data
 
-### Web Interface (Future)
-```html
-<form action="http://localhost:8003/ingest" method="post">
-  <textarea name="content" placeholder="Paste content here..."></textarea>
-  <input type="text" name="source" placeholder="Source name">
-  <button type="submit">Process & Ingest</button>
-</form>
-```
+1. **Drop files** in `00-new-rag-data/`
+   - Supported: `.md`, `.txt`, `.json`, `.jsonl`
+   - Use descriptive filenames (becomes source metadata)
 
-## Storage Strategy
+2. **Run prepare** to sanitize
+   ```bash
+   cd 02-prepared-rag-data && python prepare_data.py
+   ```
 
-### Embeddable Content (ChromaDB)
-- **Criteria**: Natural language queryable
-- **Examples**:
-  - Bio information
-  - Project descriptions
-  - Technical expertise
-  - FAQ content
-- **Storage**: `/data/chroma/` (vector database)
+3. **Inspect** the output in `02-prepared-rag-data/`
+   - Check `.meta.json` for extracted titles
+   - Verify content looks correct
 
-### Document Content (File System)
-- **Criteria**: Reference material, configs
-- **Examples**:
-  - Docker configurations
-  - Kubernetes manifests
-  - Scripts and code
-  - Binary assets
-- **Storage**: `/docs/` or organized in `/data/`
+4. **Run ingest** to embed and store
+   ```bash
+   cd ../03-ingest-rag-data && python ingest_data.py
+   ```
 
-## Integration with Jade-Brain
-
-### Query Flow
-```
-User Question → Jade-Brain → RAG Interface → ChromaDB → Context → LLM → Response
-```
-
-### Knowledge Access
-- **Jade-Brain** queries ChromaDB for semantic search
-- **Pipeline** populates ChromaDB with processed content
-- **Clean separation** between ingestion and query
+5. **Verify** in ChromaDB
+   ```bash
+   python3 -c "
+   import chromadb
+   client = chromadb.PersistentClient(path='../data/chroma')
+   col = client.get_collection('portfolio_knowledge')
+   print(f'Total documents: {col.count()}')
+   "
+   ```
 
 ## Configuration
 
 ### Environment Variables
-```bash
-# Pipeline Configuration
-RAG_PIPELINE_PORT=8003
-CHROMA_URL=http://localhost:8001
-EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
-# Storage Paths
-DATA_DIR=/data
-DOCS_DIR=/docs
-KNOWLEDGE_DIR=/data/knowledge
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OLLAMA_URL` | `http://localhost:11434` | Ollama API endpoint |
+| `EMBED_MODEL` | `nomic-embed-text` | Embedding model (768-dim) |
+| `CHROMA_URL` | None (uses local) | ChromaDB HTTP URL for K8s |
+| `CHROMA_DIR` | `../data/chroma` | Local ChromaDB path |
 
-# Processing Settings
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-SANITIZE_HTML=true
-```
+### Chunking Settings (in ingest_data.py)
 
-### Decision Rules
 ```python
-EMBED_RULES = {
-    "file_types": [".md", ".txt", ".pdf"],
-    "content_types": ["bio", "project", "skill", "faq"],
-    "min_length": 50,
-    "has_questions": True
-}
+CHUNK_SIZE = 512      # Max tokens per chunk
+CHUNK_OVERLAP = 50    # Overlap between chunks
+```
 
-DOCUMENT_RULES = {
-    "file_types": [".yaml", ".json", ".py", ".sh"],
-    "content_types": ["config", "script", "binary"],
-    "reference_only": True
+## Requirements
+
+- **Python 3.10+**
+- **Ollama** running with `nomic-embed-text` model
+- **ChromaDB** (local PersistentClient or HTTP server)
+
+```bash
+# Pull embedding model
+ollama pull nomic-embed-text
+
+# Install dependencies
+pip install chromadb requests
+```
+
+## Metadata Sidecars
+
+Each prepared file gets a `.meta.json` sidecar:
+
+```json
+{
+  "source": "gp-copilot-overview.md",
+  "title": "GP-Copilot: Autonomous Security Platform",
+  "prepared_at": "2025-12-05T11:25:08.014580",
+  "word_count": 701,
+  "char_count": 5124,
+  "original_format": ".md",
+  "embedding_model": "nomic-embed-text",
+  "embedding_dims": 768
 }
 ```
 
-## Benefits of This Design
+## ChromaDB Schema
 
-### 1. **Clean Separation**
-- **Ingestion** service separate from **query** service
-- **Preprocessing** isolated from **conversation**
-- **Data decisions** centralized
+Documents are stored with this metadata structure:
 
-### 2. **Intelligent Storage**
-- **Automatic routing** based on content analysis
-- **Optimal performance** for different content types
-- **Proper organization** in filesystem
+```python
+{
+    "source": "filename.md",           # Original filename
+    "title": "Document Title",         # Extracted from # header
+    "chunk_index": 0,                  # Position in document
+    "header": "## Section Header",     # Current section context
+    "ingested_at": "2025-12-05T..."    # Timestamp
+}
+```
 
-### 3. **Scalable Architecture**
-- **Independent scaling** of ingestion vs query
-- **Service isolation** for maintenance
-- **Clear data flow** for debugging
+## Local vs K8s ChromaDB
 
-### 4. **User-Friendly**
-- **Simple input interface** for content
-- **Automatic processing** decisions
-- **Immediate availability** to Jade
+Two separate databases - local acts as dev/backup, K8s is production:
+
+```
+┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
+│       LOCAL (Dev/Backup)            │     │       K8S (Production)              │
+├─────────────────────────────────────┤     ├─────────────────────────────────────┤
+│  python ingest_data.py              │     │  ./ingest_k8s.sh                    │
+│           │                         │     │           │                         │
+│           ▼                         │     │           ▼                         │
+│  /Portfolio/data/chroma/            │     │  chroma pod (PVC storage)           │
+│  └── chroma.sqlite3                 │     │  └── portfolio_knowledge            │
+│                                     │     │           │                         │
+│  Used for:                          │     │           ▼                         │
+│  • Local testing                    │     │  portfolio-api pod → linksmlm.com   │
+│  • Backup/recovery                  │     │                                     │
+│  • Fast iteration                   │     │  Used for:                          │
+│                                     │     │  • Production chatbot               │
+└─────────────────────────────────────┘     └─────────────────────────────────────┘
+```
+
+**Workflow:**
+1. Run `prepare_data.py` (same for both)
+2. Run `ingest_data.py` for local backup
+3. Run `./ingest_k8s.sh` to push to production
+
+**Recovery:** If K8s PVC dies, re-run `./ingest_k8s.sh` to restore from archived files.
+
+## Troubleshooting
+
+### Ollama not reachable
+```bash
+# Check Ollama is running
+curl http://localhost:11434/api/tags
+
+# Pull embedding model if missing
+ollama pull nomic-embed-text
+```
+
+### Embedding dimension mismatch
+The ingestion model MUST match the query model. Both use `nomic-embed-text` (768-dim).
+
+### Files not appearing in ChromaDB
+1. Check files are in `00-new-rag-data/` with supported extensions
+2. Run `prepare_data.py` first
+3. Verify prepared files exist in `02-prepared-rag-data/`
+4. Then run `ingest_data.py`
 
 ---
 
-**This pipeline ensures Jade has access to properly processed, intelligently stored knowledge while keeping the ingestion process clean and separate.**
+**Author**: Jimmie Coleman
+**Last Updated**: 2025-12-05

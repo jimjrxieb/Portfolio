@@ -32,6 +32,7 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
     description: 'Intelligent agents for Kubernetes, OPA policies, and CI/CD pipelines',
     status: 'Production',
     icon: '🔒',
+    repoUrl: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot',
     highlights: [
       'Kubernetes Agent: Automated security hardening and compliance validation',
       'OPA Agent: Dynamic policy generation using machine learning models',
@@ -62,6 +63,7 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
     description: 'RAG-powered portfolio chatbot with production deployment',
     status: 'Active',
     icon: '🤖',
+    repoUrl: 'https://github.com/jimjrxieb/Portfolio',
     highlights: [
       'FastAPI backend + Claude API (Anthropic) + ChromaDB',
       'Semantic search with 2,656+ embedded document vectors',
@@ -325,31 +327,6 @@ export default function Projects() {
         )}
       </div>
 
-      {/* Job-Aligned Demonstrated Practices */}
-      <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-3">
-          Key Responsibilities Demonstrated
-        </h4>
-        <div className="grid grid-cols-1 gap-2 text-xs">
-          {[
-            'CI/CD Pipelines: GitHub Actions with 6-tool parallel security scanning',
-            'Infrastructure-as-Code: Terraform + CloudFormation + Kubernetes manifests',
-            'Container Orchestration: Kubernetes (CKA) with 3 deployment methods',
-            'Security Automation: OPA/Conftest policies, Gatekeeper admission control',
-            'GitOps Workflows: ArgoCD automated pull-based deployments',
-            'Cloud Security: IAM policies, encryption, network hardening, compliance',
-            'Monitoring & Logging: Kubernetes health checks, API observability',
-            'Cost Optimization: LocalStack for AWS testing, resource limits enforcement',
-            'Incident Response: Production troubleshooting, root cause analysis',
-            'Documentation: Technical processes, architecture diagrams, runbooks',
-          ].map((practice, index) => (
-            <div key={index} className="flex items-start gap-2">
-              <span className="text-jade-400">✅</span>
-              <span className="text-gojo-secondary">{practice}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

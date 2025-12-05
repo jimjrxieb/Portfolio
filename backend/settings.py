@@ -20,7 +20,7 @@ CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 # LLM Configuration - SINGLE SOURCE OF TRUTH
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "claude")  # claude, openai, or local
 LLM_API_KEY = os.getenv("CLAUDE_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "claude-3-5-sonnet-20241022")  # Default to Claude 3.5 Sonnet
+LLM_MODEL = os.getenv("LLM_MODEL", "claude-3-haiku-20240307")  # Claude 3 Haiku for cost efficiency
 
 # Provider-specific settings
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")

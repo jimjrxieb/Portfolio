@@ -129,12 +129,24 @@ async def chat_with_sheyla(request: ChatRequest):
         rag_results = []
         citations = []
 
+        # RAG enabled - embedding model pre-downloaded in init container (CPU/ONNX)
         if request.include_citations:
             try:
-                # Query knowledge base for relevant information
+                import asyncio
+                # Query knowledge base with timeout to avoid hanging on embedding model download
                 engine = get_rag_engine()
                 if engine:
-                    rag_docs = engine.search(request.message, n_results=3)
+                    # Run search with 5 second timeout
+                    try:
+                        rag_docs = await asyncio.wait_for(
+                            asyncio.get_event_loop().run_in_executor(
+                                None, lambda: engine.search(request.message, n_results=3)
+                            ),
+                            timeout=5.0
+                        )
+                    except asyncio.TimeoutError:
+                        print("RAG search timed out - continuing without context")
+                        rag_docs = []
                 else:
                     rag_docs = []
 

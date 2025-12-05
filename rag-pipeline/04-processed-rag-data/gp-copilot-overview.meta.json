@@ -1,0 +1,10 @@
+{
+  "source": "gp-copilot-overview.md",
+  "title": "GP-Copilot: Autonomous Security Platform",
+  "prepared_at": "2025-12-05T11:25:08.014580",
+  "word_count": 701,
+  "char_count": 5124,
+  "original_format": ".md",
+  "embedding_model": "nomic-embed-text",
+  "embedding_dims": 768
+}

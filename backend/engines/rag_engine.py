@@ -182,9 +182,11 @@ class RAGEngine:
             return 0
 
     def search(self, query: str, n_results: int = 5) -> List[Dict[str, Any]]:
-        """Search for relevant documents"""
+        """Search for relevant documents using Ollama embeddings (768-dim nomic-embed-text)"""
         try:
+            # Get query embedding from Ollama (must match ingestion embedding model)
             query_embedding = self._get_embedding(query)
+
             results = self.collection.query(
                 query_embeddings=[query_embedding], n_results=n_results
             )

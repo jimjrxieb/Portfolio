@@ -472,6 +472,64 @@ resource "kubernetes_deployment" "api" {
           }
         }
 
+        # Init container: Pre-download ChromaDB embedding model (ONNX, CPU-only)
+        dynamic "init_container" {
+          for_each = var.enable_rag_sync ? [1] : []
+          content {
+            name  = "download-embedding-model"
+            image = "python:3.11-slim"
+
+            security_context {
+              run_as_non_root            = true
+              run_as_user                = 10001
+              allow_privilege_escalation = false
+              capabilities {
+                drop = ["ALL"]
+              }
+            }
+
+            env {
+              name  = "HOME"
+              value = "/"
+            }
+
+            env {
+              name  = "PYTHONUSERBASE"
+              value = "/.cache/pip"
+            }
+
+            command = ["/bin/bash", "-c", <<-EOT
+              echo "=== PRE-DOWNLOADING CHROMADB EMBEDDING MODEL ==="
+              mkdir -p /.cache/pip/lib/python3.11/site-packages
+              pip install --user --no-cache-dir --quiet chromadb==0.5.18 onnxruntime
+              export PYTHONPATH=/.cache/pip/lib/python3.11/site-packages:$PYTHONPATH
+              python3 << 'EOF'
+import sys
+sys.path.insert(0, '/.cache/pip/lib/python3.11/site-packages')
+import os
+os.environ['HOME'] = '/'
+print("Initializing ChromaDB default embedding function...")
+try:
+    from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+    ef = ONNXMiniLM_L6_V2()
+    # Trigger model download by embedding a test string
+    result = ef(["test"])
+    print(f"Model downloaded successfully! Test embedding dim: {len(result[0])}")
+except Exception as e:
+    print(f"Warning: Could not pre-download model: {e}")
+    print("RAG will still work but first query may be slow")
+EOF
+              echo "=== EMBEDDING MODEL READY ==="
+            EOT
+            ]
+
+            volume_mount {
+              name       = "cache"
+              mount_path = "/.cache"
+            }
+          }
+        }
+
         container {
           name              = "api"
           image             = var.api_image
@@ -492,6 +550,12 @@ resource "kubernetes_deployment" "api" {
             value = "8000"
           }
 
+          # Full ChromaDB URL for rag_engine.py
+          env {
+            name  = "CHROMA_URL"
+            value = "http://chroma:8000"
+          }
+
           env {
             name  = "DATA_DIR"
             value = "/data"
@@ -510,6 +574,12 @@ resource "kubernetes_deployment" "api" {
           env {
             name  = "OLLAMA_URL"
             value = "http://host.docker.internal:11434"
+          }
+
+          # HOME for ChromaDB embedding model cache (pre-downloaded by init container)
+          env {
+            name  = "HOME"
+            value = "/"
           }
 
           # Security: API Keys from Secrets
@@ -609,6 +679,11 @@ resource "kubernetes_deployment" "api" {
             name       = "tmp"
             mount_path = "/tmp"
           }
+
+          volume_mount {
+            name       = "cache"
+            mount_path = "/.cache"
+          }
         }
 
         # Volumes
@@ -619,6 +694,11 @@ resource "kubernetes_deployment" "api" {
 
         volume {
           name = "tmp"
+          empty_dir {}
+        }
+
+        volume {
+          name = "cache"
           empty_dir {}
         }
 

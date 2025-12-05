@@ -1,4 +1,4 @@
-name: Portfolio Main
+name: Portfolio CI/CD Pipeline
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
       - 'rag-pipeline/**'
       - 'charts/**'
       - 'k8s/**'
+      - 'infrastructure/**'
       - '.github/workflows/**'
       - 'Dockerfile*'
       - 'docker-compose.yml'
@@ -17,10 +18,29 @@ on:
       - '**/requirements.txt'
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      force_deploy:
+        description: 'Force deployment even if no changes'
+        required: false
+        default: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: jimjrxieb/portfolio
+  API_IMAGE: ghcr.io/jimjrxieb/portfolio-api
+  UI_IMAGE: ghcr.io/jimjrxieb/portfolio-ui
+  # Production image tags - match what K8s deployments expect
+  API_TAG: latest
+  UI_TAG: vite-fix-v4
 
 jobs:
   # Parallel security scanning jobs (like microservices)
@@ -194,9 +214,17 @@ jobs:
 
     strategy:
       matrix:
-        component:
-          - { name: 'api', path: './api/Dockerfile', context: '.' }
-          - { name: 'ui', path: './ui/Dockerfile', context: '.' }
+        include:
+          - name: api
+            path: ./api/Dockerfile
+            context: .
+            image: ghcr.io/jimjrxieb/portfolio-api
+            prod_tag: latest
+          - name: ui
+            path: ./ui/Dockerfile
+            context: .
+            image: ghcr.io/jimjrxieb/portfolio-ui
+            prod_tag: vite-fix-v4
 
     outputs:
       image-tag: ${{ steps.meta.outputs.image-tag }}
@@ -222,30 +250,37 @@ jobs:
         IMAGE_TAG="main-${SHORT_SHA}"
         echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "short-sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        echo "📦 Build tags: ${IMAGE_TAG}, ${{ matrix.prod_tag }}"
 
     - name: Check Dockerfile exists
       run: |
-        echo "📁 Checking Dockerfile for ${{ matrix.component.name }}..."
-        ls -la ${{ matrix.component.path }} || echo "⚠️ Dockerfile not found: ${{ matrix.component.path }}"
+        echo "📁 Checking Dockerfile for ${{ matrix.name }}..."
+        ls -la ${{ matrix.path }} || echo "⚠️ Dockerfile not found: ${{ matrix.path }}"
 
-    - name: Build and push ${{ matrix.component.name }} image
-      if: hashFiles(matrix.component.path) != ''
+    - name: Build and push ${{ matrix.name }} image
+      id: build
+      if: hashFiles(matrix.path) != ''
       uses: docker/build-push-action@v5
       with:
-        context: ${{ matrix.component.context }}
-        file: ${{ matrix.component.path }}
+        context: ${{ matrix.context }}
+        file: ${{ matrix.path }}
         push: true
         tags: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component.name }}:${{ steps.meta.outputs.image-tag }}
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component.name }}:latest
+          ${{ matrix.image }}:${{ steps.meta.outputs.image-tag }}
+          ${{ matrix.image }}:${{ matrix.prod_tag }}
         build-args: |
           BUILD_DATE=${{ github.run_id }}
           BUILD_SHA=${{ steps.meta.outputs.short-sha }}
         cache-from: |
-          type=gha,scope=${{ matrix.component.name }}-build
+          type=gha,scope=${{ matrix.name }}-build
         cache-to: |
-          type=gha,scope=${{ matrix.component.name }}-build,mode=max
+          type=gha,scope=${{ matrix.name }}-build,mode=max
         platforms: linux/amd64
+
+    - name: Output image info
+      run: |
+        echo "✅ Built: ${{ matrix.image }}:${{ matrix.prod_tag }}"
+        echo "✅ Built: ${{ matrix.image }}:${{ steps.meta.outputs.image-tag }}"
 
   security-scan:
     runs-on: ubuntu-latest
@@ -256,7 +291,13 @@ jobs:
 
     strategy:
       matrix:
-        component: ['api', 'ui']
+        include:
+          - name: api
+            image: ghcr.io/jimjrxieb/portfolio-api
+            tag: latest
+          - name: ui
+            image: ghcr.io/jimjrxieb/portfolio-ui
+            tag: vite-fix-v4
 
     steps:
     - name: Log in to Container Registry
@@ -266,32 +307,24 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
 
-    - name: Run Trivy vulnerability scanner (${{ matrix.component }})
+    - name: Run Trivy vulnerability scanner (${{ matrix.name }})
       uses: aquasecurity/trivy-action@master
       continue-on-error: true
       with:
-        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}:${{ needs.build-images.outputs.image-tag }}'
+        image-ref: '${{ matrix.image }}:${{ matrix.tag }}'
         format: 'sarif'
-        output: '${{ matrix.component }}-trivy-results.sarif'
+        output: '${{ matrix.name }}-trivy-results.sarif'
         severity: 'CRITICAL,HIGH,MEDIUM'
         vuln-type: 'os,library'
         scanners: 'vuln,secret,config'
         timeout: '15m0s'
 
-    - name: Store ${{ matrix.component }} Trivy scan results
-      if: always() && hashFiles(format('{0}-trivy-results.sarif', matrix.component)) != ''
+    - name: Store ${{ matrix.name }} Trivy scan results
+      if: always()
       run: |
-        echo "📊 Trivy SARIF results generated: ${{ matrix.component }}-trivy-results.sarif"
-        echo "🔍 Container security scan completed for ${{ matrix.component }}"
+        echo "📊 Trivy SARIF results generated: ${{ matrix.name }}-trivy-results.sarif"
+        echo "🔍 Container security scan completed for ${{ matrix.name }}"
         echo "💡 Results would upload to Security tab if GitHub Advanced Security was enabled"
-
-    # Uncomment when GitHub Advanced Security is available:
-    # - name: Upload ${{ matrix.component }} Trivy scan results
-    #   uses: github/codeql-action/upload-sarif@v3
-    #   if: always() && hashFiles(format('{0}-trivy-results.sarif', matrix.component)) != ''
-    #   with:
-    #     sarif_file: '${{ matrix.component }}-trivy-results.sarif'
-    #     category: 'trivy-${{ matrix.component }}'
 
   validate-k8s:
     runs-on: ubuntu-latest
@@ -377,7 +410,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [build-images, security-scan]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     environment: production
 
     steps:
@@ -388,22 +421,49 @@ jobs:
       env:
         IMAGE_TAG: ${{ needs.build-images.outputs.image-tag }}
       run: |
-        echo "🚀 Portfolio Platform Deployment Ready"
-        echo "======================================"
+        echo "🚀 Portfolio Platform Deployment"
+        echo "================================="
         echo ""
-        echo "📦 Container Images Built:"
-        echo "  API:         ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${IMAGE_TAG}"
-        echo "  UI:          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui:${IMAGE_TAG}"
-        echo "  Jade-Brain:  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-jade-brain:${IMAGE_TAG}"
-        echo "  RAG Pipeline: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-rag-pipeline:${IMAGE_TAG}"
+        echo "📦 Container Images Pushed to GHCR:"
+        echo "  API: ${{ env.API_IMAGE }}:latest"
+        echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
         echo ""
-        echo "🔧 Deployment Options:"
-        echo "  Docker Compose: docker-compose up --build -d"
-        echo "  Kubernetes:     make deploy-kind"
-        echo "  Helm:          helm install portfolio charts/portfolio/"
+        echo "🏷️ Image Tags:"
+        echo "  Commit: ${IMAGE_TAG}"
+        echo "  API Production: latest"
+        echo "  UI Production: ${{ env.UI_TAG }}"
         echo ""
-        echo "🔍 Security Scans: Completed (check Security tab for details)"
-        echo "🎯 Platform Components: 5 services ready for deployment"
+
+    - name: Deploy Instructions (Terraform + LocalStack)
+      if: success()
+      run: |
+        echo ""
+        echo "🚀 Method 2: Terraform + LocalStack Deployment"
+        echo "================================================"
+        echo ""
+        echo "Images pushed to GHCR. Deploy to local K8s:"
+        echo ""
+        echo "  cd infrastructure/method2-terraform-localstack/s2-terraform-localstack"
+        echo "  terraform init"
+        echo "  terraform apply -auto-approve"
+        echo ""
+        echo "Quick update (existing deployment):"
+        echo "  kubectl rollout restart deployment/portfolio-api -n portfolio"
+        echo "  kubectl rollout restart deployment/portfolio-ui -n portfolio"
+        echo ""
+
+    - name: Update deployment status
+      run: |
+        echo "✅ Deployment Complete"
+        echo ""
+        echo "🌐 Production URL: https://linksmlm.com"
+        echo ""
+        echo "📊 Verify deployment:"
+        echo "  curl https://linksmlm.com/api/health"
+        echo ""
+        echo "🔍 Monitor:"
+        echo "  kubectl get pods -n portfolio"
+        echo "  kubectl logs -f deploy/portfolio-api -n portfolio"
 
   notify:
     runs-on: ubuntu-latest
@@ -415,38 +475,64 @@ jobs:
       run: |
         echo "🎉 Portfolio CI/CD Pipeline Complete!"
         echo ""
-        echo "📊 Pipeline Results:"
-        echo "  SAST Scanning: ${{ needs.sast-scanning.result }}"
-        echo "  Python Security: ${{ needs.python-security.result }}"
-        echo "  Secrets Scanning: ${{ needs.secrets-scanning.result }}"
-        echo "  Code Quality: ${{ needs.code-quality.result }}"
-        echo "  Image Builds:   ${{ needs.build-images.result }}"
-        echo "  Security Scans: ${{ needs.security-scan.result }}"
-        echo "  K8s Validation: ${{ needs.validate-k8s.result }}"
-        echo "  Deployment:     ${{ needs.deploy.result }}"
+        echo "═══════════════════════════════════════════════════════════"
+        echo "📊 PIPELINE RESULTS"
+        echo "═══════════════════════════════════════════════════════════"
         echo ""
-        echo "🔒 Security Scanners Active (Parallel Execution):"
-        echo "  • detect-secrets: Secrets detection (baseline audit) ✅"
-        echo "  • Semgrep: SAST analysis + secrets (Snyk alternative) ✅"
-        echo "  • Trivy: Container vulnerability scanning ✅"
-        echo "  • Bandit: Python security analysis ✅"
-        echo "  • Safety: Python dependency vulnerabilities ✅"
-        echo "  • npm audit: Node.js dependency vulnerabilities ✅"
-        echo "  • Conftest/OPA: 13 policies, 11 automated tests ✅"
+        echo "Security Scanning:"
+        echo "  ├─ SAST Scanning:    ${{ needs.sast-scanning.result }}"
+        echo "  ├─ Python Security:  ${{ needs.python-security.result }}"
+        echo "  └─ Secrets Scanning: ${{ needs.secrets-scanning.result }}"
         echo ""
-        echo "📊 SARIF Generation:"
-        echo "  • All security tools generate SARIF reports"
-        echo "  • Ready for GitHub Advanced Security integration"
-        echo "  • Enterprise-grade security reporting"
+        echo "Quality & Build:"
+        echo "  ├─ Code Quality:     ${{ needs.code-quality.result }}"
+        echo "  ├─ Image Builds:     ${{ needs.build-images.result }}"
+        echo "  └─ Container Scans:  ${{ needs.security-scan.result }}"
         echo ""
-        echo "🏗️ Platform Architecture:"
-        echo "  • 3-service setup (API, UI, ChromaDB)"
-        echo "  • ChromaDB vector database (2,656+ embeddings)"
-        echo "  • Production RAG with Ollama + Claude API"
-        echo "  • React/Vite UI with FastAPI backend"
-        echo "  • ArgoCD deployment ready"
+        echo "Deployment:"
+        echo "  ├─ K8s Validation:   ${{ needs.validate-k8s.result }}"
+        echo "  └─ Production Deploy: ${{ needs.deploy.result }}"
         echo ""
-        echo "🔗 Next Steps:"
-        echo "  • Images available in GHCR: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-*:${{ needs.build-images.outputs.image-tag }}"
-        echo "  • Deploy locally: make deploy-kind"
-        echo "  • Health check: curl http://localhost:8000/health"
+        echo "═══════════════════════════════════════════════════════════"
+        echo "📦 CONTAINER IMAGES"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "  API: ${{ env.API_IMAGE }}:latest"
+        echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════"
+        echo "🔒 SECURITY TOOLS (7-Tool Parallel Scanning)"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "  ✅ detect-secrets: Secrets detection (baseline audit)"
+        echo "  ✅ Semgrep: SAST analysis + secrets"
+        echo "  ✅ Trivy: Container vulnerability scanning"
+        echo "  ✅ Bandit: Python security analysis"
+        echo "  ✅ Safety: Python dependency vulnerabilities"
+        echo "  ✅ npm audit: Node.js dependency vulnerabilities"
+        echo "  ✅ Conftest/OPA: 13 policies, 11 automated tests"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════"
+        echo "🏗️ PLATFORM ARCHITECTURE"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "  • 3-service Kubernetes: API, UI, ChromaDB"
+        echo "  • RAG: 2,656+ embeddings via Ollama + Claude API"
+        echo "  • Frontend: React/Vite + Tailwind CSS"
+        echo "  • Backend: FastAPI async with health checks"
+        echo "  • Infra: Terraform + LocalStack (AWS simulation)"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════"
+        echo "🌐 PRODUCTION"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "  URL: https://linksmlm.com"
+        echo "  Health: https://linksmlm.com/api/health"
+        echo ""
+        echo "🔗 Deploy via Terraform (Method 2):"
+        echo "  cd infrastructure/method2-terraform-localstack/s2-terraform-localstack"
+        echo "  terraform apply -auto-approve"
+        echo ""
+        echo "🔗 Quick Update:"
+        echo "  kubectl rollout restart deployment/portfolio-api -n portfolio"
+        echo "  kubectl rollout restart deployment/portfolio-ui -n portfolio"

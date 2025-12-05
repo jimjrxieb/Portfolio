@@ -98,13 +98,37 @@ const ChatBoxFixed: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Chat Header */}
+      <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-crystal-400 to-jade-500 flex items-center justify-center">
+          <span className="text-white font-bold text-sm">S</span>
+        </div>
+        <div>
+          <h3 className="text-gojo-primary font-semibold text-sm">Sheyla</h3>
+          <p className="text-crystal-400 text-xs">AI Portfolio Assistant</p>
+        </div>
+        <div className="ml-auto">
+          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs ${
+            loading
+              ? 'bg-gold-500/20 text-gold-400'
+              : 'bg-jade-500/20 text-jade-400'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-gold-400 animate-pulse' : 'bg-jade-400'}`}></span>
+            {loading ? 'Thinking...' : 'Online'}
+          </span>
+        </div>
+      </div>
+
       {/* Chat Messages */}
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <p>👋 Hi! I'm Sheyla, Jimmie's AI assistant.</p>
-            <p className="text-sm mt-1">
-              Ask me about his DevSecOps or AI/ML work...
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-crystal-500/20 to-jade-500/20 flex items-center justify-center">
+              <span className="text-2xl">👋</span>
+            </div>
+            <p className="text-gojo-primary font-medium">Hi! I'm Sheyla</p>
+            <p className="text-gojo-secondary text-sm mt-1">
+              Ask me about Jimmie's DevSecOps or AI/ML work
             </p>
           </div>
         )}
@@ -115,15 +139,15 @@ const ChatBoxFixed: React.FC = () => {
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+              className={`max-w-[85%] px-4 py-3 rounded-2xl ${
                 msg.sender === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-800'
+                  ? 'bg-crystal-600 text-white rounded-br-md'
+                  : 'bg-snow/10 text-gojo-primary border border-white/5 rounded-bl-md'
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-              <p className="text-xs opacity-70 mt-1">
-                {msg.timestamp.toLocaleTimeString()}
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+              <p className={`text-xs mt-2 ${msg.sender === 'user' ? 'text-crystal-200' : 'text-gojo-secondary'}`}>
+                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
           </div>
@@ -131,10 +155,14 @@ const ChatBoxFixed: React.FC = () => {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                <span className="text-sm">Sheyla is thinking...</span>
+            <div className="bg-snow/10 border border-white/5 px-4 py-3 rounded-2xl rounded-bl-md">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span className="text-gojo-secondary text-sm ml-1">Sheyla is typing...</span>
               </div>
             </div>
           </div>
@@ -143,23 +171,24 @@ const ChatBoxFixed: React.FC = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p className="text-sm">
-            <strong>Error:</strong> {error}
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg">
+          <p className="text-sm flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{error}</span>
           </p>
         </div>
       )}
 
       {/* Quick Prompts */}
       <div className="space-y-2">
-        <p className="text-xs text-gray-600">Quick asks:</p>
+        <p className="text-xs text-gojo-secondary">Quick asks:</p>
         <div className="flex flex-wrap gap-2">
           {quickPrompts.slice(0, 3).map((prompt, index) => (
             <button
               key={index}
               onClick={() => handleQuickPrompt(prompt)}
               disabled={loading}
-              className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-full transition-colors disabled:opacity-50"
+              className="text-xs bg-snow/5 hover:bg-snow/10 text-crystal-400 hover:text-crystal-300 px-3 py-1.5 rounded-full border border-white/10 hover:border-crystal-500/30 transition-all disabled:opacity-50"
             >
               {prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt}
             </button>
@@ -169,32 +198,24 @@ const ChatBoxFixed: React.FC = () => {
 
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="space-y-2">
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           <input
             type="text"
             value={message}
             onChange={e => setMessage(e.target.value)}
             placeholder="Ask about my AI/ML or DevSecOps work..."
             disabled={loading}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 bg-snow/5 border border-white/10 rounded-xl text-gojo-primary placeholder-gojo-secondary/50 focus:outline-none focus:ring-2 focus:ring-crystal-500/50 focus:border-crystal-500/50 disabled:opacity-50 text-sm"
           />
           <button
             type="submit"
             disabled={loading || !message.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-gradient-to-r from-crystal-600 to-crystal-500 text-white rounded-xl hover:from-crystal-500 hover:to-crystal-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-sm shadow-lg shadow-crystal-500/20"
           >
             Ask
           </button>
         </div>
       </form>
-
-      {/* Connection Status */}
-      <div className="text-xs text-gray-500 flex items-center justify-between">
-        <span>Backend: {API_BASE}</span>
-        <span className={loading ? 'text-yellow-600' : 'text-green-600'}>
-          {loading ? '🔄 Connecting...' : '✅ Ready'}
-        </span>
-      </div>
     </div>
   );
 };

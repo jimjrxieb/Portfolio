@@ -67,8 +67,8 @@ module "kubernetes_app" {
   environment = "dev"
 
   # Use same images as Method 1
-  api_image    = "ghcr.io/jimjrxieb/portfolio-api:backend-v2"
-  ui_image     = "ghcr.io/jimjrxieb/portfolio-ui:vite-fix"
+  api_image    = "ghcr.io/jimjrxieb/portfolio-api:backend-v8-ollama-embed"
+  ui_image     = "ghcr.io/jimjrxieb/portfolio-ui:vite-fix-v4"
   chroma_image = "chromadb/chroma:0.5.18"
 
   claude_api_key     = var.claude_api_key

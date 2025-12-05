@@ -22,7 +22,7 @@ class LLMEngine:
             self._load_local_model()
         elif self.provider == "claude":
             self.claude_api_key = os.getenv("CLAUDE_API_KEY")
-            self.claude_model = self.model_name or "claude-3-5-sonnet-20241022"
+            self.claude_model = self.model_name or "claude-3-haiku-20240307"
             if not self.claude_api_key:
                 logger.error("CLAUDE_API_KEY not set! Claude provider will fail.")
                 raise ValueError("CLAUDE_API_KEY environment variable is required for Claude provider")

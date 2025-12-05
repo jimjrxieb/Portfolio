@@ -1,0 +1,10 @@
+{
+  "source": "2025-12-05-chromadb-embedding-timeout-pattern.md",
+  "title": "ChromaDB Embedding Model Timeout Pattern",
+  "prepared_at": "2025-12-05T11:25:08.013466",
+  "word_count": 297,
+  "char_count": 2051,
+  "original_format": ".md",
+  "embedding_model": "nomic-embed-text",
+  "embedding_dims": 768
+}
