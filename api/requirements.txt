@@ -21,3 +21,4 @@ requests>=2.31.0   # Required for Ollama embeddings API
 
 # ChromaDB for vector storage (must match server version 0.5.18)
 chromadb==0.5.18
+urllib3>=2.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
