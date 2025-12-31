@@ -23,7 +23,7 @@
         "StartColumn": 17,
         "EndColumn": 67,
         "Match": "secret\": \"abc15568b7ea236cbd5bd52e8ea7d262bfa1bdd1\"",
-        "Secret": "abc15568b7ea236cbd5bd52e8ea7d262bfa1bdd1",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "5c5ae34c969d6f1dfdc3b9d1cbd65cd66f976821",
@@ -59,7 +59,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"856eaedd996d5774df1e89b090d772c213ac0562\"",
-        "Secret": "856eaedd996d5774df1e89b090d772c213ac0562",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -95,7 +95,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"6d9c68c603e465077bdd49c62347fe54717f83a3\"",
-        "Secret": "6d9c68c603e465077bdd49c62347fe54717f83a3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -131,7 +131,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"0488b1e77b437df2e7bc369841f39eab010798a7\"",
-        "Secret": "0488b1e77b437df2e7bc369841f39eab010798a7",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -167,7 +167,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"6d9c68c603e465077bdd49c62347fe54717f83a3\"",
-        "Secret": "6d9c68c603e465077bdd49c62347fe54717f83a3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -203,7 +203,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"f5bedd040b4f69dfe7e68037085ed0d8cc873b52\"",
-        "Secret": "f5bedd040b4f69dfe7e68037085ed0d8cc873b52",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -239,7 +239,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"d413f4d18c4c123dd52776f417b792efdec29c6a\"",
-        "Secret": "d413f4d18c4c123dd52776f417b792efdec29c6a",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -275,7 +275,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"4b8301f628f5e2a42c9de198287fb8632e567cce\"",
-        "Secret": "4b8301f628f5e2a42c9de198287fb8632e567cce",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -311,7 +311,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"8f0cbaea977f12f051bc14dda3584fe7ea0083ac\"",
-        "Secret": "8f0cbaea977f12f051bc14dda3584fe7ea0083ac",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -347,7 +347,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\"",
-        "Secret": "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -383,7 +383,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"b49871cab65c884cd09a08e7db8fd53c907da7e9\"",
-        "Secret": "b49871cab65c884cd09a08e7db8fd53c907da7e9",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -419,7 +419,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\"",
-        "Secret": "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -455,7 +455,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\"",
-        "Secret": "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -491,7 +491,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"c7a8c334eef5d1749fface7d42c66f9ae5e8cf36\"",
-        "Secret": "c7a8c334eef5d1749fface7d42c66f9ae5e8cf36",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -527,7 +527,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"9fc92e030ec94a92757e71c8d9d8b8f4e566072c\"",
-        "Secret": "9fc92e030ec94a92757e71c8d9d8b8f4e566072c",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -563,7 +563,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"6d9c68c603e465077bdd49c62347fe54717f83a3\"",
-        "Secret": "6d9c68c603e465077bdd49c62347fe54717f83a3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -599,7 +599,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"fae6cf375323b9cd127413c7529d13f7b6e63185\"",
-        "Secret": "fae6cf375323b9cd127413c7529d13f7b6e63185",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -635,7 +635,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"cab7ce2d3faac130b08cf35085fa5aef8f41e0e2\"",
-        "Secret": "cab7ce2d3faac130b08cf35085fa5aef8f41e0e2",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -671,7 +671,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"5687040266d1ace07fdd4a4515b9387dd5b5a5dd\"",
-        "Secret": "5687040266d1ace07fdd4a4515b9387dd5b5a5dd",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -707,7 +707,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"31f0e59d2cec8974c33253911c4960fedd549cf8\"",
-        "Secret": "31f0e59d2cec8974c33253911c4960fedd549cf8",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -743,7 +743,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\"",
-        "Secret": "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -779,7 +779,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"29c32f233d04598b3181c0e27ea0ec7a5c949297\"",
-        "Secret": "29c32f233d04598b3181c0e27ea0ec7a5c949297",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -815,7 +815,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"d4e6dd40c6ca2d5031a46ee85764c6aca553dc1f\"",
-        "Secret": "d4e6dd40c6ca2d5031a46ee85764c6aca553dc1f",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -851,7 +851,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"6d9c68c603e465077bdd49c62347fe54717f83a3\"",
-        "Secret": "6d9c68c603e465077bdd49c62347fe54717f83a3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "7b8dcac841d7fa6a3d647e1aafa1b861a6fc10f7",
@@ -886,8 +886,8 @@
         "EndLine": 465,
         "StartColumn": 75,
         "EndColumn": 95,
-        "Match": "sk_live_abc123xyz789'",
-        "Secret": "sk_live_abc123xyz789'",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": "rag-pipeline/01-preprocessing-stages/stages/sanitize_npc.py",
         "SymlinkFile": "",
         "Commit": "70c2e23d9053c26eaf976f7c9fe811867891a301",
@@ -923,7 +923,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"5242e89ae0b20414d1784e0b1895872c38f7c773\"",
-        "Secret": "5242e89ae0b20414d1784e0b1895872c38f7c773",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -959,7 +959,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"d4e6dd40c6ca2d5031a46ee85764c6aca553dc1f\"",
-        "Secret": "d4e6dd40c6ca2d5031a46ee85764c6aca553dc1f",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -995,7 +995,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"07d7692b9a2c6a7cb3704f64fdebb62c944752b1\"",
-        "Secret": "07d7692b9a2c6a7cb3704f64fdebb62c944752b1",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1031,7 +1031,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"c9970ff5de9cb10684444e054f56f7202f909431\"",
-        "Secret": "c9970ff5de9cb10684444e054f56f7202f909431",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1067,7 +1067,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"64bbc3176abd168ef1521a2f764b733a0b3842a6\"",
-        "Secret": "64bbc3176abd168ef1521a2f764b733a0b3842a6",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1103,7 +1103,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"5aecb88c09f751a2e2285de6a733bc6d602ac0af\"",
-        "Secret": "5aecb88c09f751a2e2285de6a733bc6d602ac0af",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1139,7 +1139,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"23e230d08d037c7cfa5e947aef7fe0d177228259\"",
-        "Secret": "23e230d08d037c7cfa5e947aef7fe0d177228259",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1175,7 +1175,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"426d1d36f3ab868d8c9c7eabcb760f06e176487a\"",
-        "Secret": "426d1d36f3ab868d8c9c7eabcb760f06e176487a",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1211,7 +1211,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"045bc5731cf125c7270c36611799389b0cb372a0\"",
-        "Secret": "045bc5731cf125c7270c36611799389b0cb372a0",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1247,7 +1247,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"9f4f638bee84c5b1345493d4363600cdf6b6cf5b\"",
-        "Secret": "9f4f638bee84c5b1345493d4363600cdf6b6cf5b",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1283,7 +1283,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"1a70f44f2962c34472c55e98290b98da0d9a0783\"",
-        "Secret": "1a70f44f2962c34472c55e98290b98da0d9a0783",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1319,7 +1319,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"a53a6e6e1a8ea2ce09ecee371765bbcea8271844\"",
-        "Secret": "a53a6e6e1a8ea2ce09ecee371765bbcea8271844",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1355,7 +1355,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"2bfccfa79692a4cbc33994b4bfd7fdf516b32aa1\"",
-        "Secret": "2bfccfa79692a4cbc33994b4bfd7fdf516b32aa1",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1391,7 +1391,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"23c8da552127dcbef84f457ea7f0bb27abba2f27\"",
-        "Secret": "23c8da552127dcbef84f457ea7f0bb27abba2f27",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1427,7 +1427,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"6b7858aa8b285fc988a319e74331fba70b38c6a0\"",
-        "Secret": "6b7858aa8b285fc988a319e74331fba70b38c6a0",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1463,7 +1463,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"f73512b0ad893e7c2417662da1125761f4eddf88\"",
-        "Secret": "f73512b0ad893e7c2417662da1125761f4eddf88",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1499,7 +1499,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"fae6cf375323b9cd127413c7529d13f7b6e63185\"",
-        "Secret": "fae6cf375323b9cd127413c7529d13f7b6e63185",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1535,7 +1535,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"cab7ce2d3faac130b08cf35085fa5aef8f41e0e2\"",
-        "Secret": "cab7ce2d3faac130b08cf35085fa5aef8f41e0e2",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1571,7 +1571,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"5687040266d1ace07fdd4a4515b9387dd5b5a5dd\"",
-        "Secret": "5687040266d1ace07fdd4a4515b9387dd5b5a5dd",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1607,7 +1607,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"31f0e59d2cec8974c33253911c4960fedd549cf8\"",
-        "Secret": "31f0e59d2cec8974c33253911c4960fedd549cf8",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1643,7 +1643,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"f5bedd040b4f69dfe7e68037085ed0d8cc873b52\"",
-        "Secret": "f5bedd040b4f69dfe7e68037085ed0d8cc873b52",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1679,7 +1679,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"d413f4d18c4c123dd52776f417b792efdec29c6a\"",
-        "Secret": "d413f4d18c4c123dd52776f417b792efdec29c6a",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1715,7 +1715,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"4b8301f628f5e2a42c9de198287fb8632e567cce\"",
-        "Secret": "4b8301f628f5e2a42c9de198287fb8632e567cce",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1751,7 +1751,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"8f0cbaea977f12f051bc14dda3584fe7ea0083ac\"",
-        "Secret": "8f0cbaea977f12f051bc14dda3584fe7ea0083ac",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1787,7 +1787,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"b49871cab65c884cd09a08e7db8fd53c907da7e9\"",
-        "Secret": "b49871cab65c884cd09a08e7db8fd53c907da7e9",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1823,7 +1823,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\"",
-        "Secret": "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1859,7 +1859,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"9fc92e030ec94a92757e71c8d9d8b8f4e566072c\"",
-        "Secret": "9fc92e030ec94a92757e71c8d9d8b8f4e566072c",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1895,7 +1895,7 @@
         "StartColumn": 18,
         "EndColumn": 68,
         "Match": "secret\": \"9fc92e030ec94a92757e71c8d9d8b8f4e566072c\"",
-        "Secret": "9fc92e030ec94a92757e71c8d9d8b8f4e566072c",
+        # SECURITY: Secret removed from this line
         "File": ".secrets.baseline",
         "SymlinkFile": "",
         "Commit": "c85a5071f37d0f3348e372bbd2cf4ff019b32b63",
@@ -1930,8 +1930,8 @@
         "EndLine": 39,
         "StartColumn": 11,
         "EndColumn": 50,
-        "Match": "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",
-        "Secret": "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",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": ".env",
         "SymlinkFile": "",
         "Commit": "0d170a6beeda18babca020c22a1ed65aa0864d81",
@@ -1966,8 +1966,8 @@
         "EndLine": 26,
         "StartColumn": 2,
         "EndColumn": 1,
-        "Match": "SECRET_KEY=xK8vL9mN2pQ5rT6uY8zA1bC3dE4fG7hI9jK0lM2nO5pR8sT1uV4wX7yZ0aB3cD6e",
-        "Secret": "xK8vL9mN2pQ5rT6uY8zA1bC3dE4fG7hI9jK0lM2nO5pR8sT1uV4wX7yZ0aB3cD6e",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": ".env",
         "SymlinkFile": "",
         "Commit": "0d170a6beeda18babca020c22a1ed65aa0864d81",
@@ -2002,8 +2002,8 @@
         "EndLine": 53,
         "StartColumn": 13,
         "EndColumn": 1,
-        "Match": "API_KEY=sk_45b74f2f94d0e6de998c5d6a2cfb9ffcc661399c0bb6690d",
-        "Secret": "sk_45b74f2f94d0e6de998c5d6a2cfb9ffcc661399c0bb6690d",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": ".env",
         "SymlinkFile": "",
         "Commit": "0d170a6beeda18babca020c22a1ed65aa0864d81",
@@ -2039,7 +2039,7 @@
         "StartColumn": 28,
         "EndColumn": 90,
         "Match": "API_KEY\": \"sk_45b74f2f94d0e6de998c5d6a2cfb9ffcc661399c0bb6690d\"",
-        "Secret": "sk_45b74f2f94d0e6de998c5d6a2cfb9ffcc661399c0bb6690d",
+        # SECURITY: Secret removed from this line
         "File": "infrastructure/method2-terraform-localstack/terraform.tfstate.backup",
         "SymlinkFile": "",
         "Commit": "0d170a6beeda18babca020c22a1ed65aa0864d81",
@@ -2074,8 +2074,8 @@
         "EndLine": 26,
         "StartColumn": 47,
         "EndColumn": 72,
-        "Match": "key: `sk-proj-hah-DBF9...`",
-        "Secret": "sk-proj-hah-DBF9...",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": "SECURITY_INCIDENT.md",
         "SymlinkFile": "",
         "Commit": "fb922368913668aa015557f761754842ae7a98f5",
@@ -2110,8 +2110,8 @@
         "EndLine": 26,
         "StartColumn": 47,
         "EndColumn": 72,
-        "Match": "key: `sk-proj-hah-DBF9...`",
-        "Secret": "sk-proj-hah-DBF9...",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": "SECURITY_INCIDENT.md",
         "SymlinkFile": "",
         "Commit": "f3c741c602d20032ba00b9d7810a525116ba0d52",
@@ -2146,8 +2146,8 @@
         "EndLine": 26,
         "StartColumn": 47,
         "EndColumn": 72,
-        "Match": "key: `sk-proj-hah-DBF9...`",
-        "Secret": "sk-proj-hah-DBF9...",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": "SECURITY_INCIDENT.md",
         "SymlinkFile": "",
         "Commit": "17cebeb91f0ec0dbced3dba7aafeef61041987df",
@@ -2398,8 +2398,8 @@
         "EndLine": 31,
         "StartColumn": 4,
         "EndColumn": 31,
-        "Match": "Password: `Sji3CMdj7cI15rFB`",
-        "Secret": "Sji3CMdj7cI15rFB",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": "LOCAL-PLATFORM-SUMMARY.md",
         "SymlinkFile": "",
         "Commit": "2d5e1e6fd29dd418db671730d36ddec035eb57b8",
@@ -2434,8 +2434,8 @@
         "EndLine": 31,
         "StartColumn": 4,
         "EndColumn": 31,
-        "Match": "Password: `Sji3CMdj7cI15rFB`",
-        "Secret": "Sji3CMdj7cI15rFB",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": "LOCAL-PLATFORM-SUMMARY.md",
         "SymlinkFile": "",
         "Commit": "c8879d12e6975db34287713f9469b4db1a5d421c",
@@ -2470,8 +2470,8 @@
         "EndLine": 23,
         "StartColumn": 2,
         "EndColumn": 1,
-        "Match": "SECRET_KEY=xK8vL9mN2pQ5rT6uY8zA1bC3dE4fG7hI9jK0lM2nO5pR8sT1uV4wX7yZ0aB3cD6e",
-        "Secret": "xK8vL9mN2pQ5rT6uY8zA1bC3dE4fG7hI9jK0lM2nO5pR8sT1uV4wX7yZ0aB3cD6e",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": ".env",
         "SymlinkFile": "",
         "Commit": "779f17fd59347ee94c9544c01b8d24871029343b",
@@ -2506,8 +2506,8 @@
         "EndLine": 43,
         "StartColumn": 13,
         "EndColumn": 0,
-        "Match": "API_KEY=sk_45b74f2f94d0e6de998c5d6a2cfb9ffcc661399c0bb6690d",
-        "Secret": "sk_45b74f2f94d0e6de998c5d6a2cfb9ffcc661399c0bb6690d",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": ".env",
         "SymlinkFile": "",
         "Commit": "779f17fd59347ee94c9544c01b8d24871029343b",
@@ -2542,8 +2542,8 @@
         "EndLine": 33,
         "StartColumn": 15,
         "EndColumn": 54,
-        "Match": "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",
-        "Secret": "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",
+        # SECURITY: Secret removed from this line
+        # SECURITY: Secret removed from this line
         "File": ".env",
         "SymlinkFile": "",
         "Commit": "779f17fd59347ee94c9544c01b8d24871029343b",
