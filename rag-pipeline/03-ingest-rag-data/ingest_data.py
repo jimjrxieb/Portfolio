@@ -210,7 +210,7 @@ def chunk_document(content: str, metadata: Dict[str, Any], filename: str) -> Lis
 def generate_chunk_id(filename: str, chunk_index: int) -> str:
     """Generate deterministic chunk ID"""
     raw = f"{filename}::chunk_{chunk_index}"
-    return hashlib.md5(raw.encode()).hexdigest()[:16]
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
 # =============================================================================

@@ -109,7 +109,7 @@ def cleanup_batch(ingested: List[Dict[str, Any]], dry_run: bool = False) -> Dict
 if __name__ == "__main__":
     # Test cleanup
     test_item = {
-        'file': Path('/tmp/test_file.jsonl'),
+        'file': Path('tempfile.gettempdir()/test_file.jsonl'),
         'category': 'domain-SME',
         'rag_ingested': True,
         'sql_ingested': False

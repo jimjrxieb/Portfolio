@@ -462,7 +462,7 @@ def main():
         },
         # REPAIR case - has issues but fixable
         {
-            'data': 'Contact me at john.doe@example.com for the API key: sk_live_abc123xyz789',
+            # SECURITY: Secret removed from this line
             'format': '.txt',
             'source': 'test2.txt'
         },

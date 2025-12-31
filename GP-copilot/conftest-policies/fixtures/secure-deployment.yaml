@@ -16,9 +16,11 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: portfolio-service-account
       automountServiceAccountToken: false
       containers:
@@ -27,8 +29,8 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: 10001
+            runAsGroup: 10001
             privileged: false
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

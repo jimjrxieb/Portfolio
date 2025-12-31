@@ -456,7 +456,7 @@ def validate_api_url(url: str) -> str:
         raise ValueError("Only HTTP and HTTPS URLs are allowed")
 
     # Validate hostname - only allow localhost and specific allowed hosts
-    allowed_hosts = ["localhost", "127.0.0.1", "0.0.0.0"]
+    allowed_hosts = ["localhost", "127.0.0.1", "127.0.0.1"]
     if parsed.hostname not in allowed_hosts:
         raise ValueError(
             f"Host '{parsed.hostname}' not allowed. Only localhost is permitted for testing."

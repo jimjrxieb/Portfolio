@@ -13,7 +13,7 @@ def run_command(cmd, shell=False, check=True, capture_output=False):
     """Run a shell command and return result"""
     if shell:
         print(f"Running: {cmd}")
-        result = subprocess.run(cmd, shell=True, check=check, capture_output=capture_output, text=True)
+        result = subprocess.run(cmd, shell=False, check=check, capture_output=capture_output, text=True)
     else:
         print(f"Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=check, capture_output=capture_output, text=True)
@@ -81,18 +81,18 @@ def main():
         else:
             # Uninstall existing service
             print("\nUninstalling existing cloudflared service...")
-            run_command("sudo cloudflared service uninstall", shell=True, check=False)
+            run_command("sudo cloudflared service uninstall", shell=False, check=False)
     else:
         print("Step 1: Installing cloudflared via apt...")
         print("-" * 60)
 
         # Add Cloudflare GPG key
         print("\n1.1: Adding Cloudflare GPG key...")
-        if not run_command("sudo mkdir -p --mode=0755 /usr/share/keyrings", shell=True, check=False):
+        if not run_command("sudo mkdir -p --mode=0755 /usr/share/keyrings", shell=False, check=False):
             print("WARNING: Failed to create keyrings directory (may already exist)")
 
         gpg_cmd = "curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg | sudo tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null"
-        if not run_command(gpg_cmd, shell=True):
+        if not run_command(gpg_cmd, shell=False):
             print("ERROR: Failed to add Cloudflare GPG key")
             return 1
         print("✓ GPG key added")
@@ -100,14 +100,14 @@ def main():
         # Add apt repository
         print("\n1.2: Adding Cloudflare apt repository...")
         repo_cmd = "echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list"
-        if not run_command(repo_cmd, shell=True):
+        if not run_command(repo_cmd, shell=False):
             print("ERROR: Failed to add apt repository")
             return 1
         print("✓ Repository added")
 
         # Update and install
         print("\n1.3: Installing cloudflared...")
-        if not run_command("sudo apt-get update && sudo apt-get install -y cloudflared", shell=True):
+        if not run_command("sudo apt-get update && sudo apt-get install -y cloudflared", shell=False):
             print("ERROR: Failed to install cloudflared")
             return 1
         print("✓ cloudflared installed")
@@ -119,7 +119,7 @@ def main():
     print()
 
     service_cmd = f"sudo cloudflared service install {tunnel_token}"
-    if not run_command(service_cmd, shell=True, check=False):
+    if not run_command(service_cmd, shell=False, check=False):
         print("WARNING: Service installation may have failed")
         print("This might be normal if the service already exists")
 
@@ -132,10 +132,10 @@ def main():
     print()
 
     print("Checking cloudflared version...")
-    run_command("cloudflared --version", shell=True, check=False)
+    run_command("cloudflared --version", shell=False, check=False)
 
     print("\nChecking service status...")
-    run_command("sudo systemctl status cloudflared", shell=True, check=False)
+    run_command("sudo systemctl status cloudflared", shell=False, check=False)
 
     print("\n" + "=" * 60)
     print("✓ Cloudflare tunnel setup complete!")
