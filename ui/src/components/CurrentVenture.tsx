@@ -35,10 +35,29 @@ function getRankColor(color: 'green' | 'yellow' | 'red'): string {
 export default function CurrentVenture() {
   return (
     <div className="space-y-6">
+      {/* Current Focus - LinkOps AI-BOX */}
+      <div className="bg-gradient-to-br from-jade-500/10 to-crystal-500/10 backdrop-blur-sm rounded-2xl border border-jade-500/30 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-2xl">🎯</span>
+          <h2 className="text-xl font-bold text-white">Current Focus</h2>
+        </div>
+        <h3 className="text-2xl font-bold text-jade-400 mb-3">LinkOps AI-BOX</h3>
+        <p className="text-text-secondary text-sm leading-relaxed mb-4">
+          I'm an aspiring <span className="text-white font-medium">AI & Automation Engineer</span> looking
+          to build and develop on-premise AI solutions for enterprises with strict data privacy requirements.
+        </p>
+        <p className="text-text-secondary text-sm leading-relaxed">
+          With my knowledge from <span className="text-crystal-400 font-medium">CKA</span> and{' '}
+          <span className="text-crystal-400 font-medium">Security+</span> certifications, my first major
+          project is creating a platform with agentic AI that can secure the entire DevSecOps process —
+          automation agents that streamline workflows while maintaining human oversight through approval-based systems.
+        </p>
+      </div>
+
       {/* GP-Copilot Featured Card */}
       <div className="bg-gradient-to-br from-crystal-500/10 to-jade-500/10 backdrop-blur-sm rounded-2xl border border-crystal-500/30 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-white">Current Venture</h2>
+          <h2 className="text-xl font-bold text-white">Featured Project</h2>
           <span className="px-2 py-1 bg-jade-500/20 text-jade-400 text-xs rounded-full border border-jade-500/30">
             Active Development
           </span>

@@ -106,9 +106,23 @@ function buildGitHubUrl(item: SkillItem): string {
 export default function PortfolioBuild() {
   return (
     <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-      <h2 className="text-xl font-bold text-white mb-6">
+      {/* Welcome Section */}
+      <div className="mb-8 pb-6 border-b border-white/10">
+        <h2 className="text-xl font-bold text-white mb-4">
+          Welcome to My Portfolio Platform
+        </h2>
+        <p className="text-text-secondary text-sm leading-relaxed">
+          I built this entire platform from scratch using Claude Code. Below you'll find{' '}
+          <span className="text-crystal-400 font-medium">Sheyla</span>, my AI-powered chatbox
+          where you can ask any question about my DevSecOps and AI/ML experience — simulating
+          building a conversational assistant for a company and its policies.
+        </p>
+      </div>
+
+      {/* Skills Section */}
+      <h3 className="text-lg font-bold text-white mb-4">
         This Portfolio is Built With
-      </h2>
+      </h3>
       <p className="text-text-secondary text-sm mb-6">
         Every skill links to actual code in the repo as proof.
       </p>
