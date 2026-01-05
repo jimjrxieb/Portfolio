@@ -10,7 +10,7 @@ SECRET_NAME="portfolio-api-secrets"
 echo "Creating development secrets in namespace: $NAMESPACE"
 
 # Source environment variables
-if [ -f .env ]; then
+if [[ -f .env ]]; then
     echo "Loading environment from .env file..."
     export $(grep -v '^#' .env | xargs)
 else

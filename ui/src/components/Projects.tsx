@@ -155,10 +155,10 @@ const ProjectCard: React.FC<{
       <div className="flex items-center gap-3">
         <span className="text-xl">{project.icon}</span>
         <div>
-          <div className="text-gojo-primary font-medium text-sm">
+          <div className="text-white font-medium text-sm">
             {project.title}
           </div>
-          <div className="text-gojo-secondary text-xs">
+          <div className="text-text-secondary text-xs">
             {project.description}
           </div>
         </div>
@@ -167,7 +167,7 @@ const ProjectCard: React.FC<{
         <div className="text-xs text-crystal-400 font-medium">
           {project.status}
         </div>
-        <div className="text-gojo-secondary text-xs">
+        <div className="text-text-secondary text-xs">
           {isSelected ? '▼' : '▶'}
         </div>
       </div>
@@ -179,7 +179,7 @@ const ProjectCard: React.FC<{
           {project.highlights.map((highlight, index) => (
             <div key={index} className="flex items-start gap-2">
               <span className="text-crystal-400 mt-1">•</span>
-              <span className="text-gojo-secondary text-xs">{highlight}</span>
+              <span className="text-text-secondary text-xs">{highlight}</span>
             </div>
           ))}
         </div>
@@ -209,14 +209,14 @@ const ToolItem: React.FC<{ tool: Tool }> = ({ tool }) => {
             href={tool.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gojo-primary hover:text-crystal-400 font-medium text-sm underline decoration-dotted underline-offset-2"
+            className="text-white hover:text-crystal-400 font-medium text-sm underline decoration-dotted underline-offset-2"
           >
             {tool.name} →
           </a>
         ) : (
-          <div className="text-gojo-primary font-medium text-sm">{tool.name}</div>
+          <div className="text-white font-medium text-sm">{tool.name}</div>
         )}
-        <div className="text-gojo-secondary text-xs">{tool.description}</div>
+        <div className="text-text-secondary text-xs">{tool.description}</div>
       </div>
     </div>
   );
@@ -237,15 +237,15 @@ const CategorySection: React.FC<{
         <div className="flex items-center gap-3">
           <span className="text-2xl">{category.icon}</span>
           <div>
-            <h3 className="text-gojo-primary font-semibold">
+            <h3 className="text-white font-semibold">
               {category.title}
             </h3>
-            <p className="text-gojo-secondary text-sm">
+            <p className="text-text-secondary text-sm">
               {category.tools.length} tools • Click to expand
             </p>
           </div>
         </div>
-        <div className="text-gojo-secondary">{isSelected ? '▼' : '▶'}</div>
+        <div className="text-text-secondary">{isSelected ? '▼' : '▶'}</div>
       </div>
     </button>
 
@@ -282,19 +282,19 @@ export default function Projects() {
     <div className="space-y-4" data-dev="projects">
       {/* Certifications Banner */}
       <div className="bg-gradient-to-r from-crystal-500/10 to-gold-500/10 border border-crystal-500/20 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-2 flex items-center gap-2">
+        <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
           <span>🎓</span> Certifications
         </h4>
         <div className="text-sm space-y-1">
-          <div className="text-gojo-primary">✅ CKA (Certified Kubernetes Administrator)</div>
-          <div className="text-gojo-primary">✅ CompTIA Security+</div>
+          <div className="text-white">✅ CKA (Certified Kubernetes Administrator)</div>
+          <div className="text-white">✅ CompTIA Security+</div>
           <div className="text-crystal-400">🔄 AWS AI Practitioner (In Progress)</div>
         </div>
       </div>
 
       {/* Project Selector */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-gojo-primary font-semibold mb-3">
+        <h4 className="text-white font-semibold mb-3">
           Featured Projects
         </h4>
         <div className="space-y-2">

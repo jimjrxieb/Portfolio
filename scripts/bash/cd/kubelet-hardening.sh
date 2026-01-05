@@ -8,7 +8,7 @@ echo "🔒 Applying CIS Kubernetes Benchmark Security Fixes..."
 
 # Fix 4.1.1: Set kubelet service file permissions to 644
 echo "Fixing 4.1.1: Setting kubelet service file permissions..."
-if [ -f /etc/systemd/system/kubelet.service.d/10-kubeadm.conf ]; then
+if [[ -f /etc/systemd/system/kubelet.service.d/10-kubeadm.conf ]]; then
     chmod 644 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     echo "✅ Kubelet service file permissions set to 644"
 else
@@ -17,7 +17,7 @@ fi
 
 # Fix 4.1.5: Set kubelet.conf file permissions to 644
 echo "Fixing 4.1.5: Setting kubelet.conf permissions..."
-if [ -f /etc/kubernetes/kubelet.conf ]; then
+if [[ -f /etc/kubernetes/kubelet.conf ]]; then
     chmod 644 /etc/kubernetes/kubelet.conf
     echo "✅ kubelet.conf permissions set to 644"
 else
@@ -26,28 +26,28 @@ fi
 
 # Fix 4.1.6: Set kubelet.conf ownership to root:root
 echo "Fixing 4.1.6: Setting kubelet.conf ownership..."
-if [ -f /etc/kubernetes/kubelet.conf ]; then
+if [[ -f /etc/kubernetes/kubelet.conf ]]; then
     chown root:root /etc/kubernetes/kubelet.conf
     echo "✅ kubelet.conf ownership set to root:root"
 fi
 
 # Fix 4.1.7: Set client CA file permissions
 echo "Fixing 4.1.7: Setting client CA file permissions..."
-if [ -f /etc/kubernetes/pki/ca.crt ]; then
+if [[ -f /etc/kubernetes/pki/ca.crt ]]; then
     chmod 644 /etc/kubernetes/pki/ca.crt
     echo "✅ Client CA file permissions set to 644"
 fi
 
 # Fix 4.1.8: Set client CA file ownership
 echo "Fixing 4.1.8: Setting client CA file ownership..."
-if [ -f /etc/kubernetes/pki/ca.crt ]; then
+if [[ -f /etc/kubernetes/pki/ca.crt ]]; then
     chown root:root /etc/kubernetes/pki/ca.crt
     echo "✅ Client CA file ownership set to root:root"
 fi
 
 # Fix 4.1.9: Set kubelet config file permissions to 644
 echo "Fixing 4.1.9: Setting kubelet config permissions..."
-if [ -f /var/lib/kubelet/config.yaml ]; then
+if [[ -f /var/lib/kubelet/config.yaml ]]; then
     chmod 644 /var/lib/kubelet/config.yaml
     echo "✅ Kubelet config permissions set to 644"
 else
@@ -56,7 +56,7 @@ fi
 
 # Fix 4.1.10: Set kubelet config ownership to root:root
 echo "Fixing 4.1.10: Setting kubelet config ownership..."
-if [ -f /var/lib/kubelet/config.yaml ]; then
+if [[ -f /var/lib/kubelet/config.yaml ]]; then
     chown root:root /var/lib/kubelet/config.yaml
     echo "✅ Kubelet config ownership set to root:root"
 fi

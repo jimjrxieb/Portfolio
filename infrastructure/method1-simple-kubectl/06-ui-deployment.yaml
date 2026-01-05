@@ -15,6 +15,8 @@ spec:
       labels:
         app: portfolio-ui
     spec:
+      # JSA-FIX: CKV_K8S_38 - Don't mount service account token
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -24,8 +26,10 @@ spec:
           type: RuntimeDefault
       containers:
         - name: ui
-          image: ghcr.io/shadow-link-industries/portfolio-ui:main-latest
-          imagePullPolicy: IfNotPresent
+          # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
+          image: ghcr.io/shadow-link-industries/portfolio-ui@sha256:ecb11d39dd55b1bb4abd733e45f05710e80892dad1c3deb20ec3279914eb9eba
+          # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
+          imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -48,6 +52,24 @@ spec:
             limits:
               cpu: "200m"
               memory: "256Mi"
+          # JSA-FIX: CKV_K8S_8 - Liveness probe for self-healing
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # JSA-FIX: CKV_K8S_9 - Readiness probe for traffic routing
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
           volumeMounts:
             - name: nginx-cache
               mountPath: /var/cache/nginx

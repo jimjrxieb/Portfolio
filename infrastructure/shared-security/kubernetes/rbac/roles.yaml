@@ -2,7 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: app-role
-  namespace: default
+  # JSA-FIX: CKV_K8S_21 - Dont use default namespace
+  namespace: portfolio
 rules:
 - apiGroups:
   - ''

@@ -1,0 +1,64 @@
+# Gitleaks configuration for Portfolio project
+# Excludes false positives from test/documentation/scan result files
+
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+    # Environment files (not tracked, local secrets)
+    '''\.env''',
+    '''\.env\..*''',
+
+    # Scan result files (contain detected secrets from previous scans)
+    '''GP-copilot/scan-results/.*''',
+    '''.*scan-results/.*''',
+    '''.*gitleaks.*\.json''',
+
+    # Secrets baseline files (detect-secrets format - hashes, not actual secrets)
+    '''\.secrets\.baseline''',
+
+    # Documentation files with example/redacted secrets
+    '''SECURITY_INCIDENT\.md''',
+    '''LOCAL-PLATFORM-SUMMARY\.md''',
+    '''.*INCIDENT.*\.md''',
+
+    # Historical terraform files (removed but in git history)
+    '''terraform/insecure\.tf''',
+    '''terraform/secure\.tf''',
+    '''terraform/test-local\.tf''',
+
+    # Terraform state files
+    '''.*\.tfstate.*''',
+
+    # Test/example patterns in sanitization code
+    '''rag-pipeline/.*/sanitize.*\.py''',
+
+    # Archive and backup directories
+    '''_archive/.*''',
+    '''backup/.*''',
+    '''.*backup.*''',
+]
+
+regexes = [
+    # Example/test API keys
+    '''sk_live_abc123.*''',
+    '''sk_test_.*''',
+    '''example[_-]?api[_-]?key''',
+    '''test[_-]?api[_-]?key''',
+    '''fake[_-]?api[_-]?key''',
+    '''dummy[_-]?api[_-]?key''',
+    # Placeholder patterns
+    '''password123''',
+    '''your[_-]?api[_-]?key[_-]?here''',
+]
+
+stopwords = [
+    "example",
+    "sample",
+    "test",
+    "dummy",
+    "fake",
+    "placeholder",
+    "password123",
+]

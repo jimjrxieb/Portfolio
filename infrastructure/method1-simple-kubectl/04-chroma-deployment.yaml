@@ -15,22 +15,30 @@ spec:
       labels:
         app: chroma
     spec:
+      # JSA-FIX: CKV_K8S_38 - Don't mount service account token
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        # JSA-FIX: CKV_K8S_40 - Use high UID (≥10000)
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: chromadb
-          image: chromadb/chroma:0.5.18
-          imagePullPolicy: IfNotPresent
+          # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
+          image: chromadb/chroma@sha256:d8819dafd306890dd4fe816c7aa5e4adcfa7350977f7d0c95ce5f0046b63293b
+          # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
+          imagePullPolicy: Always
           securityContext:
             runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
+            # JSA-FIX: CKV_K8S_40 - Use high UID (≥10000)
+            runAsUser: 10000
+            runAsGroup: 10000
             allowPrivilegeEscalation: false
+            # JSA-FIX: CKV_K8S_22 - Read-only filesystem
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -49,6 +57,24 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+          # JSA-FIX: CKV_K8S_8 - Liveness probe for self-healing
+          livenessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # JSA-FIX: CKV_K8S_9 - Readiness probe for traffic routing
+          readinessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
           volumeMounts:
             - name: data
               mountPath: /chroma/chroma

@@ -19,7 +19,6 @@ export default {
           DEFAULT: '#00A86B',
           light: '#33B98D',
         },
-        // Gojo color palette
         crystal: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -49,10 +48,8 @@ export default {
         ink: '#0A0A0A',
         snow: '#FAFAFA',
         'text-primary': '#FFFFFF',
-        'text-secondary': '#B3B3B3',
-        'gojo-primary': '#FFFFFF',
-        'gojo-secondary': '#0ea5e9',
-        'gojo-accent': '#f59e0b',
+        'text-secondary': '#8b949e',
+        'text-muted': '#6e7681',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

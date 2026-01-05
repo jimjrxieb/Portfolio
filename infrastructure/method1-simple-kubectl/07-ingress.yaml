@@ -13,6 +13,14 @@ spec:
     - host: portfolio.localtest.me
       http:
         paths:
+          # Health check at root level (not under /api)
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: portfolio-api
+                port:
+                  number: 8000
           - path: /api
             pathType: Prefix
             backend:
@@ -30,6 +38,14 @@ spec:
     - host: linksmlm.com
       http:
         paths:
+          # Health check at root level (not under /api)
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: portfolio-api
+                port:
+                  number: 8000
           - path: /api
             pathType: Prefix
             backend:

@@ -10,7 +10,7 @@ IMAGE_NAME="linksrobot/portfolio"
 NAMESPACE="portfolio"
 
 # Get image tag from argument or latest
-if [ -n "$1" ]; then
+if [[ -n "$1" ]]; then
     IMAGE_TAG="$1"
 else
     IMAGE_TAG="latest"

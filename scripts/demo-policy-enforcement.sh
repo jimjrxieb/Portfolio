@@ -28,7 +28,7 @@ if ! command -v helm &> /dev/null; then
     MISSING_TOOLS+=("helm")
 fi
 
-if [ ${#MISSING_TOOLS[@]} -ne 0 ]; then
+if [[ ${#MISSING_TOOLS[@]} -ne 0 ]]; then
     echo "❌ Missing required tools: ${MISSING_TOOLS[*]}"
     echo "💡 Please install missing tools and retry"
     exit 1

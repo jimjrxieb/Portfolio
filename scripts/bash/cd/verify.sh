@@ -16,7 +16,7 @@ call_api() {
     local method="${2:-GET}"
     local data="${3:-}"
 
-    if [ "$method" = "POST" ] && [ -n "$data" ]; then
+    if [[ "$method" = "POST" ]] && [[ -n "$data" ]]; then
         curl -sS --max-time "$TIMEOUT" -X POST \
             -H 'Content-Type: application/json' \
             -d "$data" \

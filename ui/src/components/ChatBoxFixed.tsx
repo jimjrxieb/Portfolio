@@ -1,6 +1,6 @@
 /**
  * Fixed ChatBox Component
- * Simple, working chat interface for Gojo
+ * Simple, working chat interface for Sheyla
  */
 
 import React, { useState } from 'react';
@@ -104,7 +104,7 @@ const ChatBoxFixed: React.FC = () => {
           <span className="text-white font-bold text-sm">S</span>
         </div>
         <div>
-          <h3 className="text-gojo-primary font-semibold text-sm">Sheyla</h3>
+          <h3 className="text-white font-semibold text-sm">Sheyla</h3>
           <p className="text-crystal-400 text-xs">AI Portfolio Assistant</p>
         </div>
         <div className="ml-auto">
@@ -126,8 +126,8 @@ const ChatBoxFixed: React.FC = () => {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-crystal-500/20 to-jade-500/20 flex items-center justify-center">
               <span className="text-2xl">👋</span>
             </div>
-            <p className="text-gojo-primary font-medium">Hi! I'm Sheyla</p>
-            <p className="text-gojo-secondary text-sm mt-1">
+            <p className="text-white font-medium">Hi! I'm Sheyla</p>
+            <p className="text-text-secondary text-sm mt-1">
               Ask me about Jimmie's DevSecOps or AI/ML work
             </p>
           </div>
@@ -142,11 +142,11 @@ const ChatBoxFixed: React.FC = () => {
               className={`max-w-[85%] px-4 py-3 rounded-2xl ${
                 msg.sender === 'user'
                   ? 'bg-crystal-600 text-white rounded-br-md'
-                  : 'bg-snow/10 text-gojo-primary border border-white/5 rounded-bl-md'
+                  : 'bg-snow/10 text-white border border-white/5 rounded-bl-md'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
-              <p className={`text-xs mt-2 ${msg.sender === 'user' ? 'text-crystal-200' : 'text-gojo-secondary'}`}>
+              <p className={`text-xs mt-2 ${msg.sender === 'user' ? 'text-crystal-200' : 'text-text-secondary'}`}>
                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -162,7 +162,7 @@ const ChatBoxFixed: React.FC = () => {
                   <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
                   <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
-                <span className="text-gojo-secondary text-sm ml-1">Sheyla is typing...</span>
+                <span className="text-text-secondary text-sm ml-1">Sheyla is typing...</span>
               </div>
             </div>
           </div>
@@ -181,7 +181,7 @@ const ChatBoxFixed: React.FC = () => {
 
       {/* Quick Prompts */}
       <div className="space-y-2">
-        <p className="text-xs text-gojo-secondary">Quick asks:</p>
+        <p className="text-xs text-text-secondary">Quick asks:</p>
         <div className="flex flex-wrap gap-2">
           {quickPrompts.slice(0, 3).map((prompt, index) => (
             <button
@@ -205,7 +205,7 @@ const ChatBoxFixed: React.FC = () => {
             onChange={e => setMessage(e.target.value)}
             placeholder="Ask about my AI/ML or DevSecOps work..."
             disabled={loading}
-            className="flex-1 px-4 py-2.5 bg-snow/5 border border-white/10 rounded-xl text-gojo-primary placeholder-gojo-secondary/50 focus:outline-none focus:ring-2 focus:ring-crystal-500/50 focus:border-crystal-500/50 disabled:opacity-50 text-sm"
+            className="flex-1 px-4 py-2.5 bg-snow/5 border border-white/10 rounded-xl text-white placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-crystal-500/50 focus:border-crystal-500/50 disabled:opacity-50 text-sm"
           />
           <button
             type="submit"

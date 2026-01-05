@@ -1,80 +1,212 @@
-# Conftest Policies - CI/CD Validation
+# OPA Policy Implementation with JADE
 
-**CI/CD security validation using OPA/Conftest** - catches security issues **before deployment**.
+**How GP-Copilot implements Policy-as-Code for any application**
 
-## Purpose
+This directory demonstrates JADE's approach to implementing OPA/Conftest policies. It serves as a reference for how we enforce security standards in CI/CD pipelines.
 
-This directory contains **pure Rego policies** for validating Kubernetes manifests in the CI/CD pipeline. These policies run with `conftest` to enforce security standards **before** code is deployed.
+---
 
-## Directory Structure
+## JADE's Policy-as-Code Workflow
 
 ```
-conftest-policies/
-├── conftest.yaml              # Conftest configuration
-├── container-security.rego    # Container security policies
-├── image-security.rego        # Image validation policies
-├── test-policy.rego           # Basic test policies
-└── tests/                     # Test fixtures & unit tests
-    ├── secure-deployment.yaml      # Positive test case
-    ├── vulnerable-deployment.yaml  # Negative test case
-    └── *_test.rego                 # OPA unit tests
+Scan Project → Identify Gaps → Generate Policies → Validate → Deploy → Monitor
+     │              │                │              │          │         │
+   trivy      JADE ranks         JADE writes    conftest   GitHub    jsa-devsecops
+   checkov    findings as        Rego based    validates   Actions   monitors
+   kubescape  E/D/C/B/S          on finding    manifests   blocks    runtime
 ```
 
-## How It Works
+### Step 1: JADE Scans the Project
 
-### 1. Developer commits code
 ```bash
-git add infrastructure/charts/
-git commit -m "Update deployment"
-git push
+# JADE uses jsa-devsecops to scan Kubernetes manifests
+@JADE scan kubernetes manifests in Portfolio
+
+# JADE runs multiple scanners
+trivy config --severity HIGH,CRITICAL .
+checkov -d infrastructure/ --framework kubernetes
+kubescape scan .
 ```
 
-### 2. GitHub Actions runs conftest
+### Step 2: JADE Ranks Findings
+
+| Finding | Example | Rank | Action |
+|---------|---------|------|--------|
+| Missing securityContext | No runAsNonRoot | D | Auto-generate policy |
+| Privileged container | privileged: true | D | Auto-generate policy |
+| :latest tag | image: nginx:latest | E | Auto-generate warning |
+| Host network access | hostNetwork: true | C | Approval required |
+| Missing NetworkPolicy | No egress rules | B | Escalate to security team |
+
+### Step 3: JADE Generates Rego Policies
+
+For each D-rank finding, JADE generates corresponding Rego:
+
+```rego
+# JADE-generated policy for CKV_K8S_22
+# Finding: Container missing readOnlyRootFilesystem
+deny[msg] {
+  input.kind == "Deployment"
+  container := input.spec.template.spec.containers[_]
+  not container.securityContext.readOnlyRootFilesystem
+  msg := sprintf("Container '%s' should use readOnlyRootFilesystem: true", [container.name])
+}
+```
+
+### Step 4: Conftest Validates in CI/CD
+
 ```yaml
 # .github/workflows/main.yml
 - name: Policy Validation
   run: |
-    helm template charts/ > manifests.yaml
-    conftest test manifests.yaml --policy conftest-policies/
+    conftest test infrastructure/ --policy conftest-policies/
 ```
 
-### 3. Conftest validates against policies
+### Step 5: jsa-devsecops Monitors Runtime
+
 ```bash
-FAIL - manifests.yaml - Container must not run as root
-FAIL - manifests.yaml - Image 'nginx:latest' uses banned :latest tag
+# Deploy Gatekeeper constraints for runtime enforcement
+kubectl apply -f infrastructure/gk-policies/
 ```
-
-### 4. Deployment blocked if violations found ❌
 
 ---
 
-## vs. Gatekeeper Policies
+## Policies in This Directory
 
-| Aspect | **Conftest** (This directory) | **Gatekeeper** (`infrastructure/gk-policies/`) |
-|--------|-------------------------------|-----------------------------------------------|
-| **When** | CI/CD pipeline (pre-deployment) | Runtime (admission controller) |
-| **Tool** | `conftest` command | Gatekeeper admission webhook |
-| **Format** | Pure Rego (.rego files) | ConstraintTemplates (YAML + Rego) |
-| **Speed** | ⚡ Fast (seconds) | 🐢 Slower (cluster API call) |
-| **Scope** | Git commits, PRs | Live cluster deployments |
-| **Blocking** | Blocks merge/deploy | Blocks pod creation |
+### container-security.rego
 
-**Both are needed** for defense in depth!
+Enforces container security best practices. Maps to Checkov findings:
+
+| Rego Rule | Checkov ID | What It Catches |
+|-----------|------------|-----------------|
+| runAsUser != 0 | CKV_K8S_20 | Containers running as root |
+| runAsNonRoot: true | CKV_K8S_22 | Missing non-root flag |
+| privileged: false | CKV_K8S_1 | Privileged containers |
+| allowPrivilegeEscalation: false | CKV_K8S_20 | Privilege escalation |
+| readOnlyRootFilesystem: true | CKV_K8S_22 | Writable root filesystem |
+| capabilities.drop: ["ALL"] | CKV_K8S_25 | Dangerous capabilities |
+| resources.limits | CKV_K8S_13 | Missing resource limits |
+
+### block-privileged.rego
+
+Blocks privileged mode across all workload types:
+
+```rego
+# Applies to: Deployment, StatefulSet, DaemonSet, Pod
+deny[msg] {
+  container.securityContext.privileged == true
+  msg := "Container cannot run in privileged mode"
+}
+```
+
+### image-security.rego
+
+Controls image sources and tags:
+
+| Rule | Severity | Rationale |
+|------|----------|-----------|
+| No :latest tag | WARN | Unpinned versions break reproducibility |
+| Require image tag | DENY | Untagged images default to :latest |
+| Trusted registries only | DENY | Prevent supply chain attacks |
+| Require imagePullPolicy | DENY | Control image caching behavior |
+
+**Trusted registries configured:**
+- `ghcr.io/jimjrxieb/` - Your GitHub Container Registry
+- `registry.k8s.io/` - Official Kubernetes images
+- `gcr.io/distroless/` - Distroless base images
+- `chromadb/` - ChromaDB (for JADE's RAG)
 
 ---
 
-## Usage
+## How JADE Implements OPA in Any Project
 
-### Test Local Manifests
+### 1. Initial Assessment
 
 ```bash
-# Test a single file
+# Ask JADE to assess a project
+@JADE assess kubernetes security for /path/to/project
+
+# JADE runs comprehensive scan
+JADE: Running jsa-devsecops assessment...
+      - Trivy: 12 findings (3 HIGH, 9 MEDIUM)
+      - Checkov: 8 failed checks
+      - Kubescape: 85% compliance score
+
+      Generating policies for 7 auto-fixable findings...
+```
+
+### 2. Policy Generation
+
+JADE generates Rego based on the project's findings:
+
+```bash
+# JADE creates policies/kubernetes/security.rego
+@JADE generate opa policies for checkov findings
+
+# Output structure:
+conftest-policies/
+├── container-security.rego    # From CKV_K8S_* findings
+├── network-security.rego      # From CKV_K8S_* network findings
+├── image-security.rego        # From CKV_K8S_* image findings
+└── tests/
+    └── *_test.rego            # Unit tests for each policy
+```
+
+### 3. CI/CD Integration
+
+JADE adds the validation step to your pipeline:
+
+```yaml
+# JADE adds this to .github/workflows/main.yml
+jobs:
+  security:
+    steps:
+      - name: OPA Policy Validation
+        run: |
+          # Render manifests
+          helm template charts/ > /tmp/manifests.yaml
+
+          # Validate against policies
+          conftest test /tmp/manifests.yaml \
+            --policy conftest-policies/ \
+            --output table
+
+          # Fail pipeline on violations
+          if [ $? -ne 0 ]; then
+            echo "Policy violations found - blocking deployment"
+            exit 1
+          fi
+```
+
+### 4. Runtime Enforcement (Optional)
+
+For production clusters, JADE can generate Gatekeeper constraints:
+
+```bash
+@JADE convert conftest policies to gatekeeper constraints
+
+# JADE generates:
+infrastructure/gk-policies/
+├── templates/
+│   └── k8s-container-security.yaml  # ConstraintTemplate
+└── constraints/
+    └── require-security-context.yaml  # Constraint
+```
+
+---
+
+## Running Policies Locally
+
+### Test Against Your Manifests
+
+```bash
+# Single file
 conftest test deployment.yaml --policy conftest-policies/
 
-# Test directory
+# Directory
 conftest test k8s/ --policy conftest-policies/
 
-# Test Helm charts (render first)
+# Helm charts
 helm template charts/portfolio > /tmp/manifests.yaml
 conftest test /tmp/manifests.yaml --policy conftest-policies/
 ```
@@ -82,161 +214,122 @@ conftest test /tmp/manifests.yaml --policy conftest-policies/
 ### Run Unit Tests
 
 ```bash
-# Run OPA unit tests
+# All tests
 opa test conftest-policies/
 
-# Run with coverage
+# With coverage
 opa test --coverage conftest-policies/
 
-# Verbose output
+# Verbose
 opa test -v conftest-policies/
 ```
 
-### Test Against Fixtures
+### Test Fixtures
 
 ```bash
-# Should PASS ✅
-conftest test conftest-policies/tests/secure-deployment.yaml \
-  --policy conftest-policies/
+# Should PASS
+conftest test fixtures/secure-deployment.yaml --policy .
 
-# Should FAIL ❌
-conftest test conftest-policies/tests/vulnerable-deployment.yaml \
-  --policy conftest-policies/
+# Should FAIL
+conftest test fixtures/vulnerable-deployment.yaml --policy .
 ```
 
 ---
 
-## Policies Included
+## Writing Custom Policies with JADE
 
-### `container-security.rego`
-- ✅ No containers running as root (UID 0)
-- ✅ Security context required
-- ✅ No privileged containers
-- ✅ No privilege escalation
-- ✅ Resource limits required (CPU, memory)
+### Ask JADE to Write a Policy
 
-### `image-security.rego`
-- ✅ No `:latest` tags in production
-- ✅ Only trusted registries allowed
-- ✅ Image tags must be specified
-- ✅ ImagePullPolicy required
+```bash
+@JADE write rego policy to block hostNetwork access
 
-### `test-policy.rego`
-- ✅ Basic validation rules for testing
-
----
-
-## Writing New Policies
-
-### 1. Create Rego file
-
-```rego
-# conftest-policies/network-security.rego
+# JADE generates:
 package main
 
-# Deny hostNetwork
 deny[msg] {
   input.kind == "Deployment"
   input.spec.template.spec.hostNetwork == true
-  msg := "Pods cannot use host networking"
+  msg := "Pods cannot use host networking - security risk"
 }
 ```
 
-### 2. Add unit test
+### JADE Adds Unit Tests
 
 ```rego
-# conftest-policies/tests/network_test.rego
+# tests/network_test.rego
 package main
 
 test_deny_host_network {
-  deny["Pods cannot use host networking"] with input as {
+  deny["Pods cannot use host networking - security risk"] with input as {
     "kind": "Deployment",
     "spec": {"template": {"spec": {"hostNetwork": true}}}
   }
 }
-```
 
-### 3. Test it
-
-```bash
-opa test conftest-policies/
-```
-
-### 4. It runs automatically in CI/CD!
-
----
-
-## CI/CD Integration
-
-Integrated in `.github/workflows/main.yml`:
-
-```yaml
-- name: Policy Validation
-  run: |
-    # Render Helm charts
-    helm template infrastructure/charts/portfolio > /tmp/rendered.yaml
-
-    # Test with conftest
-    conftest test /tmp/rendered.yaml --policy conftest-policies/
-
-    # Find and test raw K8s manifests
-    find k8s/ -name "*.yaml" -exec conftest test {} --policy conftest-policies/ \;
-```
-
-**Pipeline fails** if any policy violations found!
-
----
-
-## Debugging
-
-### Verbose mode
-```bash
-conftest test deployment.yaml --policy conftest-policies/ --trace
-```
-
-### See all rules evaluated
-```bash
-conftest test deployment.yaml --policy conftest-policies/ -o table
-```
-
-### JSON output for parsing
-```bash
-conftest test deployment.yaml --policy conftest-policies/ -o json
+test_allow_no_host_network {
+  count(deny) == 0 with input as {
+    "kind": "Deployment",
+    "spec": {"template": {"spec": {"hostNetwork": false}}}
+  }
+}
 ```
 
 ---
 
-## Common Issues
+## Conftest vs Gatekeeper
 
-### Issue: "No policies found"
-**Solution**: Run from project root, not inside conftest-policies/
+| Aspect | Conftest (CI/CD) | Gatekeeper (Runtime) |
+|--------|------------------|---------------------|
+| When | Before deployment | During deployment |
+| Speed | Fast (seconds) | Slower (API call) |
+| Scope | Git commits, PRs | Live cluster |
+| Blocking | Blocks merge | Blocks pod creation |
+| Tool | `conftest` CLI | Admission webhook |
+| Format | Pure Rego | ConstraintTemplate YAML |
 
-### Issue: "Policy passes but should fail"
-**Solution**: Check your Rego logic, add unit tests
-
-### Issue: "Input is empty"
-**Solution**: Ensure YAML is valid Kubernetes manifest
+**Defense in Depth:** Use both for complete coverage.
 
 ---
 
-## Best Practices
+## JADE Rank Classification for Policy Tasks
 
-1. ✅ **Keep policies simple** - One concern per file
-2. ✅ **Write unit tests** - Test positive AND negative cases
-3. ✅ **Use descriptive messages** - Help developers fix issues
-4. ✅ **Test locally** - Run `conftest test` before pushing
-5. ✅ **Version control** - All policies in Git
-6. ✅ **Document rules** - Explain WHY a policy exists
+| Task | Rank | JADE Action |
+|------|------|-------------|
+| Generate standard security policy | D | Auto-generate + commit |
+| Add trusted registry | D | Auto-update image-security.rego |
+| Create custom business logic policy | C | Generate + request approval |
+| Implement compliance framework | B | Escalate to security team |
+| Design org-wide policy governance | S | Escalate immediately |
+
+---
+
+## Files
+
+```
+conftest-policies/
+├── README.md                  # This file
+├── conftest.yaml              # Conftest configuration
+├── container-security.rego    # Container hardening policies
+├── block-privileged.rego      # Privileged container blocking
+├── image-security.rego        # Image source/tag validation
+├── fixtures/                  # Test manifests
+│   ├── secure-deployment.yaml     # Passes all policies
+│   └── vulnerable-deployment.yaml # Fails policies (for testing)
+└── tests/                     # OPA unit tests
+    ├── container_test.rego
+    ├── block-privileged_test.rego
+    └── test-policy.rego
+```
 
 ---
 
 ## Resources
 
 - [Conftest Documentation](https://www.conftest.dev/)
-- [OPA Documentation](https://www.openpolicyagent.org/docs/latest/)
+- [OPA Policy Language (Rego)](https://www.openpolicyagent.org/docs/latest/policy-language/)
 - [Rego Playground](https://play.openpolicyagent.org/)
-- [Policy Examples](https://github.com/open-policy-agent/conftest/tree/master/examples)
+- [Checkov Policy Index](https://www.checkov.io/5.Policy%20Index/kubernetes.html)
 
 ---
 
-**🎯 This is your first line of defense - catch issues in CI/CD before they reach production!**
+**GP-Copilot: Policy-as-Code, automated from scan to enforcement.**

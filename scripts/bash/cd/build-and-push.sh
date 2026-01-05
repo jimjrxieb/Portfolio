@@ -51,12 +51,12 @@ echo -e "${BLUE}🏗️  Building containers...${NC}"
 for service in "${SERVICES[@]}"; do
     echo -e "${YELLOW}Building ${service}...${NC}"
 
-    if [ -d "./${service}" ] && [ -f "./${service}/Dockerfile" ]; then
+    if [[ -d "./${service}" ]] && [[ -f "./${service}/Dockerfile" ]]; then
         # Build the service
         docker build -t "${REGISTRY}/${USERNAME}/${PROJECT}-${service}:${TAG}" "./${service}"
 
         # Also tag as latest if not already latest
-        if [ "${TAG}" != "latest" ]; then
+        if [[ "${TAG}" != "latest" ]]; then
             docker tag "${REGISTRY}/${USERNAME}/${PROJECT}-${service}:${TAG}" \
                       "${REGISTRY}/${USERNAME}/${PROJECT}-${service}:latest"
         fi

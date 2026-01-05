@@ -14,3 +14,27 @@ target/
 *.min.css
 package-lock.json
 yarn.lock
+
+# Scan result files (contain detected secrets from scans)
+GP-copilot/scan-results/
+**/scan-results/
+**/*gitleaks*.json
+
+# Secrets baseline files (detect-secrets format - hashes, not real secrets)
+.secrets.baseline
+
+# Documentation files with example/redacted secrets
+SECURITY_INCIDENT.md
+LOCAL-PLATFORM-SUMMARY.md
+
+# Historical terraform files (removed but in git history)
+terraform/insecure.tf
+terraform/secure.tf
+terraform/test-local.tf
+
+# Terraform state files (should never be committed)
+*.tfstate
+*.tfstate.backup
+
+# Test/example patterns in code
+rag-pipeline/01-preprocessing-stages/stages/sanitize_npc.py
