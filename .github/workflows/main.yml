@@ -241,7 +241,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Generate metadata
       id: meta
@@ -305,10 +305,11 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run Trivy vulnerability scanner (${{ matrix.name }})
-      uses: aquasecurity/trivy-action@master
+      # JSA-FIX: gha/unpinned-action - Pin to stable version instead of mutable branch
+      uses: aquasecurity/trivy-action@0.28.0
       continue-on-error: true
       with:
         image-ref: '${{ matrix.image }}:${{ matrix.tag }}'
