@@ -66,8 +66,8 @@ module "kubernetes_app" {
   namespace   = "portfolio"
   environment = "dev"
 
-  # Use same images as Method 1
-  api_image    = "ghcr.io/jimjrxieb/portfolio-api:backend-v8-ollama-embed"
+  # Use versioned images from CI/CD pipeline
+  api_image    = "ghcr.io/jimjrxieb/portfolio-api:v1.0.0"
   ui_image     = "ghcr.io/jimjrxieb/portfolio-ui:vite-fix-v4"
   chroma_image = "chromadb/chroma:0.5.18"
 

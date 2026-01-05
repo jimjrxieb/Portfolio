@@ -39,7 +39,7 @@ env:
   API_IMAGE: ghcr.io/jimjrxieb/portfolio-api
   UI_IMAGE: ghcr.io/jimjrxieb/portfolio-ui
   # Production image tags - match what K8s deployments expect
-  API_TAG: latest
+  API_TAG: v1.0.0
   UI_TAG: vite-fix-v4
 
 jobs:
@@ -219,7 +219,7 @@ jobs:
             path: ./api/Dockerfile
             context: .
             image: ghcr.io/jimjrxieb/portfolio-api
-            prod_tag: latest
+            prod_tag: v1.0.0
           - name: ui
             path: ./ui/Dockerfile
             context: .
@@ -294,7 +294,7 @@ jobs:
         include:
           - name: api
             image: ghcr.io/jimjrxieb/portfolio-api
-            tag: latest
+            tag: v1.0.0
           - name: ui
             image: ghcr.io/jimjrxieb/portfolio-ui
             tag: vite-fix-v4
@@ -426,12 +426,12 @@ jobs:
         echo "================================="
         echo ""
         echo "📦 Container Images Pushed to GHCR:"
-        echo "  API: ${{ env.API_IMAGE }}:latest"
+        echo "  API: ${{ env.API_IMAGE }}:${{ env.API_TAG }}"
         echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
         echo ""
         echo "🏷️ Image Tags:"
         echo "  Commit: ${IMAGE_TAG}"
-        echo "  API Production: latest"
+        echo "  API Production: ${{ env.API_TAG }}"
         echo "  UI Production: ${{ env.UI_TAG }}"
         echo ""
 
@@ -498,7 +498,7 @@ jobs:
         echo "📦 CONTAINER IMAGES"
         echo "═══════════════════════════════════════════════════════════"
         echo ""
-        echo "  API: ${{ env.API_IMAGE }}:latest"
+        echo "  API: ${{ env.API_IMAGE }}:${{ env.API_TAG }}"
         echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
         echo ""
         echo "═══════════════════════════════════════════════════════════"
