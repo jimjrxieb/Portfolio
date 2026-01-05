@@ -51,18 +51,19 @@ export default function Landing() {
               {/* Hero Introduction */}
               <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
                 <h1 className="text-gojo-primary font-bold text-2xl mb-3">
-                  Welcome to My Portfolio Platform
+                  AI Engineer & DevSecOps Specialist
                 </h1>
                 <p className="text-gojo-secondary leading-relaxed mb-4">
-                  I built this entire platform from scratch using Claude Code. Below you'll find
-                  <span className="text-crystal-400 font-medium"> Sheyla</span>, my AI-powered chatbox
-                  where you can ask any question about my DevSecOps and AI/ML experience -
-                  simulating building a conversational assistant for a company and its policies.
+                  This portfolio embodies both skillsets: <span className="text-crystal-400 font-medium">Sheyla</span> (below)
+                  demonstrates <span className="text-crystal-400">AI engineering</span>—production RAG with 2,600+ embeddings,
+                  semantic search, and LLM integration. The platform itself demonstrates
+                  <span className="text-jade-400"> DevSecOps</span>—CI/CD with 6-tool security scanning, 3 Kubernetes deployment
+                  methods (kubectl → Terraform/LocalStack → Helm/ArgoCD), and policy-as-code enforcement.
                 </p>
                 <p className="text-gojo-secondary leading-relaxed mb-4">
-                  I'm an aspiring <span className="text-jade-400 font-medium">AI & Automation Engineer</span> with
-                  certifications in Kubernetes (CKA) and Security (CompTIA Security+). My focus is
-                  production-grade RAG systems, policy-as-code, and enterprise DevSecOps pipelines.
+                  <span className="text-jade-400 font-medium">Currently shipping</span>: GP-Copilot—autonomous security agents
+                  achieving 70% auto-fix rates. Real enterprise clients (ZRS Management, 4,000+ property units).
+                  Production Kubernetes clusters running 24/7. AWS deployments via LocalStack dev → real cloud prod.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-jade-500/20 text-jade-400 text-xs rounded-full border border-jade-500/30">CKA Certified</span>

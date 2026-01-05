@@ -2,13 +2,15 @@
 
 ## Professional Summary
 
-Jimmie Coleman is a self-taught DevSecOps Engineer and AI Solutions Architect with 1.5 years of hands-on experience, specializing in Kubernetes, cloud infrastructure, security automation, and production RAG systems. Starting with Jenkins pipelines, he has progressed to building comprehensive DevSecOps automation agents and production-grade applications entirely from scratch. He has never worked for an actual IT company - this Portfolio application represents his real-world experience and demonstrates his ability to independently build, secure, and deploy complex systems using modern DevSecOps philosophies. Currently raising funding for LinkOps AI-BOX (Jade Box) - a plug-and-play AI platform for property management and data-sensitive industries. Holds CKA and CompTIA Security+ certifications, currently working on AWS AI Practitioner certification.
+Jimmie Coleman is an AI Engineer and DevSecOps Specialist with production deployments serving real enterprise clients. His Portfolio project embodies both skillsets: **Sheyla** (the AI chatbot) demonstrates AI engineering—production RAG pipelines, semantic search across 2,600+ embeddings, LLM integration with Claude API, and intelligent chunking strategies. The platform infrastructure demonstrates **DevSecOps**—CI/CD with 6-tool parallel security scanning, 3 progressive Kubernetes deployment methods (kubectl → Terraform/LocalStack → Helm/ArgoCD), policy-as-code with OPA/Gatekeeper, and AWS deployments via LocalStack development to real cloud production.
+
+Currently operating GP-Copilot, an autonomous DevSecOps platform achieving 70% auto-fix rates on security findings with a custom fine-tuned LLM (JADE v0.9). His work with ZRS Management (Orlando) manages 4,000+ residential units through AI-powered property reporting and RPA workflows. Holds CKA and CompTIA Security+ certifications, currently pursuing AWS AI Practitioner.
 
 ## Core Expertise
 
 ### DevSecOps & Infrastructure
-- **Experience**: 1.5 years hands-on, starting with Jenkins pipelines, progressing to DevSecOps automation agents
-- **Background**: Self-taught, never worked for an IT company, built Portfolio from scratch to demonstrate skills
+- **Track Record**: 70% auto-fix rate on security findings, 14 integrated scanner tools, 29,000+ RAG vectors
+- **Enterprise Clients**: ZRS Management (4,000+ property units), production Kubernetes clusters running 24/7
 - **Certifications**: CKA (Certified Kubernetes Administrator), CompTIA Security+, working on AWS AI Practitioner
 - **Kubernetes**: 3-pod production architecture (UI, API, ChromaDB), 3 progressive deployment methods
 - **Security Automation**: 6-tool CI/CD pipeline (detect-secrets, Semgrep, Trivy, Bandit, Safety, npm audit)
@@ -218,16 +220,24 @@ Jimmie Coleman is a self-taught DevSecOps Engineer and AI Solutions Architect wi
 ## Interview Talking Points
 
 ### "Tell me about yourself"
-"I'm a self-taught DevSecOps Engineer and AI Solutions Architect with about 2 years of hands-on experience. I'm currently raising funding for LinkOps AI-BOX - a plug-and-play AI platform for data-sensitive industries. I solve the main problem keeping companies from using AI: security and complexity. I've been testing with ZRS Management in Orlando, building RPAs for property management reporting. I bridge the gap between fancy AI technology and real-world business needs."
+
+"I'm an AI Engineer and DevSecOps Specialist—my Portfolio project demonstrates both. Sheyla, the AI chatbot you can try, shows my AI engineering: production RAG with 2,600+ embeddings, semantic search, and LLM integration. The infrastructure shows DevSecOps: CI/CD with 6-tool security scanning, 3 Kubernetes deployment methods from kubectl to Helm/ArgoCD, and Terraform with LocalStack for AWS development. I also run GP-Copilot, an autonomous security platform achieving 70% auto-fix rates, and I'm working with ZRS Management on AI-powered property reporting for 4,000+ units."
 
 ### "What's your biggest technical achievement?"
-"Building the LinkOps AI-BOX with Jade assistant - a complete AI system using Qwen2.5 1.5B, ChromaDB, and custom RPAs. It gathers and vectorizes weekly property information through Okta sessions, provides reports for management, and lets property managers query data via chatbox - like 'How many vacancies do we have?' It alerts on work orders and I'm currently adding vendor suggestions based on work history and cost. All while keeping sensitive property data completely local."
+
+"GP-Copilot with JADE v0.9—a custom fine-tuned LLM I trained on 300,000+ security examples. It integrates 14 scanners (Trivy, Semgrep, Gitleaks, Kubescape) and achieves 70% auto-remediation on findings. The AI engineering: 29,000+ RAG vectors for context-aware fix recommendations. The DevSecOps: runs 24/7 in production Kubernetes with zero cloud dependencies, HIPAA/SOC2 ready. Both skillsets working together."
 
 ### "Tell me about your DevSecOps experience"
-"I'm CKA and Security+ certified with about 2 years of self-taught, hands-on experience building production Kubernetes deployments. I've implemented 5-layer security (Conftest in CI/CD, Gatekeeper for admission control, NetworkPolicies for zero-trust networking, RBAC for least privilege, and pod security contexts). My GitHub shows real projects with Terraform modules, GitOps patterns, and automated security scanning. This Portfolio itself demonstrates 3 different deployment methods for different complexity levels."
+
+"I'm CKA and Security+ certified with production Kubernetes running 24/7. My CI/CD pipelines run 6 security tools in parallel (detect-secrets, Semgrep, Trivy, Bandit, Safety, npm audit). I've implemented 3 deployment methods: basic kubectl, Terraform with LocalStack for AWS mocking ($0 dev costs), and Helm with ArgoCD for GitOps. Policy-as-code with OPA/Conftest (13 policies) and Gatekeeper for runtime admission. Defense-in-depth: NetworkPolicies, RBAC, Pod Security Standards."
+
+### "Tell me about your AI engineering experience"
+
+"Sheyla in my Portfolio is production RAG: ChromaDB with 2,600+ embeddings, sub-100ms semantic search, intelligent chunking (1000 words, 200 overlap), and Claude API integration. GP-Copilot scales this to 29,000+ security vectors with a fine-tuned Qwen2.5-7B model I trained myself. I've built full ingestion pipelines: sanitization, chunking, embedding generation, versioned collections for zero-downtime updates. The AI-BOX I'm building for ZRS Management uses local Qwen inference to keep all property data on-premises."
 
 ### "What makes you different?"
-"While others build complicated cloud systems, I focus on practical solutions. The Jade Box solves trust - the #1 thing keeping companies from AI. I don't just build technology, I build confidence. My work is about making AI accessible and secure for companies that have been left behind."
+
+"I ship both skillsets together. My Portfolio isn't just a demo—Sheyla is production RAG, and the infrastructure is real DevSecOps with Kubernetes, Terraform, and policy-as-code. GP-Copilot runs 24/7 fixing actual vulnerabilities. ZRS Management uses my AI for real property reporting. I bridge AI engineering and DevSecOps because modern systems need both: smart automation AND secure, scalable infrastructure."
 
 ## Mentorship & Inspiration
 
@@ -257,5 +267,5 @@ Constant Young is Jimmie's mentor and Mr. Frank's second favorite. He is the dom
 
 ---
 
-*Last updated: November 2025*
+*Last updated: January 2026*
 *This document is part of the Portfolio RAG knowledge base*
