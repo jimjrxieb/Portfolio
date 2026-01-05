@@ -102,3 +102,6 @@ terraform.rc
 # Terraform - Crash log files
 crash.log
 crash.*.log
+
+# Scanner output (contains detected secrets)
+GP-copilot/scan-results/*.json
