@@ -43,14 +43,15 @@ export default function CurrentVenture() {
         </div>
         <h3 className="text-2xl font-bold text-jade-400 mb-3">LinkOps AI-BOX</h3>
         <p className="text-text-secondary text-sm leading-relaxed mb-4">
-          I'm an aspiring <span className="text-white font-medium">AI & Automation Engineer</span> looking
-          to build and develop on-premise AI solutions for enterprises with strict data privacy requirements.
+          I'm an aspiring <span className="text-white font-medium">AI & Automation Engineer</span> with
+          certifications in <span className="text-crystal-400 font-medium">Kubernetes (CKA)</span> and{' '}
+          <span className="text-crystal-400 font-medium">Security (CompTIA Security+)</span>. My focus is
+          production-grade RAG systems, policy-as-code, and enterprise DevSecOps pipelines.
         </p>
         <p className="text-text-secondary text-sm leading-relaxed">
-          With my knowledge from <span className="text-crystal-400 font-medium">CKA</span> and{' '}
-          <span className="text-crystal-400 font-medium">Security+</span> certifications, my first major
-          project is creating a platform with agentic AI that can secure the entire DevSecOps process —
-          automation agents that streamline workflows while maintaining human oversight through approval-based systems.
+          My first major project is creating a platform with agentic AI that can secure the entire DevSecOps
+          process — automation agents that streamline workflows while maintaining human oversight through
+          approval-based systems.
         </p>
       </div>
 
