@@ -97,33 +97,50 @@ export default function CurrentVenture() {
 
             {/* JSA */}
             <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl">🦾</span>
                 <div>
                   <span className="text-jade-400 font-bold">JSA</span>
-                  <span className="text-text-secondary text-sm ml-2">— The Legion</span>
+                  <span className="text-text-secondary text-sm ml-2">— Legion</span>
                 </div>
               </div>
-              <p className="text-text-secondary text-xs mb-3">
-                Autonomous agents deployed across your infrastructure:
-              </p>
-              <ul className="text-xs space-y-1 text-text-secondary">
-                <li className="flex items-center gap-2">
-                  <span className="text-crystal-400">→</span>
-                  <span><strong className="text-white">JSA-CI</strong> Guards every pipeline</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-crystal-400">→</span>
-                  <span><strong className="text-white">JSA-DEVSECOPS</strong> Patrols every namespace</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-crystal-400">→</span>
-                  <span><strong className="text-white">JSA-MONITOR</strong> Watches for threats</span>
-                </li>
-              </ul>
-              <p className="text-text-secondary/70 text-xs mt-3 italic">
-                Scale to 100 agents. They scan, analyze, fix — while you sleep.
-              </p>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-crystal-400">→</span>
+                    <strong className="text-white text-xs">JSA-DEVSEC</strong>
+                    <span className="text-text-secondary/60 text-xs">(Code & CI Security)</span>
+                  </div>
+                  <p className="text-text-secondary text-xs pl-4 leading-relaxed">
+                    Monitors GitHub webhooks for pipeline failures. Scans with gitleaks, bandit, semgrep. Auto-fixes E/D-rank issues.
+                  </p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-crystal-400">→</span>
+                    <strong className="text-white text-xs">JSA-INFRASEC</strong>
+                    <span className="text-text-secondary/60 text-xs">(Infrastructure Security)</span>
+                  </div>
+                  <p className="text-text-secondary text-xs pl-4 leading-relaxed">
+                    Scans IaC (Terraform, K8s, Helm) with Checkov, Kubescape, Polaris. Catches misconfigs before production.
+                  </p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-crystal-400">→</span>
+                    <strong className="text-white text-xs">JSA-SECOPS</strong>
+                    <span className="text-gold-400/80 text-xs ml-1">(in progress)</span>
+                  </div>
+                  <p className="text-text-secondary text-xs pl-4 leading-relaxed">
+                    Watches runtime events from Falco, GuardDuty. Handles B/S-rank escalations with human oversight.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-white/5">
+                <p className="text-text-secondary/60 text-xs font-mono">
+                  jsa-devsec → jsa-infrasec → deploy → jsa-secops
+                </p>
+              </div>
             </div>
           </div>
         </div>
