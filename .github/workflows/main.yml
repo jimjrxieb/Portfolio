@@ -148,6 +148,52 @@ jobs:
     # Note: GitLeaks removed due to new license requirement
     # Using detect-secrets (same tool as pre-commit hooks) + Semgrep p/secrets instead
 
+  sonarcloud:
+    runs-on: ubuntu-latest
+    name: SonarCloud Analysis
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for PR analysis and blame information
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: ui/package-lock.json
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install and build
+      run: |
+        echo "📦 Installing dependencies..."
+        cd ui && npm ci
+        echo "🔨 Building UI..."
+        npm run build
+        echo "✅ Build complete"
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v2
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.projectKey=jimjrxieb_Portfolio
+          -Dsonar.organization=jimjrxieb
+          -Dsonar.sources=api,ui/src,rag-pipeline
+          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/*.test.*,**/tests/**
+          -Dsonar.python.version=3.11
+          -Dsonar.javascript.lcov.reportPaths=ui/coverage/lcov.info
+
   code-quality:
     runs-on: ubuntu-latest
     name: Code Quality & Linting
@@ -468,7 +514,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [sast-scanning, python-security, secrets-scanning, code-quality, build-images, security-scan, validate-k8s, deploy]
+    needs: [sast-scanning, python-security, secrets-scanning, sonarcloud, code-quality, build-images, security-scan, validate-k8s, deploy]
     if: always()
 
     steps:
@@ -483,7 +529,8 @@ jobs:
         echo "Security Scanning:"
         echo "  ├─ SAST Scanning:    ${{ needs.sast-scanning.result }}"
         echo "  ├─ Python Security:  ${{ needs.python-security.result }}"
-        echo "  └─ Secrets Scanning: ${{ needs.secrets-scanning.result }}"
+        echo "  ├─ Secrets Scanning: ${{ needs.secrets-scanning.result }}"
+        echo "  └─ SonarCloud:       ${{ needs.sonarcloud.result }}"
         echo ""
         echo "Quality & Build:"
         echo "  ├─ Code Quality:     ${{ needs.code-quality.result }}"
@@ -502,11 +549,12 @@ jobs:
         echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
         echo ""
         echo "═══════════════════════════════════════════════════════════"
-        echo "🔒 SECURITY TOOLS (7-Tool Parallel Scanning)"
+        echo "🔒 SECURITY TOOLS (8-Tool Parallel Scanning)"
         echo "═══════════════════════════════════════════════════════════"
         echo ""
         echo "  ✅ detect-secrets: Secrets detection (baseline audit)"
         echo "  ✅ Semgrep: SAST analysis + secrets"
+        echo "  ✅ SonarCloud: Code quality, bugs, vulnerabilities, smells"
         echo "  ✅ Trivy: Container vulnerability scanning"
         echo "  ✅ Bandit: Python security analysis"
         echo "  ✅ Safety: Python dependency vulnerabilities"
