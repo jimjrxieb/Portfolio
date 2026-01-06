@@ -1,4 +1,5 @@
 import React from 'react';
+import ChatPanel from './ChatPanel';
 
 const REPO_BASE = 'https://github.com/jimjrxieb/Portfolio';
 
@@ -117,6 +118,18 @@ export default function PortfolioBuild() {
           where you can ask any question about my DevSecOps and AI/ML experience — simulating
           building a conversational assistant for a company and its policies.
         </p>
+      </div>
+
+      {/* Chat Section - Sheyla */}
+      <div className="mb-8 pb-6 border-b border-white/10">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-2xl">💬</span>
+          <div>
+            <h3 className="text-white font-semibold text-lg">Talk to Sheyla</h3>
+            <p className="text-crystal-400 text-sm">Ask about my experience</p>
+          </div>
+        </div>
+        <ChatPanel />
       </div>
 
       {/* Skills Section */}

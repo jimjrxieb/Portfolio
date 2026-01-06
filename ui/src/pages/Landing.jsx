@@ -1,7 +1,6 @@
 import Hero from '../components/Hero.tsx';
 import PortfolioBuild from '../components/PortfolioBuild.tsx';
 import CurrentVenture from '../components/CurrentVenture.tsx';
-import ChatPanel from '../components/ChatPanel.tsx';
 
 export default function Landing() {
   return (
@@ -16,22 +15,8 @@ export default function Landing() {
       <div className="relative z-10 px-6 pb-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-[55%_45%] gap-8">
-            {/* Left Column - Portfolio Build */}
-            <div className="space-y-6">
-              <PortfolioBuild />
-
-              {/* Chat Section - Below Portfolio Build on Left */}
-              <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-2xl">💬</span>
-                  <div>
-                    <h2 className="text-white font-semibold text-lg">Talk to Sheyla</h2>
-                    <p className="text-crystal-400 text-sm">Ask about my experience</p>
-                  </div>
-                </div>
-                <ChatPanel />
-              </div>
-            </div>
+            {/* Left Column - Portfolio Build (includes Sheyla chatbox) */}
+            <PortfolioBuild />
 
             {/* Right Column - Current Venture & Projects */}
             <CurrentVenture />
