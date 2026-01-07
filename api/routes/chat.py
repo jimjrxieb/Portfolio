@@ -1,9 +1,16 @@
 """
 Chat API Routes - Sheyla's Conversational Interface
 Handles all chat interactions with personality and context awareness
+
+Security Features:
+- Rate limiting (10 req/min per IP)
+- Prompt injection detection
+- Input validation and sanitization
+- Output sanitization
+- Audit logging with hashed IPs
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
@@ -16,11 +23,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from backend.settings import (
     LLM_PROVIDER,
     LLM_MODEL,
-    SYSTEM_PROMPT,
     RAG_NAMESPACE,
 )
 from backend.engines.rag_engine import RAGEngine
 from backend.engines.llm_interface import LLMEngine
+
+# Import security module
+from api.security import SheylaSecurityGuard
+from api.security.prompts import SHEYLA_SYSTEM_PROMPT, GROUNDING_INSTRUCTION, FALLBACK_RESPONSES
 
 # Import Sheyla's conversation engine
 # import sys
@@ -85,6 +95,7 @@ class ChatResponse(BaseModel):
 rag_engine = None
 llm_engine = None
 conversation_engine = ConversationEngine()
+security_guard = SheylaSecurityGuard()
 
 def get_rag_engine():
     global rag_engine
@@ -111,12 +122,48 @@ conversation_store = {}
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat_with_sheyla(request: ChatRequest):
+async def chat_with_sheyla(request: ChatRequest, http_request: Request):
     """
     Main chat endpoint - handles conversation with Sheyla avatar
     Combines RAG retrieval, personality, and LLM generation
+
+    Security layers applied:
+    1. Rate limiting (10 req/min per IP)
+    2. Input validation (length, character sanitization)
+    3. Prompt injection detection
+    4. Output sanitization
+    5. Audit logging
     """
+    # Get client IP (handle proxies)
+    client_ip = http_request.client.host if http_request.client else "unknown"
+    forwarded = http_request.headers.get("X-Forwarded-For")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+
     try:
+        # SECURITY: Validate and sanitize input
+        is_allowed, processed_input, block_reason = security_guard.process_request(
+            user_input=request.message,
+            ip_address=client_ip
+        )
+
+        if not is_allowed:
+            # Return appropriate error response
+            if block_reason == "rate_limit":
+                raise HTTPException(status_code=429, detail=processed_input)
+            elif block_reason == "injection":
+                # Don't reveal injection detection, return friendly message
+                return ChatResponse(
+                    answer=FALLBACK_RESPONSES["injection_blocked"],
+                    citations=[],
+                    model=f"{LLM_PROVIDER}/{LLM_MODEL}",
+                    session_id=request.session_id or str(uuid.uuid4()),
+                    follow_up_suggestions=["Tell me about Jimmie's experience", "What projects has Jimmie built?"],
+                    avatar_info={"name": "Sheyla", "locale": "en-US"},
+                )
+            else:
+                raise HTTPException(status_code=400, detail=processed_input)
+
         # Get or create conversation context
         session_id = request.session_id or str(uuid.uuid4())
         if session_id not in conversation_store:
@@ -169,15 +216,16 @@ async def chat_with_sheyla(request: ChatRequest):
                 # Continue without RAG if it fails
 
         # Step 2: Generate response using Sheyla's conversation engine
+        # Use sanitized input from security guard
         try:
             # Use conversation engine for personality and context
             response_text = conversation_engine.generate_response(
-                question=request.message, context=context, rag_results=rag_results
+                question=processed_input, context=context, rag_results=rag_results
             )
         except Exception as e:
             print(f"Conversation engine error: {e}")
-            # Fallback to direct LLM call
-            response_text = await _fallback_llm_response(request.message, rag_results)
+            # Fallback to direct LLM call with sanitized input
+            response_text = await _fallback_llm_response(processed_input, rag_results)
 
         # Step 3: Validate response for hallucinations and grounding
         # TODO: Re-enable validation when validation module is available
@@ -210,9 +258,16 @@ async def chat_with_sheyla(request: ChatRequest):
         # TODO: Implement get_follow_up_suggestions in ConversationEngine
         follow_up_suggestions = []
 
-        # Step 5: Prepare response
+        # Step 5: SECURITY - Sanitize output before sending
+        safe_response = security_guard.process_response(
+            response=response_text,
+            ip_address=client_ip,
+            user_input=processed_input
+        )
+
+        # Step 6: Prepare response
         return ChatResponse(
-            answer=response_text,
+            answer=safe_response,
             citations=citations,
             model=f"{LLM_PROVIDER}/{LLM_MODEL}",
             session_id=session_id,
@@ -232,64 +287,42 @@ async def chat_with_sheyla(request: ChatRequest):
 async def _fallback_llm_response(message: str, rag_results: List[str]) -> str:
     """
     Fallback LLM response when conversation engine fails.
-    Uses RAG context to ground responses and prevent hallucination.
+    Uses hardened system prompt and RAG context to ground responses.
     """
     try:
         # Get LLM engine
         engine = get_llm_engine()
         if not engine:
-            return "I'm experiencing some technical difficulties with my AI engine. Please try again in a moment."
+            return FALLBACK_RESPONSES["technical_error"]
 
-        # Build grounded system prompt with RAG context
-        grounded_system_prompt = f"""{SYSTEM_PROMPT}
-
-CRITICAL GROUNDING INSTRUCTIONS:
-You MUST follow these rules strictly:
-
-1. ONLY use information from the [KNOWLEDGE BASE CONTEXT] section below to answer questions
-2. If the context doesn't contain relevant information, say: "I don't have specific information about that in my knowledge base. I can tell you about Jimmie's DevSecOps experience, AI projects, or security work if you'd like."
-3. DO NOT make up facts, projects, dates, or details not in the context
-4. DO NOT hallucinate or invent information
-5. If you're unsure, acknowledge the limitation rather than guessing
-6. Cite which document your information comes from when possible"""
-
-        # Format RAG context clearly
+        # Format RAG context for the hardened prompt
         if rag_results:
             context_section = "\n\n---\n".join(rag_results[:3])
-            context_block = f"""
-
-[KNOWLEDGE BASE CONTEXT]
-The following information is from Jimmie Coleman's verified knowledge base. Use ONLY this information to answer:
-
-{context_section}
-
-[END KNOWLEDGE BASE CONTEXT]
-"""
         else:
-            context_block = """
+            context_section = "No relevant context was retrieved from the knowledge base."
 
-[KNOWLEDGE BASE CONTEXT]
-No relevant context was retrieved from the knowledge base for this query.
-Please respond honestly that you don't have specific information available.
-[END KNOWLEDGE BASE CONTEXT]
-"""
+        # Build the hardened system prompt with RAG context
+        system_prompt = SHEYLA_SYSTEM_PROMPT.format(
+            rag_context=context_section,
+            user_question=""  # Question goes in user message
+        )
 
-        # Prepare messages with clear structure
+        # Prepare messages with hardened prompt
         messages = [
-            {"role": "system", "content": grounded_system_prompt},
-            {"role": "user", "content": f"{context_block}\n\n[USER QUESTION]\n{message}"},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"{message}\n\n{GROUNDING_INSTRUCTION}"},
         ]
 
         # Call LLM API with lower temperature for factual responses
         response = await engine.chat_completion(messages, max_tokens=1024)
         return response.get(
             "content",
-            "I apologize, but I'm having trouble generating a response right now.",
+            FALLBACK_RESPONSES["technical_error"],
         )
 
     except Exception as e:
         print(f"Fallback LLM error: {e}")
-        return "I'm experiencing some technical difficulties. Please try again in a moment."
+        return FALLBACK_RESPONSES["technical_error"]
 
 
 @router.get("/chat/sessions/{session_id}")
@@ -317,7 +350,7 @@ async def clear_conversation(session_id: str):
 
 @router.get("/chat/health")
 async def chat_health():
-    """Health check for chat service"""
+    """Health check for chat service including security status"""
     health = {
         "chat_service": "healthy",
         "conversation_engine": "ready",
@@ -325,6 +358,14 @@ async def chat_health():
         "llm_model": LLM_MODEL,
         "rag_enabled": True,
         "active_sessions": len(conversation_store),
+        # Security features status
+        "security": {
+            "rate_limiting": "enabled (10 req/min)",
+            "prompt_injection_detection": "enabled",
+            "input_validation": "enabled",
+            "output_sanitization": "enabled",
+            "audit_logging": "enabled",
+        },
     }
 
     # Test LLM connectivity
@@ -348,6 +389,22 @@ async def chat_health():
         health["rag_status"] = f"error: {str(e)}"
 
     return health
+
+
+@router.get("/chat/rate-limit")
+async def get_rate_limit_status(http_request: Request):
+    """Get rate limit status for current client"""
+    client_ip = http_request.client.host if http_request.client else "unknown"
+    forwarded = http_request.headers.get("X-Forwarded-For")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+
+    status = security_guard.get_rate_limit_status(client_ip)
+    return {
+        "remaining_requests": status["remaining"],
+        "limit": status["limit"],
+        "window_seconds": status["window_seconds"],
+    }
 
 
 @router.get("/chat/prompts")

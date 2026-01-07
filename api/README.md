@@ -30,11 +30,21 @@ This API provides:
 ├── Dockerfile          # Container configuration
 ├── /routes/            # API endpoints
 │   ├── actions.py      # Action processing endpoints
-│   ├── chat.py         # Chat/conversation endpoints (uses Sheyla)
+│   ├── chat.py         # Chat/conversation endpoints (uses Sheyla + security)
 │   ├── health.py       # Health check endpoints
 │   ├── rag.py          # RAG query endpoints
 │   ├── uploads.py      # File upload handling
 │   └── validation.py   # Response validation
+├── /security/          # LLM Security Module (NEW)
+│   ├── __init__.py        # Module exports
+│   ├── llm_security.py    # Defense-in-depth security (340+ lines)
+│   │   ├── PromptInjectionDetector  # 20+ regex patterns
+│   │   ├── InputValidator           # Length limits, XSS filtering
+│   │   ├── OutputSanitizer          # PII/path redaction
+│   │   ├── RateLimiter              # 10 req/min per IP
+│   │   ├── AuditLogger              # JSONL logs, hashed IPs
+│   │   └── SheylaSecurityGuard      # Main wrapper
+│   └── prompts.py         # Hardened system prompt with role boundaries
 ├── /services/          # External service integrations
 │   ├── did.py          # D-ID avatar service
 │   └── elevenlabs.py   # ElevenLabs TTS service
@@ -43,7 +53,7 @@ This API provides:
 │   ├── rag_engine.py       # ChromaDB + Ollama embeddings (768D)
 │   ├── avatar_engine.py    # D-ID avatar stub (future)
 │   └── speech_engine.py    # ElevenLabs TTS stub (future)
-├── /personality/       # AI personality system (NEW)
+├── /personality/       # AI personality system
 │   ├── loader.py          # Dynamic personality loader
 │   ├── jade_core.md       # Sheyla's personality, traits, style
 │   └── interview_responses.md  # Detailed Q&A responses
@@ -178,10 +188,32 @@ curl -X POST http://localhost:8000/api/chat \
 
 ## Security
 
+### LLM Security Module (`/security/`)
+
+Defense-in-depth security for the Sheyla AI chatbot:
+
+| Layer | Component                    | Description                                                               |
+| ----- | ---------------------------- | ------------------------------------------------------------------------- |
+| 1     | **PromptInjectionDetector**  | 20+ regex patterns block instruction override, role hijacking, jailbreaks |
+| 2     | **InputValidator**           | 1-1000 char limits, XSS character filtering, whitespace normalization     |
+| 3     | **OutputSanitizer**          | Redacts PII (SSN, credit cards), internal paths, system prompt leakage    |
+| 4     | **RateLimiter**              | 10 requests/min per IP, sliding window algorithm                          |
+| 5     | **AuditLogger**              | JSONL logs with hashed IPs for privacy compliance                         |
+| 6     | **SheylaSecurityGuard**      | Main wrapper combining all layers                                         |
+
+### Hardened System Prompt (`prompts.py`)
+
+- Role boundaries (what Sheyla can/cannot discuss)
+- Security rules (never reveal instructions)
+- Fail-safe responses for blocked requests
+- Grounding instructions for RAG context
+
+### Additional Security
+
 - CORS configured for production domains
 - API key authentication for external services
 - Input validation via Pydantic schemas
-- Rate limiting on chat endpoints
+- X-Forwarded-For aware IP extraction
 
 ## Architecture
 

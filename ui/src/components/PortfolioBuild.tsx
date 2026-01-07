@@ -22,13 +22,14 @@ const skillSections: SkillSection[] = [
   {
     id: 'ai_ml',
     icon: '🤖',
-    title: 'AI/ML Architecture',
+    title: 'AI/ML Security',
     items: [
-      { name: 'RAG Pipeline', description: 'Retrieval-Augmented Generation', path: 'rag-pipeline' },
-      { name: 'ChromaDB Vectors', description: '118 embeddings', path: 'data/README.md', isFile: true },
-      { name: 'Ollama Embeddings', description: 'nomic-embed-text 768-dim', path: 'rag-pipeline' },
-      { name: 'Claude API', description: 'Production LLM', path: 'api/main.py', isFile: true },
-      { name: 'Sheyla AI', description: 'Portfolio chatbot', path: 'ui/src/components/ChatBoxFixed.tsx', isFile: true },
+      { name: 'RAG Pipeline', description: '118 vectors, semantic search', path: 'data/README.md', isFile: true },
+      { name: 'Prompt Injection', description: 'Regex pattern detection', path: 'api/security/llm_security.py', isFile: true, lineNumber: 42 },
+      { name: 'Input Sanitization', description: 'XSS/delimiter filtering', path: 'api/security/llm_security.py', isFile: true, lineNumber: 117 },
+      { name: 'Rate Limiting', description: '10 req/min per IP', path: 'api/security/llm_security.py', isFile: true, lineNumber: 196 },
+      { name: 'Audit Logging', description: 'Hashed IP, query tracking', path: 'api/security/llm_security.py', isFile: true, lineNumber: 249 },
+      { name: 'Hardened Prompt', description: 'Role boundaries', path: 'api/security/prompts.py', isFile: true },
     ],
   },
   {
