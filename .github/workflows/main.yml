@@ -148,6 +148,36 @@ jobs:
     # Note: GitLeaks removed due to new license requirement
     # Using detect-secrets (same tool as pre-commit hooks) + Semgrep p/secrets instead
 
+  iac-scanning:
+    runs-on: ubuntu-latest
+    name: Infrastructure-as-Code Security
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Checkov IaC scan
+      id: checkov
+      uses: bridgecrewio/checkov-action@v12
+      continue-on-error: true
+      with:
+        directory: .
+        framework: terraform,dockerfile
+        output_format: cli,sarif
+        output_file_path: console,checkov-results.sarif
+        soft_fail: true
+        skip_check: CKV_DOCKER_2,CKV_DOCKER_3  # Skip HEALTHCHECK for simple containers
+
+    - name: Store Checkov results
+      if: always()
+      run: |
+        echo "📊 Checkov IaC scan complete"
+        echo "💡 Scanned: Terraform modules, Dockerfiles"
+        echo "📁 Results: checkov-results.sarif"
+
   sonarcloud:
     runs-on: ubuntu-latest
     name: SonarCloud Analysis

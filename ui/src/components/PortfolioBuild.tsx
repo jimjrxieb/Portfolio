@@ -37,11 +37,11 @@ const skillSections: SkillSection[] = [
     icon: '🔍',
     title: 'Security Scanning',
     items: [
-      { name: 'Trivy', description: 'Container vulnerabilities', path: '.github/workflows/main.yml', isFile: true, lineNumber: 310 },
+      { name: 'Trivy', description: 'Container vulnerabilities', path: '.github/workflows/main.yml', isFile: true, lineNumber: 386 },
       { name: 'Semgrep', description: 'SAST analysis', path: '.github/workflows/main.yml', isFile: true, lineNumber: 60 },
       { name: 'detect-secrets', description: 'Secret detection', path: '.github/workflows/main.yml', isFile: true, lineNumber: 131 },
       { name: 'Bandit', description: 'Python security', path: '.github/workflows/main.yml', isFile: true, lineNumber: 104 },
-      { name: 'Safety', description: 'Dependency CVEs', path: '.github/workflows/main.yml', isFile: true, lineNumber: 110 },
+      { name: 'Checkov', description: 'IaC security scanning', path: '.github/workflows/main.yml', isFile: true, lineNumber: 162 },
     ],
   },
   {
@@ -51,7 +51,7 @@ const skillSections: SkillSection[] = [
     items: [
       { name: 'OPA/Conftest', description: '13 policies, 11 tests', path: 'GP-copilot/conftest-policies' },
       { name: 'Gatekeeper', description: 'Runtime admission', path: 'GP-copilot/gatekeeper-temps' },
-      { name: 'Policy Tests', description: 'CI validation', path: '.github/workflows/main.yml', isFile: true, lineNumber: 369 },
+      { name: 'Policy Tests', description: 'CI validation', path: '.github/workflows/main.yml', isFile: true, lineNumber: 447 },
     ],
   },
   {
@@ -72,7 +72,7 @@ const skillSections: SkillSection[] = [
     items: [
       { name: 'GitHub Actions', description: 'Full workflow', path: '.github/workflows/main.yml', isFile: true },
       { name: 'Parallel Scans', description: '7 tools in parallel', path: '.github/workflows/main.yml', isFile: true, lineNumber: 46 },
-      { name: 'Multi-env Deploy', description: 'Dev → Staging → Prod', path: '.github/workflows/main.yml', isFile: true, lineNumber: 411 },
+      { name: 'Multi-env Deploy', description: 'Dev → Staging → Prod', path: '.github/workflows/main.yml', isFile: true, lineNumber: 487 },
     ],
   },
   {
