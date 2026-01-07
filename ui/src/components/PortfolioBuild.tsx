@@ -80,10 +80,10 @@ const skillSections: SkillSection[] = [
     icon: '🛡️',
     title: 'Hardening',
     items: [
-      { name: 'NetworkPolicies', description: 'Zero-trust networking', path: 'infrastructure/method1-simple-kubectl/k8s-security/network-policies' },
-      { name: 'RBAC', description: 'Least privilege', path: 'infrastructure/method1-simple-kubectl/k8s-security/rbac' },
-      { name: 'Pod Security', description: 'Restricted profile', path: 'infrastructure/method1-simple-kubectl/k8s-security/pod-security' },
-      { name: 'Non-root Containers', description: 'USER directive', path: 'ui/Dockerfile', isFile: true },
+      { name: 'NetworkPolicies', description: 'Default-deny + explicit allow', path: 'infrastructure/shared-security/kubernetes/network-policies/default-deny-all.yaml', isFile: true },
+      { name: 'RBAC', description: 'Scoped roles, no cluster-admin', path: 'infrastructure/shared-security/kubernetes/rbac/roles.yaml', isFile: true },
+      { name: 'Gatekeeper PSS', description: 'OPA admission control', path: 'GP-copilot/gatekeeper-temps/pod-security-standards.yaml', isFile: true },
+      { name: 'Security Headers', description: 'CSP, HSTS, X-Frame-Options', path: 'ui/Dockerfile', isFile: true, lineNumber: 28 },
     ],
   },
   {
