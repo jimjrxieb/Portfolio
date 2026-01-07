@@ -47,11 +47,15 @@ const skillSections: SkillSection[] = [
   {
     id: 'policy_as_code',
     icon: '📜',
-    title: 'Policy-as-Code',
+    title: 'Policy-as-Code (OPA/Rego)',
     items: [
-      { name: 'OPA/Conftest', description: '13 policies, 11 tests', path: 'GP-copilot/conftest-policies' },
-      { name: 'Gatekeeper', description: 'Runtime admission', path: 'GP-copilot/gatekeeper-temps' },
-      { name: 'Policy Tests', description: 'CI validation', path: '.github/workflows/main.yml', isFile: true, lineNumber: 447 },
+      { name: 'Container Security', description: '13 deny rules: runAsNonRoot, capabilities, resource limits', path: 'GP-copilot/conftest-policies/container-security.rego', isFile: true },
+      { name: 'Image Security', description: 'Trusted registries, tag validation, imagePullPolicy', path: 'GP-copilot/conftest-policies/image-security.rego', isFile: true },
+      { name: 'Block Privileged', description: 'Deny across Deployment/StatefulSet/DaemonSet/Pod', path: 'GP-copilot/conftest-policies/block-privileged.rego', isFile: true },
+      { name: 'Gatekeeper PSS', description: 'hostNetwork/hostPID/hostIPC + seccompProfile', path: 'GP-copilot/gatekeeper-temps/pod-security-standards.yaml', isFile: true },
+      { name: 'Resource Limits', description: 'ConstraintTemplate for CPU/memory enforcement', path: 'GP-copilot/gatekeeper-temps/resource-limits.yaml', isFile: true },
+      { name: 'Policy Unit Tests', description: '9 Rego tests: deny/allow scenarios', path: 'GP-copilot/conftest-policies/tests/container_test.rego', isFile: true },
+      { name: 'CI Policy Gate', description: 'conftest verify + test on manifests', path: '.github/workflows/main.yml', isFile: true, lineNumber: 445 },
     ],
   },
   {
@@ -82,8 +86,8 @@ const skillSections: SkillSection[] = [
     items: [
       { name: 'NetworkPolicies', description: 'Default-deny + explicit allow', path: 'infrastructure/shared-security/kubernetes/network-policies/default-deny-all.yaml', isFile: true },
       { name: 'RBAC', description: 'Scoped roles, no cluster-admin', path: 'infrastructure/shared-security/kubernetes/rbac/roles.yaml', isFile: true },
-      { name: 'Gatekeeper PSS', description: 'OPA admission control', path: 'GP-copilot/gatekeeper-temps/pod-security-standards.yaml', isFile: true },
-      { name: 'Security Headers', description: 'CSP, HSTS, X-Frame-Options', path: 'ui/Dockerfile', isFile: true, lineNumber: 28 },
+      { name: 'Security Headers', description: 'CSP, HSTS, X-Frame-Options + 4 more', path: 'ui/Dockerfile', isFile: true, lineNumber: 28 },
+      { name: 'Non-root Containers', description: 'runAsUser: 10001, readOnlyRootFilesystem', path: 'infrastructure/method1-simple-kubectl/01-portfolio-api.yaml', isFile: true },
     ],
   },
   {
