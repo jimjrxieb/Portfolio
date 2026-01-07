@@ -25,7 +25,7 @@ const skillSections: SkillSection[] = [
     title: 'AI/ML Architecture',
     items: [
       { name: 'RAG Pipeline', description: 'Retrieval-Augmented Generation', path: 'rag-pipeline' },
-      { name: 'ChromaDB Vectors', description: '2,656+ embeddings', path: 'rag-pipeline/03-ingest-rag-data' },
+      { name: 'ChromaDB Vectors', description: '118 embeddings', path: 'data/README.md', isFile: true },
       { name: 'Ollama Embeddings', description: 'nomic-embed-text 768-dim', path: 'rag-pipeline' },
       { name: 'Claude API', description: 'Production LLM', path: 'api/main.py', isFile: true },
       { name: 'Sheyla AI', description: 'Portfolio chatbot', path: 'ui/src/components/ChatBoxFixed.tsx', isFile: true },

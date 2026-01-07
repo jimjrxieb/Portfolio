@@ -262,7 +262,7 @@ export default function CurrentVenture() {
             <div className="text-text-secondary text-xs">RAG Search</div>
           </div>
           <div className="text-center p-3 bg-snow/5 rounded-lg">
-            <div className="text-2xl font-bold text-crystal-300">2,656+</div>
+            <div className="text-2xl font-bold text-crystal-300">118</div>
             <div className="text-text-secondary text-xs">Embeddings</div>
           </div>
         </div>

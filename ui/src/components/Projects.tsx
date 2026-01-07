@@ -66,7 +66,7 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
     repoUrl: 'https://github.com/jimjrxieb/Portfolio',
     highlights: [
       '🎯 AI Engineering Demo: Full RAG pipeline from ingestion to inference',
-      'Vector DB: ChromaDB with 2,600+ embeddings, sub-100ms semantic search',
+      'Vector DB: ChromaDB with 118 embeddings, sub-100ms semantic search',
       'Chunking Strategy: 1000-word chunks with 200-word overlap (RAG best practice)',
       'LLM Integration: Claude API with async FastAPI endpoints',
       'Anti-hallucination: Confidence scoring, source citation, response validation',
@@ -115,7 +115,7 @@ const TOOL_CATEGORIES: Record<CategoryKey, ToolCategory> = {
     title: 'AI/ML Engineering',
     icon: '🧠',
     tools: [
-      { name: 'Production RAG Systems', description: 'ChromaDB + Ollama + Claude API (2,656+ embeddings)', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
+      { name: 'Production RAG Systems', description: 'ChromaDB + Ollama + Claude API (118 embeddings)', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/data/README.md' },
       { name: 'Ollama Local Inference', description: 'nomic-embed-text, qwen2.5-coder models', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
       { name: 'LangGraph Agents', description: 'Workflow orchestration for AI automation' },
       { name: 'Vector Databases', description: 'Semantic search, intelligent chunking, embeddings', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline' },
