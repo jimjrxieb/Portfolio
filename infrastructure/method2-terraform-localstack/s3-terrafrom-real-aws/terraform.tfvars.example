@@ -1,8 +1,0 @@
-project_name = "portfolio"
-aws_region   = "us-east-1"
-
-# Add your API keys:
-# claude_api_key     = "sk-ant-..."
-# openai_api_key     = ""
-# elevenlabs_api_key = ""
-# did_api_key        = ""

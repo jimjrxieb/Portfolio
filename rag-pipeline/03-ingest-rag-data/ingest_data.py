@@ -1,48 +1,67 @@
 #!/usr/bin/env python3
 """
-INGEST DATA SCRIPT - The Kitchen (Cooking Station)
-===================================================
+INGEST DATA SCRIPT (Stage 2)
+============================
 
-Takes prepared ingredients from 02-prepared-rag-data/ and cooks them.
-Embedding is the "cooking" - transforming text into 768-dimensional vectors.
+Reads pre-chunked data from prepared_*.jsonl files and embeds into ChromaDB.
+After successful ingestion, moves processed files to 04-processed-rag-data/.
 
 FLOW:
-  02-prepared-rag-data/  -->  [chunk, embed, store]  -->  ChromaDB + 04-processed-rag-data/
+  02-prepared-rag-data/prepared_*.jsonl  -->  [embed]  -->  data/chroma/
+                                         -->  [move]   -->  04-processed-rag-data/
 
 What this does:
-  1. LOAD     - Read prepared .md files and .meta.json sidecars
-  2. CHUNK    - Split documents into semantic chunks (512 tokens max)
-  3. EMBED    - Generate 768-dim vectors via Ollama nomic-embed-text
-  4. STORE    - Upsert chunks into ChromaDB collection
-  5. ARCHIVE  - Move processed files to 04-processed-rag-data/
+  1. LOAD     - Find and read prepared_*.jsonl files (pre-chunked, deduplicated)
+  2. EMBED    - Generate 768-dim vectors via Ollama nomic-embed-text
+  3. STORE    - Upsert chunks into ChromaDB collection
+  4. MOVE     - Move processed JSONL to 04-processed-rag-data/
+
+Note: Chunking is already done by prepare_data.py. This script only embeds.
 
 Usage:
   cd rag-pipeline/03-ingest-rag-data
-  python ingest_data.py
+  python ingest_data.py                    # Ingest all prepared_*.jsonl files
+  python ingest_data.py --file prepared_20260107_123456.jsonl  # Specific file
+  python ingest_data.py --batch-size 50    # Custom batch size
+  python ingest_data.py --dry-run          # Preview without storing
+  python ingest_data.py --stats            # Show collection stats
+
+Environment Variables:
+  CHROMA_URL    - ChromaDB server URL (e.g., http://chroma:8000)
+  CHROMA_DIR    - Local ChromaDB path (default: ../data/chroma)
+  OLLAMA_URL    - Ollama API URL (default: http://localhost:11434)
+  EMBED_MODEL   - Embedding model (default: nomic-embed-text)
 
 Requirements:
   - Ollama running with nomic-embed-text model
   - ChromaDB (local or Kubernetes service)
+  - prepared_*.jsonl file(s) from prepare_data.py
 
 Author: Jimmie Coleman
-Date: 2025-12-05
+Date: 2026-01-05 (Rewritten for JSONL input)
+Updated: 2026-01-07 (Multi-file support, auto-move to processed)
 """
 
 import os
+import sys
 import json
-import shutil
-import hashlib
+import argparse
 import requests
 import chromadb
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-# Directories (relative to this script)
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Directories
 SCRIPT_DIR = Path(__file__).parent
 PIPELINE_ROOT = SCRIPT_DIR.parent
 PREPARED_DIR = PIPELINE_ROOT / "02-prepared-rag-data"
-ARCHIVE_DIR = PIPELINE_ROOT / "04-processed-rag-data"
+PROCESSED_DIR = PIPELINE_ROOT / "04-processed-rag-data"
+MANIFEST_FILE = PREPARED_DIR / "chunk_manifest.json"
 
 # ChromaDB settings
 CHROMA_DIR = Path(os.getenv("CHROMA_DIR", str(PIPELINE_ROOT.parent / "data" / "chroma")))
@@ -54,23 +73,22 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
 EMBED_DIMS = 768  # nomic-embed-text output dimensions
 
-# Chunking settings
-CHUNK_SIZE = 512  # tokens (approx 4 chars per token)
-CHUNK_OVERLAP = 50  # tokens of overlap between chunks
+# Batching
+DEFAULT_BATCH_SIZE = 25
 
 
 def print_header(title: str):
     """Print formatted header"""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 60}")
     print(f"  {title}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 60}\n")
 
 
 def print_stage(stage_num: int, stage_name: str):
     """Print stage indicator"""
-    print(f"\n{'─'*70}")
+    print(f"\n{'-' * 60}")
     print(f"  STAGE {stage_num}: {stage_name}")
-    print(f"{'─'*70}\n")
+    print(f"{'-' * 60}\n")
 
 
 # =============================================================================
@@ -80,7 +98,6 @@ def print_stage(stage_num: int, stage_name: str):
 def get_chroma_client():
     """Get ChromaDB client (HTTP for K8s, Persistent for local)"""
     if CHROMA_URL:
-        # Parse HTTP URL for Kubernetes deployment
         import re
         match = re.match(r'http://([^:]+):(\d+)', CHROMA_URL)
         if match:
@@ -90,131 +107,82 @@ def get_chroma_client():
         else:
             raise ValueError(f"Invalid CHROMA_URL format: {CHROMA_URL}")
     else:
-        # Local PersistentClient
         CHROMA_DIR.mkdir(parents=True, exist_ok=True)
         print(f"  Using local ChromaDB at {CHROMA_DIR}")
         return chromadb.PersistentClient(path=str(CHROMA_DIR))
 
 
 # =============================================================================
-# STAGE 1: LOAD - Read prepared files
+# STAGE 1: LOAD - Read prepared chunks from JSONL
 # =============================================================================
 
-def load_prepared_files() -> List[Dict[str, Any]]:
-    """Load all prepared .md files and their metadata sidecars"""
-    documents = []
-
-    # Find all .md files (excluding this script and meta files)
-    md_files = [f for f in PREPARED_DIR.glob("*.md") if not f.name.startswith('.')]
-
-    for md_path in sorted(md_files):
-        meta_path = PREPARED_DIR / f"{md_path.stem}.meta.json"
-
-        # Read content
-        with open(md_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        # Read metadata if exists
-        metadata = {}
-        if meta_path.exists():
-            with open(meta_path, 'r', encoding='utf-8') as f:
-                metadata = json.load(f)
-
-        documents.append({
-            'path': md_path,
-            'meta_path': meta_path if meta_path.exists() else None,
-            'content': content,
-            'metadata': metadata,
-            'filename': md_path.name
-        })
-
-    return documents
+def find_prepared_files() -> List[Path]:
+    """Find all prepared_*.jsonl files in the prepared directory"""
+    if not PREPARED_DIR.exists():
+        return []
+    return sorted(PREPARED_DIR.glob("prepared_*.jsonl"))
 
 
-# =============================================================================
-# STAGE 2: CHUNK - Split into semantic chunks
-# =============================================================================
+def load_prepared_chunks(chunks_file: Path) -> List[Dict[str, Any]]:
+    """Load pre-chunked data from a prepared JSONL file"""
+    if not chunks_file.exists():
+        print(f"  Error: {chunks_file} not found")
+        return []
 
-def chunk_document(content: str, metadata: Dict[str, Any], filename: str) -> List[Dict[str, Any]]:
-    """
-    Split document into semantic chunks for better retrieval.
-
-    Strategy:
-    - Split on double newlines (paragraphs) first
-    - Keep headers with their content
-    - Respect max chunk size
-    - Add overlap for context continuity
-    """
     chunks = []
-
-    # Split into paragraphs/sections
-    sections = content.split('\n\n')
-
-    current_chunk = ""
-    current_header = ""
-    chunk_index = 0
-
-    for section in sections:
-        section = section.strip()
-        if not section:
-            continue
-
-        # Track headers for context
-        if section.startswith('#'):
-            current_header = section.split('\n')[0]
-
-        # Check if adding this section exceeds chunk size
-        potential_chunk = current_chunk + '\n\n' + section if current_chunk else section
-
-        # Approximate token count (4 chars per token)
-        token_estimate = len(potential_chunk) // 4
-
-        if token_estimate > CHUNK_SIZE and current_chunk:
-            # Save current chunk
-            chunk_id = generate_chunk_id(filename, chunk_index)
-            chunks.append({
-                'id': chunk_id,
-                'text': current_chunk.strip(),
-                'metadata': {
-                    **metadata,
-                    'chunk_index': chunk_index,
-                    'header': current_header,
-                    'source': filename
-                }
-            })
-            chunk_index += 1
-
-            # Start new chunk with overlap (keep last paragraph)
-            overlap_text = current_chunk.split('\n\n')[-1] if '\n\n' in current_chunk else ""
-            current_chunk = overlap_text + '\n\n' + section if overlap_text else section
-        else:
-            current_chunk = potential_chunk
-
-    # Don't forget the last chunk
-    if current_chunk.strip():
-        chunk_id = generate_chunk_id(filename, chunk_index)
-        chunks.append({
-            'id': chunk_id,
-            'text': current_chunk.strip(),
-            'metadata': {
-                **metadata,
-                'chunk_index': chunk_index,
-                'header': current_header,
-                'source': filename
-            }
-        })
+    with open(chunks_file, 'r', encoding='utf-8') as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                chunk = json.loads(line)
+                # Validate required fields (chunk_id from prepare_data.py)
+                if 'chunk_id' in chunk and 'content' in chunk:
+                    # Normalize field names for consistency
+                    chunk['id'] = chunk.get('chunk_id')
+                    chunk['source'] = chunk.get('source_file', '')
+                    chunks.append(chunk)
+                else:
+                    print(f"  Warning: Line {line_num} missing required fields (chunk_id, content)")
+            except json.JSONDecodeError as e:
+                print(f"  Warning: Line {line_num} is not valid JSON: {e}")
 
     return chunks
 
 
-def generate_chunk_id(filename: str, chunk_index: int) -> str:
-    """Generate deterministic chunk ID"""
-    raw = f"{filename}::chunk_{chunk_index}"
-    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+def move_to_processed(filepath: Path) -> bool:
+    """Move a file to the processed directory"""
+    try:
+        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+        dest = PROCESSED_DIR / filepath.name
+        # If file exists, add timestamp to avoid overwriting
+        if dest.exists():
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            stem = filepath.stem
+            suffix = filepath.suffix
+            dest = PROCESSED_DIR / f"{stem}_{timestamp}{suffix}"
+        filepath.rename(dest)
+        return True
+    except Exception as e:
+        print(f"  Error moving {filepath.name}: {e}")
+        return False
+
+
+def load_manifest() -> Optional[Dict[str, Any]]:
+    """Load chunk manifest for stats"""
+    if not MANIFEST_FILE.exists():
+        return None
+    try:
+        with open(MANIFEST_FILE, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return None
 
 
 # =============================================================================
-# STAGE 3: EMBED - Generate vectors via Ollama
+# STAGE 2: EMBED - Generate vectors via Ollama
 # =============================================================================
 
 def check_ollama_ready() -> bool:
@@ -226,12 +194,12 @@ def check_ollama_ready() -> bool:
             model_names = [m.get('name', '').split(':')[0] for m in models]
             if EMBED_MODEL in model_names or any(EMBED_MODEL in n for n in model_names):
                 return True
-            print(f"  !! Model {EMBED_MODEL} not found. Available: {model_names}")
-            print(f"     Run: ollama pull {EMBED_MODEL}")
+            print(f"  Model {EMBED_MODEL} not found. Available: {model_names}")
+            print(f"  Run: ollama pull {EMBED_MODEL}")
             return False
         return False
     except Exception as e:
-        print(f"  !! Ollama not reachable at {OLLAMA_URL}: {e}")
+        print(f"  Ollama not reachable at {OLLAMA_URL}: {e}")
         return False
 
 
@@ -248,108 +216,116 @@ def get_embedding(text: str) -> Optional[List[float]]:
         if embedding and len(embedding) == EMBED_DIMS:
             return embedding
         else:
-            print(f"  !! Unexpected embedding dimension: {len(embedding) if embedding else 0}")
+            print(f"  Unexpected embedding dimension: {len(embedding) if embedding else 0}")
             return None
     except Exception as e:
-        print(f"  !! Embedding failed: {e}")
+        print(f"  Embedding failed: {e}")
         return None
 
 
-def embed_chunks(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Generate embeddings for all chunks"""
+def embed_chunks(chunks: List[Dict[str, Any]], batch_size: int = DEFAULT_BATCH_SIZE) -> List[Dict[str, Any]]:
+    """Generate embeddings for all chunks with progress"""
     embedded = []
+    total = len(chunks)
 
     for i, chunk in enumerate(chunks):
-        print(f"     Embedding chunk {i+1}/{len(chunks)}...", end='\r')
+        # Progress indicator
+        pct = int((i / total) * 100) if total > 0 else 0
+        print(f"  Embedding chunk {i+1}/{total} ({pct}%)...", end='\r')
 
-        embedding = get_embedding(chunk['text'])
+        embedding = get_embedding(chunk['content'])
         if embedding:
             chunk['embedding'] = embedding
             embedded.append(chunk)
         else:
-            print(f"  !! Skipping chunk {chunk['id']} - embedding failed")
+            print(f"\n  Skipping chunk {chunk['id'][:8]}... - embedding failed")
 
-    print(f"     Embedded {len(embedded)}/{len(chunks)} chunks" + " " * 20)
+    print(f"  Embedded {len(embedded)}/{total} chunks successfully" + " " * 20)
     return embedded
 
 
 # =============================================================================
-# STAGE 4: STORE - Upsert to ChromaDB
+# STAGE 3: STORE - Upsert to ChromaDB
 # =============================================================================
 
-def store_chunks(client, chunks: List[Dict[str, Any]]) -> int:
-    """Store embedded chunks in ChromaDB"""
+def store_chunks(client, chunks: List[Dict[str, Any]], batch_size: int = DEFAULT_BATCH_SIZE) -> int:
+    """Store embedded chunks in ChromaDB with batching"""
     if not chunks:
         return 0
 
-    collection = client.get_or_create_collection(COLLECTION_NAME)
+    collection = client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        metadata={"description": "Portfolio knowledge base for RAG"}
+    )
 
-    # Prepare batch data
-    ids = [c['id'] for c in chunks]
-    embeddings = [c['embedding'] for c in chunks]
-    documents = [c['text'] for c in chunks]
-    metadatas = []
+    stored = 0
+    total_batches = (len(chunks) + batch_size - 1) // batch_size
 
-    for c in chunks:
-        # Flatten metadata for ChromaDB (no nested dicts)
-        meta = {
-            'source': c['metadata'].get('source', ''),
-            'title': c['metadata'].get('title', ''),
-            'chunk_index': c['metadata'].get('chunk_index', 0),
-            'header': c['metadata'].get('header', ''),
-            'ingested_at': datetime.now().isoformat()
-        }
-        metadatas.append(meta)
+    for batch_num in range(total_batches):
+        start = batch_num * batch_size
+        end = min(start + batch_size, len(chunks))
+        batch = chunks[start:end]
 
-    # Upsert (add or update)
-    try:
-        # Delete existing chunks from same source first
-        sources = set(c['metadata'].get('source', '') for c in chunks)
-        for source in sources:
-            existing = collection.get(where={"source": source})
-            if existing['ids']:
-                collection.delete(ids=existing['ids'])
-                print(f"     Deleted {len(existing['ids'])} existing chunks from {source}")
+        # Prepare batch data
+        ids = [c['id'] for c in batch]
+        embeddings = [c['embedding'] for c in batch]
+        documents = [c['content'] for c in batch]
+        metadatas = []
 
-        # Add new chunks
-        collection.add(
-            ids=ids,
-            embeddings=embeddings,
-            documents=documents,
-            metadatas=metadatas
-        )
+        for c in batch:
+            # Flatten metadata for ChromaDB (no nested dicts)
+            meta = {
+                'source': c.get('source', c.get('source_file', '')),
+                'chunk_index': c.get('chunk_index', 0),
+                'token_count': c.get('token_count', 0),
+                'char_count': c.get('char_count', len(c.get('content', ''))),
+                'total_chunks': c.get('total_chunks', 0),
+                'ingested_at': datetime.now().isoformat()
+            }
+            # Add optional fields if present
+            if 'source_title' in c:
+                meta['title'] = c['source_title']
+            if 'content_hash' in c:
+                meta['content_hash'] = c['content_hash']
 
-        return len(chunks)
-    except Exception as e:
-        print(f"  !! Error storing chunks: {e}")
-        return 0
+            metadatas.append(meta)
 
-
-# =============================================================================
-# STAGE 5: ARCHIVE - Move processed files
-# =============================================================================
-
-def archive_files(documents: List[Dict[str, Any]]) -> int:
-    """Move processed files to archive directory"""
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-
-    archived = 0
-    for doc in documents:
         try:
-            # Move .md file
-            md_dest = ARCHIVE_DIR / doc['filename']
-            shutil.move(str(doc['path']), str(md_dest))
-
-            # Move .meta.json if exists
-            if doc['meta_path'] and doc['meta_path'].exists():
-                meta_dest = ARCHIVE_DIR / doc['meta_path'].name
-                shutil.move(str(doc['meta_path']), str(meta_dest))
-
-            archived += 1
+            # Upsert handles both add and update
+            collection.upsert(
+                ids=ids,
+                embeddings=embeddings,
+                documents=documents,
+                metadatas=metadatas
+            )
+            stored += len(batch)
+            print(f"  Batch {batch_num + 1}/{total_batches}: stored {len(batch)} chunks")
         except Exception as e:
-            print(f"  !! Error archiving {doc['filename']}: {e}")
+            print(f"  Error storing batch {batch_num + 1}: {e}")
 
-    return archived
+    return stored
+
+
+def get_collection_stats(client) -> Dict[str, Any]:
+    """Get stats about the collection"""
+    try:
+        collection = client.get_or_create_collection(COLLECTION_NAME)
+        count = collection.count()
+
+        # Get sample of sources
+        sample = collection.peek(limit=10)
+        sources = set()
+        if sample and 'metadatas' in sample:
+            for meta in sample['metadatas']:
+                if meta and 'source' in meta:
+                    sources.add(meta['source'])
+
+        return {
+            'total_documents': count,
+            'sample_sources': list(sources)[:5]
+        }
+    except Exception as e:
+        return {'error': str(e)}
 
 
 # =============================================================================
@@ -357,90 +333,153 @@ def archive_files(documents: List[Dict[str, Any]]) -> int:
 # =============================================================================
 
 def main():
-    """Run the ingestion pipeline"""
+    parser = argparse.ArgumentParser(description='Ingest prepared chunks into ChromaDB')
+    parser.add_argument('--batch-size', type=int, default=DEFAULT_BATCH_SIZE,
+                        help=f'Batch size for embedding/storing (default: {DEFAULT_BATCH_SIZE})')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Preview chunks without embedding/storing')
+    parser.add_argument('--stats', action='store_true',
+                        help='Show collection stats and exit')
+    parser.add_argument('--file', type=str,
+                        help='Specific prepared_*.jsonl file to ingest')
+    args = parser.parse_args()
+
     print_header("RAG PIPELINE: INGEST DATA")
-    print("  Taking prepared ingredients from 02-prepared-rag-data/")
-    print("  Chunking, embedding, and storing in ChromaDB...\n")
+
+    # Stats only mode
+    if args.stats:
+        print("  Checking collection stats...")
+        client = get_chroma_client()
+        stats = get_collection_stats(client)
+        print(f"\n  Collection: {COLLECTION_NAME}")
+        print(f"  Total documents: {stats.get('total_documents', 'N/A')}")
+        if stats.get('sample_sources'):
+            print(f"  Sample sources: {', '.join(stats['sample_sources'])}")
+        return
 
     # Pre-flight checks
     print_stage(0, "PRE-FLIGHT CHECKS")
 
-    if not PREPARED_DIR.exists():
-        print(f"  !! Prepared data directory not found: {PREPARED_DIR}")
+    # Find prepared files
+    if args.file:
+        prepared_files = [Path(args.file)]
+        if not prepared_files[0].exists():
+            print(f"  Error: Specified file not found: {args.file}")
+            sys.exit(1)
+    else:
+        prepared_files = find_prepared_files()
+
+    if not prepared_files:
+        print(f"  Error: No prepared_*.jsonl files found in {PREPARED_DIR}")
+        print(f"  Run: python ../02-prepared-rag-data/prepare_data.py")
+        sys.exit(1)
+
+    print(f"  [OK] Found {len(prepared_files)} prepared file(s):")
+    for pf in prepared_files:
+        print(f"       - {pf.name}")
+    print(f"  [OK] ChromaDB: {CHROMA_URL or CHROMA_DIR}")
+    print(f"  [OK] Ollama: {OLLAMA_URL}")
+    print(f"  [OK] Model: {EMBED_MODEL} ({EMBED_DIMS} dims)")
+    print(f"  [OK] Batch size: {args.batch_size}")
+
+    # Load manifest for stats
+    manifest = load_manifest()
+    if manifest:
+        stats = manifest.get('stats', {})
+        print(f"\n  Manifest stats:")
+        print(f"     Total chunks: {stats.get('total_chunks', 'N/A')}")
+        print(f"     Total tokens: {stats.get('total_tokens', 'N/A'):,}")
+        print(f"     Source files: {stats.get('files_processed', 'N/A')}")
+
+    if not args.dry_run:
+        if not check_ollama_ready():
+            print("\n  Error: Ollama not ready. Please start Ollama and pull the model.")
+            print(f"  Run: ollama serve")
+            print(f"  Run: ollama pull {EMBED_MODEL}")
+            sys.exit(1)
+        print(f"  [OK] Ollama ready with {EMBED_MODEL}")
+
+    # Process each prepared file
+    total_loaded = 0
+    total_embedded = 0
+    total_stored = 0
+    files_processed = []
+
+    for chunks_file in prepared_files:
+        # Stage 1: Load
+        print_stage(1, f"LOAD - Reading {chunks_file.name}")
+        chunks = load_prepared_chunks(chunks_file)
+
+        if not chunks:
+            print(f"  Warning: No chunks found in {chunks_file.name}, skipping")
+            continue
+
+        print(f"  Loaded {len(chunks)} chunks from {chunks_file.name}")
+        total_loaded += len(chunks)
+
+        # Show sample
+        if chunks:
+            sample = chunks[0]
+            print(f"\n  Sample chunk:")
+            print(f"     ID: {sample.get('id', sample.get('chunk_id', 'N/A'))[:16]}...")
+            print(f"     Source: {sample.get('source', sample.get('source_file', 'N/A'))}")
+            print(f"     Tokens: {sample.get('token_count', 'N/A')}")
+            print(f"     Chunk: {sample.get('chunk_index', 0)+1}/{sample.get('total_chunks', '?')}")
+            print(f"     Content: {sample.get('content', '')[:80]}...")
+
+        if args.dry_run:
+            print(f"\n  [DRY RUN] Would embed and store {len(chunks)} chunks from {chunks_file.name}")
+            continue
+
+        # Stage 2: Embed
+        print_stage(2, "EMBED - Generating vectors via Ollama")
+        embedded_chunks = embed_chunks(chunks, batch_size=args.batch_size)
+
+        if not embedded_chunks:
+            print(f"  Warning: No chunks embedded from {chunks_file.name}")
+            continue
+
+        total_embedded += len(embedded_chunks)
+
+        # Stage 3: Store
+        print_stage(3, "STORE - Upserting to ChromaDB")
+        client = get_chroma_client()
+        stored = store_chunks(client, embedded_chunks, batch_size=args.batch_size)
+        total_stored += stored
+
+        # Track for moving
+        files_processed.append(chunks_file)
+
+    if args.dry_run:
+        print_header("DRY RUN COMPLETE")
+        print(f"  Would embed and store {total_loaded} chunks from {len(prepared_files)} file(s)")
+        print(f"  Run without --dry-run to actually ingest")
         return
 
-    print(f"  ✓ Prepared directory: {PREPARED_DIR}")
-    print(f"  ✓ Archive directory: {ARCHIVE_DIR}")
-    print(f"  ✓ ChromaDB: {CHROMA_URL or CHROMA_DIR}")
-    print(f"  ✓ Ollama: {OLLAMA_URL}")
-    print(f"  ✓ Embedding model: {EMBED_MODEL} ({EMBED_DIMS} dims)")
+    # Stage 4: Move processed files
+    if files_processed:
+        print_stage(4, "MOVE - Moving prepared files to processed")
+        moved_count = 0
+        for pf in files_processed:
+            if move_to_processed(pf):
+                print(f"  Moved: {pf.name} -> 04-processed-rag-data/")
+                moved_count += 1
+        print(f"\n  Moved {moved_count} file(s) to 04-processed-rag-data/")
 
-    if not check_ollama_ready():
-        print("\n  !! Ollama not ready. Please start Ollama and pull the model.")
-        return
-
-    print(f"  ✓ Ollama ready with {EMBED_MODEL}")
-
-    # Stage 1: Load
-    print_stage(1, "LOAD - Reading prepared files")
-    documents = load_prepared_files()
-
-    if not documents:
-        print("  !! No prepared files found in 02-prepared-rag-data/")
-        print("     Run prepare_data.py first to prepare raw data.")
-        return
-
-    print(f"  Found {len(documents)} prepared documents:")
-    for doc in documents:
-        word_count = doc['metadata'].get('word_count', len(doc['content'].split()))
-        print(f"     - {doc['filename']} ({word_count} words)")
-
-    # Stage 2: Chunk
-    print_stage(2, "CHUNK - Splitting into semantic chunks")
-    all_chunks = []
-
-    for doc in documents:
-        chunks = chunk_document(doc['content'], doc['metadata'], doc['filename'])
-        print(f"  {doc['filename']}: {len(chunks)} chunks")
-        all_chunks.extend(chunks)
-
-    print(f"\n  Total chunks: {len(all_chunks)}")
-
-    # Stage 3: Embed
-    print_stage(3, "EMBED - Generating vectors via Ollama")
-    embedded_chunks = embed_chunks(all_chunks)
-
-    if not embedded_chunks:
-        print("  !! No chunks were embedded successfully")
-        return
-
-    # Stage 4: Store
-    print_stage(4, "STORE - Upserting to ChromaDB")
+    # Final stats
     client = get_chroma_client()
-    stored = store_chunks(client, embedded_chunks)
-
-    collection = client.get_or_create_collection(COLLECTION_NAME)
-    total_docs = collection.count()
-    print(f"  Stored {stored} chunks")
-    print(f"  Collection '{COLLECTION_NAME}' now has {total_docs} documents")
-
-    # Stage 5: Archive
-    print_stage(5, "ARCHIVE - Moving to 04-processed-rag-data")
-    archived = archive_files(documents)
-    print(f"  Archived {archived} files to {ARCHIVE_DIR}")
+    final_stats = get_collection_stats(client)
 
     # Summary
     print_header("INGESTION COMPLETE")
     print(f"  Results:")
-    print(f"     Documents processed: {len(documents)}")
-    print(f"     Chunks created:      {len(all_chunks)}")
-    print(f"     Chunks embedded:     {len(embedded_chunks)}")
-    print(f"     Chunks stored:       {stored}")
-    print(f"     Files archived:      {archived}")
-    print(f"\n  ChromaDB collection: {COLLECTION_NAME}")
-    print(f"  Total documents in collection: {total_docs}")
+    print(f"     Files processed:  {len(files_processed)}")
+    print(f"     Chunks loaded:    {total_loaded}")
+    print(f"     Chunks embedded:  {total_embedded}")
+    print(f"     Chunks stored:    {total_stored}")
+    print(f"\n  Collection: {COLLECTION_NAME}")
+    print(f"  Total documents: {final_stats.get('total_documents', 'N/A')}")
     print(f"\n  Your RAG knowledge base is ready!")
-    print(f"  Test it: curl -X POST http://localhost:8080/chat -d '{{\"message\": \"your question\"}}'")
 
 
 if __name__ == "__main__":

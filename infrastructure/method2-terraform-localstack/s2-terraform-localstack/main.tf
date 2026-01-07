@@ -67,8 +67,9 @@ module "kubernetes_app" {
   environment = "dev"
 
   # Use versioned images from CI/CD pipeline
-  api_image    = "ghcr.io/jimjrxieb/portfolio-api:v1.0.0"
-  ui_image     = "ghcr.io/jimjrxieb/portfolio-ui:vite-fix-v4"
+  # Keep these in sync with running images (kubectl get pods -n portfolio -o wide)
+  api_image    = "ghcr.io/jimjrxieb/portfolio-api:v1.0.1"
+  ui_image     = "ghcr.io/jimjrxieb/portfolio-ui:main-34908175"
   chroma_image = "chromadb/chroma:0.5.18"
 
   claude_api_key     = var.claude_api_key

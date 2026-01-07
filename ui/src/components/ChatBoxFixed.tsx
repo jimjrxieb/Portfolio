@@ -3,7 +3,7 @@
  * Simple, working chat interface for Sheyla
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { API_BASE } from '../lib/api';
 
 interface ChatMessage {
@@ -18,10 +18,16 @@ const ChatBoxFixed: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
 
   const quickPrompts = [
     "Tell me about Jimmie's DevSecOps experience",
-    'What is LinkOps AI-BOX?',
+    'How did Jimmie secure this application?',
     'What technologies does Jimmie use?',
     'How was the CI/CD pipeline built?',
     'What security tools were implemented?',
@@ -167,6 +173,8 @@ const ChatBoxFixed: React.FC = () => {
             </div>
           </div>
         )}
+        {/* Auto-scroll target */}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Error Display */}

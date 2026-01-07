@@ -15,11 +15,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
 
-# Import our clean modules
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
+# Import our clean modules (PYTHONPATH=/app is set in Dockerfile)
 from backend.settings import (
     LLM_PROVIDER,
     LLM_MODEL,
@@ -28,9 +24,9 @@ from backend.settings import (
 from backend.engines.rag_engine import RAGEngine
 from backend.engines.llm_interface import LLMEngine
 
-# Import security module
-from api.security import SheylaSecurityGuard
-from api.security.prompts import SHEYLA_SYSTEM_PROMPT, GROUNDING_INSTRUCTION, FALLBACK_RESPONSES
+# Import security module (renamed to avoid conflicts with pip packages)
+from sheyla_security import SheylaSecurityGuard
+from sheyla_security.prompts import SHEYLA_SYSTEM_PROMPT, GROUNDING_INSTRUCTION, FALLBACK_RESPONSES
 
 # Import Sheyla's conversation engine
 # import sys

@@ -1,0 +1,56 @@
+# LocalStack for Method 2 - AWS Service Emulation
+# Provides local AWS services for development/testing
+#
+# Usage:
+#   cd infrastructure/method2-terraform-localstack/s2-terraform-localstack
+#   docker-compose -f docker-compose.localstack.yml up -d
+#
+# Verify:
+#   curl http://localhost:4566/_localstack/health
+#
+# AWS CLI with LocalStack:
+#   aws --endpoint-url=http://localhost:4566 s3 ls
+#   aws --endpoint-url=http://localhost:4566 dynamodb list-tables
+
+version: '3.8'
+
+services:
+  localstack:
+    container_name: localstack
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"           # LocalStack Gateway (all services)
+      - "4510-4559:4510-4559" # External service ports
+    environment:
+      # Services to enable (match what Terraform uses)
+      - SERVICES=s3,dynamodb,sqs,lambda,cloudwatch,logs,events,iam,sts,secretsmanager
+      # Debug mode (set to 1 for verbose logs)
+      - DEBUG=0
+      # Data persistence
+      - PERSISTENCE=1
+      - DATA_DIR=/var/lib/localstack/data
+      # Docker host for Lambda
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      # Hostname for internal service communication
+      - LOCALSTACK_HOST=localhost
+    volumes:
+      # Persist LocalStack data between restarts
+      - localstack_data:/var/lib/localstack
+      # Docker socket for Lambda containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - portfolio-local
+
+networks:
+  portfolio-local:
+    driver: bridge
+
+volumes:
+  localstack_data:
+    driver: local

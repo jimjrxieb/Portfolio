@@ -1,4 +1,3 @@
-import React from 'react';
 import ChatPanel from './ChatPanel';
 
 const REPO_BASE = 'https://github.com/jimjrxieb/Portfolio';
@@ -24,7 +23,7 @@ const skillSections: SkillSection[] = [
     icon: '🤖',
     title: 'AI/ML Security',
     items: [
-      { name: 'RAG Pipeline', description: '118 vectors, semantic search', path: 'data/README.md', isFile: true },
+      { name: 'RAG Pipeline', description: '137 vectors, semantic search', path: 'data/README.md', isFile: true },
       { name: 'Prompt Injection', description: 'Regex pattern detection', path: 'api/security/llm_security.py', isFile: true, lineNumber: 42 },
       { name: 'Input Sanitization', description: 'XSS/delimiter filtering', path: 'api/security/llm_security.py', isFile: true, lineNumber: 117 },
       { name: 'Rate Limiting', description: '10 req/min per IP', path: 'api/security/llm_security.py', isFile: true, lineNumber: 196 },

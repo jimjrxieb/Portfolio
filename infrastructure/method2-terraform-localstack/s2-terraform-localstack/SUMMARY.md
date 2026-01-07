@@ -2,12 +2,16 @@
 
 ## ✅ What's Deployed (All Working)
 
-### Kubernetes (Core - 3 Pods)
+### Kubernetes (Core - 3 Pods + Security)
 ```
-chroma-5f66d95bc6-b2vj8          1/1     Running
-portfolio-api-644bd78787-6jf54   1/1     Running  
-portfolio-ui-5bbcf88db5-j6dt2    1/1     Running
+chroma-*           1/1     Running   # Vector database
+portfolio-api-*    1/1     Running   # FastAPI backend
+portfolio-ui-*     1/1     Running   # React frontend
 ```
+
+### Security Layer (OPA Gatekeeper)
+- 4 Gatekeeper Constraints (DENY mode, 0 violations)
+- 6 Network Policies (zero-trust microsegmentation)
 
 ### AWS Resources (LocalStack - 16 Resources)
 - 3 S3 Buckets
@@ -16,7 +20,7 @@ portfolio-ui-5bbcf88db5-j6dt2    1/1     Running
 - 2 EventBridge Rules
 - 3 CloudWatch Log Groups
 
-**Total: 25 Resources**
+**Total: 37 Terraform-Managed Resources**
 
 ---
 
@@ -155,3 +159,44 @@ terraform destroy
 - ✅ Easy to understand, easy to modify
 
 **Method 2 is production-ready.**
+
+---
+
+## 🔄 Terraform + kubectl Sync Workflow
+
+Terraform manages the **infrastructure baseline**. kubectl handles **day-to-day operations**.
+
+### After CI/CD deploys new images
+
+```bash
+# 1. Check what's running
+kubectl get pods -n portfolio -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}'
+
+# 2. Update main.tf image tags to match
+# Edit: api_image, ui_image in main.tf
+
+# 3. Sync Terraform state (no changes, just records current state)
+cd infrastructure/method2-terraform-localstack/s2-terraform-localstack
+terraform plan   # Should show "No changes"
+terraform apply  # Records state
+```
+
+### Start LocalStack for AWS services
+
+```bash
+# Start LocalStack
+docker-compose -f docker-compose.localstack.yml up -d
+
+# Verify
+curl http://localhost:4566/_localstack/health
+
+# Apply Terraform (creates S3, DynamoDB, SQS in LocalStack)
+terraform apply
+```
+
+### Key Principle
+
+- **Terraform** = Source of truth for infrastructure definition
+- **kubectl** = Operational commands (rollout, logs, exec)
+- **CI/CD** = Builds and pushes new images
+- **Sync** = Update main.tf after CI/CD deploys new tags
