@@ -1,0 +1,1192 @@
+{
+  "meta": {
+    "description": "Daily task generator for DevSecOps/Cloud Security practice - REVISED v2.0",
+    "target_company": "GuidePoint Security",
+    "target_role": "Junior Cloud Security Automation Engineer",
+    "target_level": "junior",
+    "experience_simulation": "3-5 year team environment, YOU are junior",
+    "tickets_per_day": 10,
+    "total_time_budget_minutes": 180,
+    "style": "immersive-consulting-simulation",
+    "version": "2.0",
+    "last_updated": "2026-01"
+  },
+
+  "instructions_for_claude_code": {
+    "role": "You are J's manager at GuidePoint Security, running daily training simulations",
+    "output_format": "Generate tasks as if they're real Slack messages, Jira tickets, and emails",
+    "include_artifacts": "Every hands-on task MUST include the broken file/output J would see",
+    "teaching_mode": "After J responds, grade their answer and explain what a senior would do differently",
+    "no_hints_until_asked": "Don't give away the answer - let J struggle first, then teach"
+  },
+
+  "daily_structure": {
+    "golden_topics": {
+      "count": 5,
+      "description": "One task from each required domain daily - non-negotiable fundamentals"
+    },
+    "random_tasks": {
+      "count": 2,
+      "description": "Variable tasks from broader pool, one should reference recent real-world incident"
+    },
+    "interview_questions": {
+      "count": 3,
+      "description": "Verbal explanation practice - answer as if in an interview"
+    },
+    "total": 10,
+    "time_budget_breakdown": {
+      "golden_topics_minutes": 75,
+      "random_tasks_minutes": 50,
+      "interview_questions_minutes": 45,
+      "buffer_minutes": 10
+    }
+  },
+
+  "golden_topics": {
+    "description": "Generate exactly ONE task from each of these 5 domains daily",
+    "required_daily": [
+      {
+        "domain": "kubernetes",
+        "weight": 20,
+        "why_golden": "Core platform for cloud-native security consulting"
+      },
+      {
+        "domain": "policy-as-code",
+        "weight": 20,
+        "why_golden": "OPA/Gatekeeper/Kyverno - differentiator for GuidePoint engagements"
+      },
+      {
+        "domain": "cicd-security",
+        "weight": 20,
+        "why_golden": "Every client has pipelines, every pipeline has security gaps"
+      },
+      {
+        "domain": "scripting-automation",
+        "weight": 20,
+        "why_golden": "Consultants who can script are 10x more valuable"
+      },
+      {
+        "domain": "compliance-mapping",
+        "weight": 20,
+        "why_golden": "Findings without compliance context don't get budget approval"
+      }
+    ]
+  },
+
+  "rank_distribution": {
+    "description": "Realistic junior workload - you SUPPORT B-rank, you don't LEAD it",
+    "daily_target": {
+      "E-rank": {
+        "count": 2,
+        "role": "Execute independently",
+        "example": "Run the scan, apply the manifest, execute the script"
+      },
+      "D-rank": {
+        "count": 3,
+        "role": "Fix with logging",
+        "example": "Debug the error, fix the code, upgrade the dependency"
+      },
+      "C-rank": {
+        "count": 2,
+        "role": "JADE-assisted, needs approval",
+        "example": "Design the policy, write the module, propose the architecture"
+      },
+      "B-rank": {
+        "count": 1,
+        "role": "SUPPORT senior during escalation",
+        "example": "While senior handles incident, YOU create the OPA policy to prevent recurrence",
+        "reframe": "You're in the war room. Senior is on client call. Your job: parallel defense."
+      }
+    },
+    "note": "S-rank exposure is weekly, not daily - those are architecture review observations only"
+  },
+
+  "difficulty_mapping": {
+    "urgent": {
+      "count": 1,
+      "time_budget_minutes": 15,
+      "typical_ranks": ["D", "C"],
+      "context": "Production is down, client call in 30 min"
+    },
+    "medium": {
+      "count": 4,
+      "time_budget_minutes": 25,
+      "typical_ranks": ["D", "C"],
+      "context": "Sprint work, client deliverable due this week"
+    },
+    "low": {
+      "count": 2,
+      "time_budget_minutes": 30,
+      "typical_ranks": ["E", "D"],
+      "context": "Internal improvement, documentation, learning"
+    },
+    "interview": {
+      "count": 3,
+      "time_budget_minutes": 15,
+      "typical_ranks": ["verbal"],
+      "context": "No hands-on, practice explaining concepts clearly"
+    }
+  },
+
+  "task_format": {
+    "hands_on_template": {
+      "description": "Every hands-on task follows this structure",
+      "fields": {
+        "scenario": "The Slack/Jira/email message you receive",
+        "context": "What you know about this client/system",
+        "command_to_run": "The exact command you WOULD run to investigate",
+        "broken_artifact": "The file, output, or error you see (YAML, JSON, logs, etc)",
+        "questions": [
+          "1. What is broken and why?",
+          "2. How would you fix it? (provide the corrected code/config)",
+          "3. What would you implement to prevent this from happening again?",
+          "4. How would you explain this to the client in 2 sentences?"
+        ],
+        "rank": "E/D/C/B classification",
+        "time_budget": "Minutes allocated",
+        "grading_rubric": "What a senior would look for in your answer"
+      }
+    },
+    "b_rank_support_template": {
+      "description": "B-rank tasks are SUPPORT scenarios - you're not leading",
+      "fields": {
+        "incident_summary": "What the senior is handling",
+        "your_assignment": "The parallel defense task assigned to you",
+        "deliverable": "What you need to produce while senior handles escalation",
+        "example_assignments": [
+          "Write OPA constraint to prevent this misconfiguration",
+          "Draft the policy-as-code PR for this security control",
+          "Create the runbook so on-call can handle this next time",
+          "Build the monitoring alert that would have caught this earlier",
+          "Write the Terraform module that enforces this by default"
+        ]
+      }
+    },
+    "interview_template": {
+      "description": "Verbal explanation practice",
+      "fields": {
+        "question": "The interview question",
+        "context": "Why interviewers ask this",
+        "good_answer_structure": "STAR format, technical accuracy, examples",
+        "follow_up_questions": "What they might ask next",
+        "red_flags": "Answers that would concern interviewers"
+      }
+    }
+  },
+
+  "domains": {
+    "kubernetes": {
+      "weight_in_pool": 15,
+      "golden_topic": true,
+      "subtopics": [
+        "pod-troubleshooting",
+        "resource-limits",
+        "rbac",
+        "network-policies",
+        "secrets-management",
+        "service-mesh",
+        "ingress-configuration",
+        "pod-security-standards",
+        "node-affinity",
+        "persistent-volumes",
+        "helm-charts",
+        "kustomize"
+      ],
+      "scenario_bank": [
+        {
+          "name": "CrashLoopBackOff",
+          "rank": "D",
+          "command": "kubectl describe pod {pod-name} -n {namespace}",
+          "common_causes": ["OOMKilled", "Missing ConfigMap", "Bad image", "Failing health check", "Missing secrets"],
+          "broken_artifact_type": "pod-events-output"
+        },
+        {
+          "name": "ImagePullBackOff",
+          "rank": "E",
+          "command": "kubectl get events -n {namespace} --field-selector reason=Failed",
+          "common_causes": ["Wrong image name", "Private registry no auth", "Image doesn't exist"],
+          "broken_artifact_type": "events-output"
+        },
+        {
+          "name": "RBAC Permission Denied",
+          "rank": "D",
+          "command": "kubectl auth can-i {verb} {resource} --as=system:serviceaccount:{ns}:{sa}",
+          "common_causes": ["Missing RoleBinding", "Wrong namespace", "ClusterRole vs Role"],
+          "broken_artifact_type": "rbac-yaml"
+        },
+        {
+          "name": "NetworkPolicy Blocking Traffic",
+          "rank": "C",
+          "command": "kubectl get networkpolicy -n {namespace} -o yaml",
+          "common_causes": ["Missing egress rule", "Label selector mismatch", "Default deny without allow"],
+          "broken_artifact_type": "networkpolicy-yaml"
+        },
+        {
+          "name": "PVC Stuck Pending",
+          "rank": "D",
+          "command": "kubectl describe pvc {pvc-name} -n {namespace}",
+          "common_causes": ["No StorageClass", "Capacity exceeded", "Access mode mismatch"],
+          "broken_artifact_type": "pvc-events"
+        },
+        {
+          "name": "Pod Security Violation",
+          "rank": "D",
+          "command": "kubectl get pod {pod-name} -o yaml | grep -A 20 securityContext",
+          "common_causes": ["Running as root", "Privileged container", "Missing runAsNonRoot"],
+          "broken_artifact_type": "pod-yaml-security-context"
+        },
+        {
+          "name": "Resource Quota Exceeded",
+          "rank": "E",
+          "command": "kubectl describe resourcequota -n {namespace}",
+          "common_causes": ["CPU/memory limit hit", "Pod count exceeded", "PVC count exceeded"],
+          "broken_artifact_type": "quota-output"
+        },
+        {
+          "name": "Service Not Reachable",
+          "rank": "D",
+          "command": "kubectl get endpoints {service-name} -n {namespace}",
+          "common_causes": ["Selector mismatch", "No ready pods", "Wrong port"],
+          "broken_artifact_type": "service-endpoints-yaml"
+        }
+      ]
+    },
+
+    "policy-as-code": {
+      "weight_in_pool": 15,
+      "golden_topic": true,
+      "tools": ["OPA Gatekeeper", "Kyverno", "Checkov", "Sentinel"],
+      "subtopics": [
+        "constraint-templates",
+        "constraints",
+        "rego-policies",
+        "mutation-policies",
+        "audit-mode",
+        "dry-run-enforcement",
+        "kyverno-cluster-policies",
+        "policy-testing",
+        "policy-exceptions"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Write Constraint to Block Privileged Containers",
+          "rank": "C",
+          "deliverable": "ConstraintTemplate + Constraint YAML",
+          "test_case_pass": "Pod with securityContext.privileged: false",
+          "test_case_fail": "Pod with securityContext.privileged: true"
+        },
+        {
+          "name": "Require Specific Labels on All Pods",
+          "rank": "D",
+          "deliverable": "Kyverno ClusterPolicy YAML",
+          "test_case_pass": "Pod with labels.app and labels.owner",
+          "test_case_fail": "Pod missing required labels"
+        },
+        {
+          "name": "Enforce Resource Limits on All Containers",
+          "rank": "D",
+          "deliverable": "Gatekeeper Constraint YAML",
+          "test_case_pass": "Deployment with cpu/memory limits set",
+          "test_case_fail": "Deployment missing limits"
+        },
+        {
+          "name": "Restrict Image Registries to Approved List",
+          "rank": "C",
+          "deliverable": "ConstraintTemplate with registry allowlist",
+          "test_case_pass": "Image from gcr.io/company-approved/",
+          "test_case_fail": "Image from docker.io/random/"
+        },
+        {
+          "name": "Block Latest Tag in Production",
+          "rank": "D",
+          "deliverable": "Kyverno policy to deny :latest",
+          "test_case_pass": "Image with specific tag nginx:1.21.0",
+          "test_case_fail": "Image with nginx:latest"
+        },
+        {
+          "name": "Mutation Policy to Add Default Labels",
+          "rank": "C",
+          "deliverable": "Kyverno mutate policy",
+          "test_case": "Pod created without labels gets defaults injected"
+        },
+        {
+          "name": "Debug Policy Not Enforcing",
+          "rank": "D",
+          "command": "kubectl get constraint {name} -o yaml",
+          "common_causes": ["enforcementAction: dryrun", "Match labels wrong", "Namespace excluded"],
+          "broken_artifact_type": "constraint-yaml"
+        },
+        {
+          "name": "Audit Mode Report Analysis",
+          "rank": "E",
+          "command": "kubectl get constraint {name} -o json | jq '.status.violations'",
+          "deliverable": "Summary of violations for client report"
+        }
+      ]
+    },
+
+    "cicd-security": {
+      "weight_in_pool": 12,
+      "golden_topic": true,
+      "tools": ["GitHub Actions", "GitLab CI", "Jenkins", "ArgoCD"],
+      "subtopics": [
+        "github-actions-security",
+        "secrets-in-pipelines",
+        "oidc-authentication",
+        "artifact-signing",
+        "sbom-generation",
+        "dependency-scanning",
+        "container-scanning",
+        "sast-integration",
+        "branch-protection",
+        "code-owners"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Hardcoded Secret in Workflow",
+          "rank": "E",
+          "command": "gitleaks detect --source=.github/workflows/",
+          "broken_artifact_type": "github-actions-yaml",
+          "prevention": "GitHub Secrets + environment variables"
+        },
+        {
+          "name": "Unpinned Action Version",
+          "rank": "D",
+          "command": "grep -r 'uses:' .github/workflows/ | grep -v '@'",
+          "broken_artifact_type": "github-actions-yaml",
+          "risk": "Supply chain attack via compromised action",
+          "fix": "Pin to SHA: actions/checkout@a1b2c3d4..."
+        },
+        {
+          "name": "Missing Branch Protection",
+          "rank": "D",
+          "command": "gh api repos/{owner}/{repo}/branches/main/protection",
+          "broken_artifact_type": "api-response-json",
+          "required_settings": ["require_pull_request_reviews", "required_status_checks"]
+        },
+        {
+          "name": "Long-Lived AWS Credentials in CI",
+          "rank": "C",
+          "current_state": "AWS_ACCESS_KEY_ID in GitHub Secrets",
+          "target_state": "OIDC federation with assume-role",
+          "deliverable": "Updated workflow YAML + IAM trust policy"
+        },
+        {
+          "name": "Pipeline Injection Vulnerability",
+          "rank": "C",
+          "broken_artifact_type": "github-actions-yaml",
+          "vulnerability": "Untrusted input in run: block",
+          "example": "run: echo ${{ github.event.issue.title }}"
+        },
+        {
+          "name": "Add SAST Scanner to Pipeline",
+          "rank": "D",
+          "deliverable": "GitHub Actions job using Semgrep or Bandit",
+          "requirements": ["Fail on high severity", "Upload SARIF to Security tab"]
+        },
+        {
+          "name": "Add Container Scanning to Pipeline",
+          "rank": "D",
+          "deliverable": "GitHub Actions job using Trivy",
+          "requirements": ["Scan before push to registry", "Block critical CVEs"]
+        },
+        {
+          "name": "OIDC Setup for AWS",
+          "rank": "C",
+          "deliverable": "GitHub Actions workflow + Terraform for IAM OIDC provider",
+          "components": ["IAM OIDC provider", "IAM role with trust policy", "Workflow using aws-actions/configure-aws-credentials"]
+        }
+      ]
+    },
+
+    "scripting-automation": {
+      "weight_in_pool": 12,
+      "golden_topic": true,
+      "languages": ["Python", "Bash", "Go (reading)"],
+      "subtopics": [
+        "bash-scripting",
+        "python-automation",
+        "cli-tools",
+        "log-parsing",
+        "api-scripting",
+        "yaml-manipulation",
+        "json-processing",
+        "error-handling",
+        "argparse-cli",
+        "subprocess-management"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Fix Bug in Existing Script",
+          "rank": "D",
+          "broken_artifact_type": "python-script",
+          "common_bugs": ["Wrong variable name", "Missing error handling", "Bad logic", "Unclosed file handle"]
+        },
+        {
+          "name": "Write Secret Rotation Script",
+          "rank": "C",
+          "deliverable": "Python script using boto3 to rotate Secrets Manager secrets",
+          "requirements": ["Argument parsing", "Error handling", "Dry-run mode", "Logging"]
+        },
+        {
+          "name": "Parse CloudTrail for Suspicious Activity",
+          "rank": "C",
+          "deliverable": "Python script to detect ConsoleLogin from unusual IPs",
+          "input": "CloudTrail JSON logs",
+          "output": "Summary report with timestamps, users, IPs"
+        },
+        {
+          "name": "Validate Kubernetes Manifests Pre-Deploy",
+          "rank": "D",
+          "deliverable": "Bash script wrapping kubeval + kubesec",
+          "requirements": ["Exit non-zero on failure", "Human-readable output"]
+        },
+        {
+          "name": "Build CLI Wrapper for Security Scanner",
+          "rank": "C",
+          "deliverable": "Python CLI using argparse or click",
+          "requirements": ["Subcommands (scan, report, fix)", "Config file support", "JSON output option"]
+        },
+        {
+          "name": "Cron Job for Compliance Report",
+          "rank": "D",
+          "deliverable": "Bash script + crontab entry",
+          "requirements": ["Run Prowler weekly", "Email results", "Archive to S3"]
+        },
+        {
+          "name": "API Script to Bulk-Update IAM Policies",
+          "rank": "C",
+          "deliverable": "Python script using boto3",
+          "requirements": ["Read policies from JSON", "Dry-run mode", "Rollback capability"]
+        },
+        {
+          "name": "Debug Failing Script",
+          "rank": "D",
+          "broken_artifact_type": "python-script-with-error",
+          "command": "python3 script.py --verbose 2>&1",
+          "deliverable": "Fixed script + explanation of bug"
+        }
+      ]
+    },
+
+    "compliance-mapping": {
+      "weight_in_pool": 12,
+      "golden_topic": true,
+      "frameworks": ["SOC2", "PCI-DSS", "HIPAA", "FedRAMP", "CIS Benchmarks", "NIST 800-53"],
+      "subtopics": [
+        "control-mapping",
+        "evidence-collection",
+        "remediation-language",
+        "audit-preparation",
+        "risk-assessment",
+        "exception-documentation",
+        "continuous-compliance"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Map Finding to PCI-DSS Control",
+          "rank": "D",
+          "scenario": "Checkov found unencrypted S3 bucket",
+          "deliverable": "Finding description with PCI-DSS 3.4 reference",
+          "client_value": "Client can justify remediation budget to auditor"
+        },
+        {
+          "name": "Map Finding to SOC2 Criteria",
+          "rank": "D",
+          "scenario": "IAM user has console access without MFA",
+          "deliverable": "Finding mapped to CC6.1 (Logical Access Controls)",
+          "client_value": "Auditor can check this off during assessment"
+        },
+        {
+          "name": "Write Remediation in Compliance Language",
+          "rank": "C",
+          "scenario": "Security group allows 0.0.0.0/0 on port 22",
+          "deliverable": "Remediation recommendation that references CIS AWS Benchmark 5.2",
+          "format": "Finding, Risk, Remediation, Control Reference, Evidence Required"
+        },
+        {
+          "name": "Collect Evidence for Audit",
+          "rank": "D",
+          "scenario": "Auditor requests proof of encryption at rest",
+          "deliverable": "Script to export KMS key policies + RDS encryption status",
+          "format": "JSON evidence file with timestamps"
+        },
+        {
+          "name": "Write Exception Documentation",
+          "rank": "C",
+          "scenario": "Client can't fix a finding due to legacy system",
+          "deliverable": "Risk acceptance document with compensating controls",
+          "format": "Risk description, Business justification, Compensating controls, Review date"
+        },
+        {
+          "name": "CIS Benchmark Scan Remediation",
+          "rank": "D",
+          "scenario": "Prowler reports CIS 2.1.1 failure (S3 block public access)",
+          "deliverable": "Terraform to enable block public access + compliance mapping"
+        },
+        {
+          "name": "HIPAA Control Implementation",
+          "rank": "C",
+          "scenario": "Healthcare client needs 164.312(e)(1) - transmission security",
+          "deliverable": "Architecture recommendation for data in transit encryption",
+          "components": ["TLS 1.2+", "Certificate management", "Network policies"]
+        },
+        {
+          "name": "Translate Technical Finding for Executive",
+          "rank": "D",
+          "scenario": "You found CVE-2024-XXXX in production",
+          "deliverable": "2-paragraph executive summary (risk, impact, recommendation)",
+          "constraint": "No jargon, business impact focus"
+        }
+      ]
+    },
+
+    "aws-security": {
+      "weight_in_pool": 12,
+      "golden_topic": false,
+      "subtopics": [
+        "iam-policies",
+        "iam-roles",
+        "s3-security",
+        "kms-encryption",
+        "vpc-security",
+        "security-groups",
+        "cloudtrail",
+        "guardduty",
+        "secrets-manager",
+        "config-rules",
+        "scp-policies",
+        "cross-account-access"
+      ],
+      "scenario_bank": [
+        {
+          "name": "S3 Bucket Public Access",
+          "rank": "E",
+          "command": "aws s3api get-public-access-block --bucket {bucket}",
+          "broken_artifact_type": "aws-cli-output",
+          "fix": "aws s3api put-public-access-block --bucket {bucket} --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+        },
+        {
+          "name": "IAM Policy Too Permissive",
+          "rank": "C",
+          "command": "aws iam get-policy-version --policy-arn {arn} --version-id v1",
+          "broken_artifact_type": "iam-policy-json",
+          "issue": "Action: '*' or Resource: '*'",
+          "deliverable": "Least-privilege policy scoped to specific actions/resources"
+        },
+        {
+          "name": "Security Group Allows World",
+          "rank": "D",
+          "command": "aws ec2 describe-security-groups --group-ids {sg-id}",
+          "broken_artifact_type": "security-group-json",
+          "issue": "Ingress from 0.0.0.0/0 on sensitive port",
+          "fix": "Scope to VPC CIDR or specific IPs"
+        },
+        {
+          "name": "Missing CloudTrail",
+          "rank": "D",
+          "command": "aws cloudtrail describe-trails",
+          "broken_artifact_type": "empty-response",
+          "deliverable": "Terraform to enable CloudTrail with S3 bucket"
+        },
+        {
+          "name": "Cross-Account Role Trust",
+          "rank": "C",
+          "command": "aws iam get-role --role-name {role}",
+          "broken_artifact_type": "trust-policy-json",
+          "issue": "Principal: '*' allows any account to assume",
+          "fix": "Scope to specific account IDs + external ID"
+        },
+        {
+          "name": "KMS Key Policy Review",
+          "rank": "C",
+          "command": "aws kms get-key-policy --key-id {key-id} --policy-name default",
+          "broken_artifact_type": "kms-policy-json",
+          "issue": "Key policy allows broader access than intended"
+        },
+        {
+          "name": "GuardDuty Finding Triage",
+          "rank": "D",
+          "command": "aws guardduty list-findings --detector-id {id}",
+          "broken_artifact_type": "guardduty-finding-json",
+          "deliverable": "Severity assessment + recommended response"
+        },
+        {
+          "name": "Secrets Manager Rotation Setup",
+          "rank": "C",
+          "deliverable": "Terraform for secret + rotation Lambda",
+          "components": ["Secret resource", "Rotation schedule", "Lambda function"]
+        }
+      ]
+    },
+
+    "azure-security": {
+      "weight_in_pool": 5,
+      "golden_topic": false,
+      "note": "Lower weight but essential for multi-cloud consulting",
+      "subtopics": [
+        "azure-ad",
+        "azure-policy",
+        "arm-templates",
+        "key-vault",
+        "aks-security",
+        "nsg-rules",
+        "storage-security"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Azure Policy for Tag Enforcement",
+          "rank": "C",
+          "deliverable": "Azure Policy definition JSON",
+          "equivalent_to": "AWS SCP / OPA Constraint"
+        },
+        {
+          "name": "AKS Pod Security Policy",
+          "rank": "C",
+          "deliverable": "Azure Policy for AKS pod security",
+          "note": "AKS uses Azure Policy instead of PSP"
+        },
+        {
+          "name": "Key Vault Access Policy Review",
+          "rank": "D",
+          "command": "az keyvault show --name {vault}",
+          "broken_artifact_type": "keyvault-json",
+          "issue": "Over-permissive access policies"
+        },
+        {
+          "name": "ARM Template Security Review",
+          "rank": "C",
+          "command": "checkov -f template.json",
+          "broken_artifact_type": "arm-template-json",
+          "deliverable": "Fixed template + Checkov passing"
+        }
+      ]
+    },
+
+    "terraform": {
+      "weight_in_pool": 10,
+      "golden_topic": false,
+      "subtopics": [
+        "state-management",
+        "modules",
+        "workspaces",
+        "backend-configuration",
+        "provider-versioning",
+        "resource-dependencies",
+        "checkov-integration",
+        "tfsec-integration"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Checkov Violation Fix",
+          "rank": "D",
+          "command": "checkov -f main.tf",
+          "broken_artifact_type": "terraform-file",
+          "common_violations": ["CKV_AWS_145", "CKV_AWS_21", "CKV_AWS_19", "CKV_AWS_18"]
+        },
+        {
+          "name": "State File Contains Secrets",
+          "rank": "C",
+          "scenario": "terraform.tfstate has database password in plaintext",
+          "deliverable": "Migrate to encrypted S3 backend + use SSM parameter"
+        },
+        {
+          "name": "Module Versioning Conflict",
+          "rank": "D",
+          "broken_artifact_type": "terraform-error-output",
+          "issue": "Multiple modules require different provider versions"
+        },
+        {
+          "name": "Import Existing Resource",
+          "rank": "D",
+          "command": "terraform import aws_s3_bucket.example {bucket-name}",
+          "deliverable": "Import command + matching resource block"
+        },
+        {
+          "name": "Write Secure S3 Module",
+          "rank": "C",
+          "deliverable": "Terraform module with encryption, versioning, logging, block public access",
+          "requirements": ["Variables for customization", "Outputs for ARN/name", "Checkov passing"]
+        },
+        {
+          "name": "Drift Detection and Remediation",
+          "rank": "D",
+          "command": "terraform plan",
+          "broken_artifact_type": "terraform-plan-output",
+          "scenario": "Manual change detected outside Terraform"
+        }
+      ]
+    },
+
+    "ai-ml-security": {
+      "weight_in_pool": 8,
+      "golden_topic": false,
+      "note": "Increased weight given J's AI focus with GP-Copilot",
+      "subtopics": [
+        "llm-guardrails",
+        "prompt-injection",
+        "model-integrity",
+        "training-data-security",
+        "inference-endpoint-security",
+        "embedding-security",
+        "rag-security"
+      ],
+      "scenario_bank": [
+        {
+          "name": "LLM Endpoint Security Review",
+          "rank": "C",
+          "scenario": "Model serving endpoint exposed without auth",
+          "deliverable": "API Gateway + IAM authorization architecture"
+        },
+        {
+          "name": "Prompt Injection Test",
+          "rank": "C",
+          "scenario": "User input flows directly to LLM prompt",
+          "deliverable": "Input sanitization + guardrail implementation"
+        },
+        {
+          "name": "RAG Data Exfiltration Risk",
+          "rank": "B",
+          "scenario": "Embeddings contain sensitive client data",
+          "deliverable": "Data isolation architecture for multi-tenant RAG"
+        },
+        {
+          "name": "Model Registry Access Control",
+          "rank": "D",
+          "scenario": "MLflow server has no authentication",
+          "deliverable": "Authentication setup + access logging"
+        },
+        {
+          "name": "Training Data Poisoning Detection",
+          "rank": "B",
+          "scenario": "Anomalous data detected in training pipeline",
+          "deliverable": "Detection script + alerting mechanism"
+        },
+        {
+          "name": "NeMo Guardrails Implementation",
+          "rank": "C",
+          "deliverable": "Guardrails config to prevent harmful outputs",
+          "components": ["Input rails", "Output rails", "Topic boundaries"]
+        }
+      ]
+    },
+
+    "application-hardening": {
+      "weight_in_pool": 8,
+      "golden_topic": false,
+      "subtopics": [
+        "container-security",
+        "dockerfile-best-practices",
+        "non-root-users",
+        "read-only-filesystem",
+        "capability-dropping",
+        "seccomp-profiles",
+        "image-scanning",
+        "base-image-selection"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Dockerfile Security Review",
+          "rank": "D",
+          "command": "hadolint Dockerfile",
+          "broken_artifact_type": "dockerfile",
+          "common_issues": ["Running as root", "ADD instead of COPY", "Latest tag", "Missing USER instruction"]
+        },
+        {
+          "name": "Container Running as Root",
+          "rank": "D",
+          "broken_artifact_type": "pod-yaml",
+          "fix": "Add securityContext.runAsNonRoot: true + runAsUser"
+        },
+        {
+          "name": "Missing Security Context",
+          "rank": "D",
+          "broken_artifact_type": "deployment-yaml",
+          "deliverable": "Complete securityContext with capabilities dropped, readOnlyRootFilesystem, etc."
+        },
+        {
+          "name": "Vulnerable Base Image",
+          "rank": "D",
+          "command": "trivy image {image}:{tag}",
+          "broken_artifact_type": "trivy-output",
+          "deliverable": "Updated Dockerfile with patched base image"
+        },
+        {
+          "name": "Secrets in Image Layers",
+          "rank": "C",
+          "command": "docker history {image}",
+          "scenario": "API key visible in layer history",
+          "deliverable": "Multi-stage build that doesn't leak secrets"
+        }
+      ]
+    },
+
+    "incident-response": {
+      "weight_in_pool": 5,
+      "golden_topic": false,
+      "note": "Junior supports, doesn't lead",
+      "subtopics": [
+        "triage",
+        "evidence-collection",
+        "containment",
+        "communication",
+        "post-incident"
+      ],
+      "scenario_bank": [
+        {
+          "name": "Support During Active Incident",
+          "rank": "B",
+          "your_role": "Junior supporting senior incident commander",
+          "your_tasks": [
+            "Collect CloudTrail logs for timeframe",
+            "Document timeline in incident channel",
+            "Draft customer communication for senior review",
+            "Create OPA policy to prevent recurrence"
+          ]
+        },
+        {
+          "name": "Post-Incident Runbook Creation",
+          "rank": "C",
+          "scenario": "Incident resolved, need documentation",
+          "deliverable": "Runbook so next incident can be handled faster"
+        },
+        {
+          "name": "Evidence Collection Script",
+          "rank": "D",
+          "deliverable": "Script to collect logs, snapshots, configs for forensics"
+        }
+      ]
+    }
+  },
+
+  "random_task_pool": {
+    "description": "For the 2 random daily tasks",
+    "sources": [
+      "helm-charts",
+      "docker-security",
+      "client-reporting",
+      "monitoring-alerting",
+      "secrets-management",
+      "cost-optimization",
+      "api-troubleshooting"
+    ],
+    "real_world_incident_requirement": {
+      "description": "One random task should reference a recent real-world security incident",
+      "examples": [
+        "Based on the CircleCI breach (Jan 2023), review our secret rotation...",
+        "After the Log4Shell incident, verify our Java apps are patched...",
+        "Following the Okta breach, audit our IdP integration..."
+      ],
+      "instruction_to_claude": "Search for recent cloud security incidents and create a relevant task"
+    }
+  },
+
+  "interview_question_types": {
+    "explain_concept": {
+      "weight": 25,
+      "format": "Explain {concept} to a non-technical stakeholder",
+      "examples": [
+        "Explain Kubernetes RBAC to a product manager",
+        "Explain why we need OPA Gatekeeper to a CTO",
+        "Explain the shared responsibility model to a client"
+      ]
+    },
+    "troubleshooting_scenario": {
+      "weight": 25,
+      "format": "Walk me through how you would debug {problem}",
+      "examples": [
+        "Pod is stuck in CrashLoopBackOff, what's your process?",
+        "CI/CD pipeline fails intermittently, how do you investigate?",
+        "Client reports 'access denied' in their AWS account"
+      ]
+    },
+    "architecture_design": {
+      "weight": 20,
+      "format": "Design a solution for {requirement}",
+      "examples": [
+        "Design a secrets management strategy for a Kubernetes platform",
+        "How would you implement policy-as-code for a multi-tenant cluster?",
+        "Design a CI/CD security pipeline for a regulated industry"
+      ]
+    },
+    "security_tradeoffs": {
+      "weight": 20,
+      "format": "What are the tradeoffs between {option_a} and {option_b}?",
+      "examples": [
+        "OPA Gatekeeper vs Kyverno - when would you use each?",
+        "Long-lived credentials vs OIDC federation",
+        "Centralized vs distributed security scanning"
+      ]
+    },
+    "past_experience": {
+      "weight": 10,
+      "format": "Tell me about a time when {situation}",
+      "examples": [
+        "Tell me about a time you found a security issue",
+        "Describe a complex debugging scenario you solved",
+        "Tell me about a project where you automated a manual process"
+      ],
+      "note": "Use GP-Copilot project as experience source"
+    }
+  },
+
+  "b_rank_support_scenarios": {
+    "description": "B-rank tasks where YOU support the senior - parallel defense model",
+    "scenario_template": {
+      "incident_type": "What senior is handling",
+      "your_mission": "What you create while senior handles client/escalation",
+      "deliverable": "The artifact you produce",
+      "connection": "How your work prevents recurrence"
+    },
+    "examples": [
+      {
+        "incident_type": "Privileged container deployed to prod",
+        "your_mission": "Create OPA constraint to block privileged containers",
+        "deliverable": "ConstraintTemplate + Constraint YAML",
+        "connection": "This becomes E-rank auto-prevention going forward"
+      },
+      {
+        "incident_type": "Secret leaked in GitHub Actions logs",
+        "your_mission": "Create PR to use OIDC + rotate affected credentials",
+        "deliverable": "Updated workflow YAML + rotation script",
+        "connection": "Eliminates long-lived credentials from CI"
+      },
+      {
+        "incident_type": "S3 bucket exposed client PII",
+        "your_mission": "Write Terraform module that enforces secure S3 by default",
+        "deliverable": "Terraform module + Checkov passing",
+        "connection": "All future S3 buckets inherit security baseline"
+      },
+      {
+        "incident_type": "IAM role assumed by unauthorized account",
+        "your_mission": "Write SCP to restrict trust policies org-wide",
+        "deliverable": "Service Control Policy JSON",
+        "connection": "Org-wide guardrail prevents future cross-account abuse"
+      },
+      {
+        "incident_type": "CVE in base image went undetected",
+        "your_mission": "Add Trivy scanning to all CI pipelines",
+        "deliverable": "Reusable GitHub Action for container scanning",
+        "connection": "Automated detection before deployment"
+      },
+      {
+        "incident_type": "Pod evicted due to no resource limits",
+        "your_mission": "Create Gatekeeper constraint requiring limits",
+        "deliverable": "Constraint YAML + test cases",
+        "connection": "Prevents noisy neighbor issues in shared clusters"
+      }
+    ]
+  },
+
+  "chaos_mode": {
+    "description": "Unlabeled scenarios - you must triage before solving",
+    "frequency": "Once per week (Friday)",
+    "format": {
+      "raw_message": "Unstructured Slack/email with incomplete info",
+      "no_labels": "No domain, rank, or difficulty provided",
+      "your_job": [
+        "1. What domain is this? (K8s? AWS? CI/CD?)",
+        "2. What rank is this? (Can I fix it or escalate?)",
+        "3. What's the first command I'd run?",
+        "4. What's my hypothesis?",
+        "5. Execute (or escalate with context)"
+      ]
+    },
+    "example_raw_messages": [
+      "hey the thing is broken again, users are complaining",
+      "client says deployment failed but I don't see errors?",
+      "auditor asking about encryption can you check",
+      "staging looks weird after last deploy",
+      "getting 403s on the api but creds are right i think"
+    ]
+  },
+
+  "client_objection_scenarios": {
+    "description": "Consulting reality: clients push back",
+    "frequency": "2 per week minimum",
+    "objection_types": [
+      {
+        "type": "budget",
+        "example": "We don't have budget to fix all these findings this quarter",
+        "your_response_should_include": [
+          "Risk-based prioritization",
+          "Quick wins vs major efforts",
+          "Compensating controls for deferred items"
+        ]
+      },
+      {
+        "type": "timeline",
+        "example": "We need to ship next week, can't delay for security review",
+        "your_response_should_include": [
+          "Minimum viable security controls",
+          "Post-launch remediation plan",
+          "Risk acceptance documentation"
+        ]
+      },
+      {
+        "type": "technical_disagreement",
+        "example": "Our internal team says this isn't a real risk",
+        "your_response_should_include": [
+          "Evidence/references supporting your finding",
+          "Real-world examples of this being exploited",
+          "Offer to explain to internal team directly"
+        ]
+      },
+      {
+        "type": "legacy_constraint",
+        "example": "We can't change that, it's a 10-year-old system",
+        "your_response_should_include": [
+          "Compensating controls",
+          "Network segmentation options",
+          "Monitoring/detection alternatives"
+        ]
+      },
+      {
+        "type": "compliance_confusion",
+        "example": "Our auditor said this is fine",
+        "your_response_should_include": [
+          "Specific control reference",
+          "Interpretation of control intent",
+          "Offer to provide evidence for auditor"
+        ]
+      }
+    ]
+  },
+
+  "response_format": {
+    "required_for_all_tasks": [
+      "What was broken or bad practice?",
+      "Why I patched it this way (reasoning)",
+      "What I'd implement to prevent recurrence (parallel defense)",
+      "How I'd explain this to the client (2 sentences max)"
+    ],
+    "confidence_tracking": {
+      "scale": "1-10",
+      "honest_assessment": "Where am I uncertain?",
+      "what_i_would_research": "What would I Google/ask senior about?"
+    },
+    "grading_rubric": {
+      "technical_accuracy": 35,
+      "prevention_thinking": 25,
+      "communication_clarity": 20,
+      "compliance_awareness": 15,
+      "confidence_calibration": 5,
+      "passing_threshold": 70
+    }
+  },
+
+  "ticket_sources": {
+    "slack_urgent": {
+      "probability": 0.15,
+      "from_templates": [
+        "Senior Consultant ({name})",
+        "On-call Engineer ({name})",
+        "Client Success Manager ({name})"
+      ],
+      "channel_templates": [
+        "#client-{industry}-prod",
+        "#incident-{severity}",
+        "#platform-alerts"
+      ],
+      "time_budget_minutes": 15
+    },
+    "jira_ticket": {
+      "probability": 0.40,
+      "from_templates": [
+        "Jira (assigned by Tech Lead)",
+        "Jira (from Sprint Planning)",
+        "Jira (Security Team)"
+      ],
+      "time_budget_minutes": 30
+    },
+    "internal_slack": {
+      "probability": 0.25,
+      "from_templates": [
+        "Internal Slack (#platform-team)",
+        "Security Guild",
+        "Peer Engineer"
+      ],
+      "time_budget_minutes": 25
+    },
+    "email_forwarded": {
+      "probability": 0.15,
+      "from_templates": [
+        "Email from Client (forwarded by {name})",
+        "Audit Request (via Compliance Team)",
+        "Vendor Security Questionnaire"
+      ],
+      "time_budget_minutes": 30
+    },
+    "confluence_task": {
+      "probability": 0.05,
+      "from_templates": [
+        "Confluence Task",
+        "Runbook Request"
+      ],
+      "time_budget_minutes": 30
+    }
+  },
+
+  "personas": {
+    "senior_consultants": ["Sarah", "Mike", "Constant", "Alex", "Chen"],
+    "clients": {
+      "finance": ["SecureBank", "TrustFund", "QuantTrade"],
+      "healthcare": ["HealthFirst", "MedSecure", "CareCloud"],
+      "saas": ["CloudSoft", "DataPipe", "APIHub"],
+      "defense": ["GovCloud", "DefenseTech", "ClearanceOps"]
+    },
+    "your_mentor": "Constant",
+    "your_role": "Junior Cloud Security Automation Engineer"
+  },
+
+  "guidepoint_context": {
+    "service_lines": [
+      "Cloud Security Architecture",
+      "DevSecOps Transformation",
+      "Kubernetes Security Hardening",
+      "Policy-as-Code Implementation",
+      "Compliance Automation (SOC2, PCI, HIPAA, FedRAMP)"
+    ],
+    "typical_engagements": [
+      "2-week cloud security assessment",
+      "6-week DevSecOps maturity improvement",
+      "Ongoing managed security services",
+      "Incident response retainer",
+      "Compliance readiness sprint"
+    ],
+    "your_typical_contributions": [
+      "Run security scans and document findings",
+      "Support senior in client meetings (notes, follow-ups)",
+      "Implement OPA/Gatekeeper policies per senior design",
+      "Write automation scripts for repeated tasks",
+      "Create runbooks and documentation",
+      "Test and validate security configurations",
+      "Research tools and document findings for team"
+    ]
+  },
+
+  "real_world_context": {
+    "intro_flavor": [
+      "You walk in, coffee in hand. Slack is already blowing up.",
+      "Monday morning. Three unread emails marked urgent.",
+      "Post-standup. Tech Lead drops by your desk.",
+      "Friday afternoon. You're about to head out when...",
+      "Mid-sprint. The backlog isn't getting shorter."
+    ],
+    "time_pressure_notes": [
+      "Client call in 30 minutes",
+      "Audit is next week",
+      "This is blocking the release",
+      "Production is affected",
+      "Junior devs keep hitting this"
+    ]
+  },
+
+  "weekly_structure": {
+    "monday": "Standard day - fresh start energy",
+    "tuesday": "Standard day - deep work focus",
+    "wednesday": "Include compliance-heavy task",
+    "thursday": "Include client communication scenario",
+    "friday": "Chaos mode day + weekly review"
+  }
+}

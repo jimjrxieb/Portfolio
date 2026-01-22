@@ -1,3 +1,26 @@
+# =============================================================================
+# ArgoCD Application for Portfolio
+# =============================================================================
+#
+# HOW ARGOCD KNOWS WHEN TO UPDATE YOUR APP:
+#
+# ArgoCD works like a vigilant security guard who:
+#   1. Watches your GitHub repo (the "source" section below)
+#   2. Compares it to what's running on your server (the "destination")
+#   3. If they don't match, ArgoCD updates the server to match GitHub
+#
+# This happens automatically every 3 minutes (default) or when you push to Git.
+#
+# THE MAGIC FORMULA:
+#   What's in GitHub (source) + Your settings (helm parameters)
+#   = What should be running (desired state)
+#
+#   ArgoCD constantly asks: "Does desired state = actual state?"
+#   If NO → ArgoCD syncs (updates) your app
+#   If YES → ArgoCD does nothing (everything is good!)
+#
+# =============================================================================
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -7,24 +30,55 @@ metadata:
     app.kubernetes.io/name: portfolio
     app.kubernetes.io/component: application
   annotations:
+    # sync-wave: Controls deployment ORDER when you have multiple apps
+    # Lower numbers deploy first. "1" means this deploys early.
     argocd.argoproj.io/sync-wave: "1"
+    # refresh: A trick to force ArgoCD to re-check. Change this value to trigger a refresh.
     argocd.argoproj.io/refresh: "2025-09-26-simplified-architecture"
+  # finalizers: Cleanup protection - ensures resources are properly deleted
+  # when you remove this Application
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+
 spec:
+  # project: Which ArgoCD project this belongs to (like a folder for organizing apps)
   project: default
+
+  # ==========================================================================
+  # SOURCE: WHERE ARGOCD WATCHES FOR CHANGES
+  # ==========================================================================
+  # This is the "recipe book" - ArgoCD monitors this location and deploys
+  # whatever it finds here. Change anything in this path, and ArgoCD notices!
   source:
+    # repoURL: The GitHub repository ArgoCD watches
+    # ArgoCD checks this repo every 3 minutes (or instantly via webhook)
     repoURL: https://github.com/jimjrxieb/Portfolio.git
+
+    # path: The specific folder INSIDE the repo containing your Helm chart
+    # ArgoCD only watches THIS folder, not the entire repo
     path: infrastructure/charts/portfolio
+
+    # targetRevision: Which branch/tag/commit to track
+    # HEAD = latest commit on the default branch (usually 'main')
+    # You could also use: "main", "v1.0.0", or a specific commit SHA
     targetRevision: HEAD
+
+    # helm: Helm-specific settings
+    # ArgoCD will run "helm template" with these values
     helm:
+      # valueFiles: Which values files to use (in order)
       valueFiles:
         - values.yaml
+
+      # parameters: Override specific values (like command-line --set flags)
+      # These take priority over values.yaml
       parameters:
         - name: global.imagePrefix
           value: ghcr.io/jimjrxieb/portfolio
         - name: global.namespace
           value: portfolio
+        # Image tags - when these change, ArgoCD deploys the new version!
+        # Your CI pipeline updates these after building new images
         - name: ui.image.tag
           value: latest
         - name: api.image.tag
@@ -33,31 +87,82 @@ spec:
           value: latest
         # Simplified architecture - Jade-Brain merged into API
         # RAG pipeline is local-only, not deployed
+
+  # ==========================================================================
+  # DESTINATION: WHERE ARGOCD DEPLOYS TO
+  # ==========================================================================
+  # This is the "kitchen" - where your app actually runs
   destination:
+    # server: Which Kubernetes cluster to deploy to
+    # "kubernetes.default.svc" = the same cluster ArgoCD is running in
     server: https://kubernetes.default.svc
+
+    # namespace: Which namespace to put your app in
+    # Think of namespaces like folders that organize your apps
     namespace: portfolio
+
+  # ==========================================================================
+  # SYNC POLICY: HOW ARGOCD RESPONDS TO CHANGES
+  # ==========================================================================
+  # This is where the magic happens! These settings control ArgoCD's behavior.
   syncPolicy:
+    # automated: Enable auto-sync (no manual "deploy" button needed!)
     automated:
+      # prune: DELETE resources that are in the cluster but NOT in Git
+      # If you remove a file from Git, ArgoCD removes it from the cluster
+      # This keeps your cluster clean and matching Git exactly
       prune: true
+
+      # selfHeal: AUTO-FIX if someone manually changes something in the cluster
+      # Example: If someone manually scales pods, ArgoCD reverts it to match Git
+      # This ensures Git is ALWAYS the source of truth
       selfHeal: true
+
+      # allowEmpty: Prevent accidental deletion of everything
+      # false = Don't sync if it would delete ALL resources (safety net)
       allowEmpty: false
+
+    # syncOptions: Fine-tune sync behavior
     syncOptions:
+      # CreateNamespace: Auto-create the namespace if it doesn't exist
       - CreateNamespace=true
+
+      # ApplyOutOfSyncOnly: Only update resources that changed (faster!)
       - ApplyOutOfSyncOnly=true
+
+      # PrunePropagationPolicy: How to delete resources
+      # "foreground" = wait for children to delete before parent
       - PrunePropagationPolicy=foreground
+
+      # PruneLast: Delete removed resources AFTER creating new ones
+      # Prevents downtime during updates
       - PruneLast=true
+
+    # retry: What to do if sync fails
     retry:
-      limit: 5
+      limit: 5              # Try 5 times before giving up
       backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m0s
+        duration: 5s        # Wait 5 seconds before first retry
+        factor: 2           # Double the wait time each retry (5s, 10s, 20s, 40s, 80s)
+        maxDuration: 3m0s   # Never wait more than 3 minutes
+
+  # revisionHistoryLimit: How many old versions to remember
+  # Useful for rollbacks - "oops, go back to version 3"
   revisionHistoryLimit: 10
+
+  # ==========================================================================
+  # IGNORE DIFFERENCES: THINGS ARGOCD SHOULD NOT "FIX"
+  # ==========================================================================
+  # Sometimes other tools (like HPA autoscaler) change values legitimately.
+  # Tell ArgoCD to ignore these so it doesn't fight with other controllers.
   ignoreDifferences:
     - group: apps
       kind: Deployment
       jsonPointers:
+        # Don't sync replica count - let HPA (autoscaler) manage this
         - /spec/replicas
+
+  # info: Metadata for the ArgoCD UI (just for display, doesn't affect behavior)
   info:
     - name: Description
       value: "Jimmie's AI/ML Portfolio - GenAI Chatbox & Technical Showcase"
@@ -65,3 +170,25 @@ spec:
       value: "https://github.com/jimjrxieb/Portfolio"
     - name: Stack
       value: "React, FastAPI, ChromaDB, AI/ML, Kubernetes"
+
+# =============================================================================
+# SUMMARY: THE ARGOCD MONITORING LOOP
+# =============================================================================
+#
+# Every 3 minutes (or on Git push), ArgoCD:
+#
+#   1. FETCH: Pulls latest from GitHub (repoURL + path + targetRevision)
+#   2. RENDER: Runs "helm template" with your values and parameters
+#   3. COMPARE: Checks if rendered manifests match what's in the cluster
+#   4. DECIDE:
+#      - If MATCH: Do nothing (app is "Synced" and "Healthy")
+#      - If DIFFERENT: Trigger a sync (update the cluster)
+#   5. SYNC: Apply changes to cluster (create/update/delete resources)
+#   6. VERIFY: Check that pods started successfully ("Healthy" status)
+#
+# You can see all of this in the ArgoCD UI - it shows:
+#   - Sync Status: "Synced" (matches Git) or "OutOfSync" (needs update)
+#   - Health Status: "Healthy" (running) or "Degraded" (problems)
+#   - Last Sync: When it last checked/updated
+#
+# =============================================================================

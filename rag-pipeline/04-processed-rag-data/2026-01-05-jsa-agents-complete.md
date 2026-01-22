@@ -1,144 +1,215 @@
-# JSA Agents - Complete Overview
+# JSA Agents - Complete Overview (January 2026)
 
 ## What is JSA?
 
-JSA (JADE Secure Agent) is the autonomous security worker system in GP-Copilot. While JADE is the brain making decisions, JSA agents are the hands doing the work - they execute security scans, apply fixes, and report results 24/7 without human intervention.
+JSA (JADE Secure Agent) is the autonomous security worker system in GP-Copilot. The Iron Legion consists of specialized agents that execute security scans, apply fixes, and deploy defense policies 24/7 without human intervention for low-risk (E/D rank) issues.
 
-## The Iron Legion Analogy
+## The Iron Legion Hierarchy
 
-In the Iron Man analogy:
-- JADE = Tony Stark (the decision maker)
-- JSA agents = Iron Legion (autonomous drones executing missions)
-
-JSA agents are deployed as Kubernetes pods that continuously monitor, scan, and remediate security issues across target projects.
+```
+JIMMIE (Human)     - Principal / Architect (A-S rank authority)
+    |
+Claude Code        - Operator (B rank, builds everything)
+    |
+JADE               - Supervisor (C rank authority ceiling)
+    |
+JSA Agents         - Workers (E-D rank autonomous execution)
+    ├── jsa-devsec    (DevSecOps - 24/7 daemon)
+    ├── jsa-infrasec  (Infrastructure Security - 117 modules)
+    └── jsa-secops    (SecOps - planned)
+```
 
 ## JSA Agent Variants
 
-### jsa-ci (CI/CD Security Agent)
-**Focus**: Application security in CI/CD pipelines
+### jsa-devsec (DevSecOps Agent)
+**Focus**: Application security scanning and CI/CD pipeline integration
 
-**Responsibilities**:
-- SAST (Static Application Security Testing)
-- Secrets detection in code
-- Dependency vulnerability scanning
-- Code quality enforcement
+**Key Features**:
+- 24/7 daemon mode watching GitHub Actions webhooks
+- LogBrain normalizes scanner outputs to unified format
+- EventProcessor routes findings by rank (E/D/C/B/S)
+- PlaybookExecutor auto-deploys D-rank defense policies
 
-**Scanners Used**:
-- Gitleaks (secrets)
+**8 Scanners**:
+- Gitleaks (secrets detection)
 - Bandit (Python SAST)
 - Semgrep (multi-language SAST)
+- Trivy (container/dependency scanning)
 - ESLint (JavaScript security)
 - Hadolint (Dockerfile linting)
-- Trivy, Grype, Snyk (dependencies)
+- Checkov (IaC security)
+- Safety (Python dependency CVEs)
 
-**Workload**: ~30% of security automation tasks
+**Commands**:
+```bash
+# 24/7 daemon with GHA monitoring
+python3 src/main.py daemon --instance 02-instance --slot slot-3 --watch-gha jimjrxieb/Portfolio
 
-### jsa-devsecops (DevSecOps Agent)
-**Focus**: Infrastructure and runtime security
+# One-shot scan
+python3 src/main.py scan --target /path/to/repo -v
+```
 
-**Responsibilities**:
-- Kubernetes security posture
-- Infrastructure as Code scanning
-- Runtime security monitoring
-- Compliance enforcement
+### jsa-infrasec (Infrastructure Security Agent)
+**Focus**: Kubernetes, Cloud, IaC, Policy, Secrets, and Compliance
 
-**Scanners Used**:
-- Kubescape (K8s security)
-- Polaris (K8s best practices)
-- Kube-bench (CIS benchmarks)
-- Checkov (Terraform/CloudFormation)
-- tfsec (Terraform security)
-- Conftest (OPA policy testing)
-- Prowler (AWS security)
+**Key Features**:
+- 117 modules across 6 security domains
+- K8sGPT-style AnalyzerResult/Failure model
+- DomainLoader for dynamic module loading
+- BlastRadiusAnalyzer assesses fix impact before applying
 
-**Workload**: ~70% of security automation tasks
+**6 Security Domains**:
+
+| Domain | Prefix | Analyzers | Fixers | Scanners |
+|--------|--------|-----------|--------|----------|
+| Kubernetes | k8s_ | 15+ | 12+ | trivy, kubescape, polaris |
+| Cloud (AWS) | cloud_ | 9 | 4 | prowler, checkov |
+| IaC | iac_ | 5 | 5 | tfsec, checkov |
+| Policy | policy_ | 6 | 6 | conftest, opa |
+| Secrets | secrets_ | 3 | 3 | gitleaks |
+| Compliance | compliance_ | 8 | - | CIS, NIST, SOC2 mappings |
+
+**Commands**:
+```bash
+# K8s deployment
+helm upgrade --install jsa-infrasec charts/jsa-infrasec -n jsa-infrasec
+
+# Check logs
+kubectl logs -n jsa-infrasec deployment/jsa-infrasec -f
+```
+
+### jsa-secops (SecOps Agent) - Planned
+**Focus**: Runtime security monitoring and incident response
+
+**Planned Capabilities**:
+- Falco runtime threat detection
+- GuardDuty integration
+- CloudTrail monitoring
+- B/S-rank incident response automation
 
 ## How JSA Works
 
-### The 24/7 Autonomous Loop
-
-```
-ScanOrchestrator → RankClassifier → Decision Router
-    (14 NPCs)       (JADE-powered)
-
-         ┌────────────────┬─────────────────┬──────────────┐
-         ▼                ▼                 ▼
-   ┌──────────────┐ ┌──────────────┐ ┌─────────────────┐
-   │ E-D Rank     │ │ C Rank       │ │ B-S Rank        │
-   │ AUTO-FIX     │ │ SLACK APPROVE│ │ ESCALATE        │
-   │              │ │              │ │                 │
-   │ FixOrchestrator │ Approve=Fix  │ │ Human Review    │
-   │ (8 Fixer NPCs)  │ Deny=Escalate│ │ + Context       │
-   └──────────────┘ └──────────────┘ └─────────────────┘
-```
-
 ### Rank-Based Decision Routing
 
-| Rank | Automation Level | Action | Example |
-|------|------------------|--------|---------|
-| **E** | 95-100% | Auto-fix immediately | Hardcoded secrets, missing resource limits |
-| **D** | 70-90% | Auto-fix with logging | SQL injection, XSS, dependency CVEs |
-| **C** | 40-70% | Slack approval required | Network policies, multi-file IaC changes |
-| **B** | 20-40% | Escalate to human | Architecture changes, compliance gaps |
-| **S** | 0-5% | Escalate immediately | Org-wide policy, incident response |
+| Rank | Automation | Handler | Example Findings |
+|------|------------|---------|------------------|
+| **E** | 100% auto | JSA auto-fix | Hardcoded secrets, formatting issues |
+| **D** | 70-90% auto | JSA + defense playbook | CVEs, missing policies, basic misconfigs |
+| **C** | 40-70% | JADE approval | Config changes, multi-file edits |
+| **B** | 20-40% | Human + JADE | Architecture decisions |
+| **S** | 0-5% | Human only | Compliance sign-off, strategy |
 
-## NPCs (Non-Player Characters)
+### Defense Playbooks (D-Rank Auto-Deploy)
 
-JSA uses NPCs as its tools. NPCs are deterministic wrappers around security tools - they don't make decisions, they just run tools and normalize output.
+When jsa-devsec detects D-rank issues, it automatically deploys defensive policies:
 
-### Scanner NPCs (14 total)
-- **Secrets**: GitleaksNPC
-- **SAST**: BanditNPC, SemgrepNPC, EslintNPC
-- **Dependencies**: TrivyNPC, GrypeNPC, SnykNPC
-- **Kubernetes**: KubescapeNPC, PolarisNPC, KubeBenchNPC
-- **IaC**: CheckovNPC, TfsecNPC, ConftestNPC
-- **Quality**: HadolintNPC
+| Finding Type | Playbook | Deployed Asset |
+|--------------|----------|----------------|
+| hardcoded-secret | block-secrets | Gatekeeper constraint |
+| privileged-container | require-nonroot | Kyverno policy |
+| missing-network-policy | default-deny | NetworkPolicy |
+| no-resource-limits | require-limits | Gatekeeper mutation |
 
-### Fixer NPCs (7 total)
-- SecretsFixerNPC
-- CodeFixerNPC
-- DependencyFixerNPC
-- KubernetesFixerNPC
-- CIFixerNPC
-- ConftestFixerNPC
-- GHAFixerNPC
-
-## JSA Deployment
-
-JSA agents run as Kubernetes deployments with Helm charts:
-
-```bash
-# Deploy jsa-ci
-helm upgrade --install jsa-ci ./charts/jsa-ci -n portfolio
-
-# Deploy jsa-devsecops
-helm upgrade --install jsa-devsecops ./charts/jsa-devsecops -n portfolio
-```
-
-Each agent includes:
-- Main agent pod (continuous scanning loop)
-- Health report CronJob (daily status reports)
-- Log sync CronJob (sync logs to central storage)
-
-## Target Slots
-
-JSA organizes work into "slots" - each slot is a project being monitored:
+### Agent Loop Architecture
 
 ```
-GP-PROJECTS/
-├── 01-instance/
-│   ├── slot-1/kubernetes-goat/  # K8s security training
-│   └── slot-2/DEFENSE-project/  # Defense project
-└── 02-instance/
-    └── slot-3/Portfolio/        # This portfolio site
+┌─────────────────────────────────────────────────────────────────┐
+│                     JSA-DEVSEC DAEMON                           │
+├─────────────────────────────────────────────────────────────────┤
+│   GHA Webhook    Scanner Dir    Manual CLI                      │
+│   Watcher        Watcher        Trigger                         │
+│       └──────────────┼──────────────┘                           │
+│                      ▼                                          │
+│                  LogBrain (normalizer)                          │
+│                      ▼                                          │
+│               EventProcessor (rank routing)                     │
+│                      │                                          │
+│     ┌────────────────┼────────────────┐                         │
+│     ▼                ▼                ▼                         │
+│  E/D Rank        C Rank           B/S Rank                      │
+│  Auto-Fix        → JADE           Escalate                      │
+│     │                │                                          │
+│     ▼                ▼                                          │
+│  Playbook        Approval                                       │
+│  Executor        Queue                                          │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-Logs are stored per-slot in `target-slot-logs/`.
+## JADE - The Supervisor
+
+JADE (JADE AI Decision Engine) is the C-rank supervisor that:
+- Reviews C-rank findings from JSA agents
+- Generates fix proposals
+- Executes defense playbooks
+- Has a hard authority ceiling at C-rank (cannot auto-approve B/S)
+
+**Key Components**:
+- LogBrain: Normalizes scanner outputs
+- RankClassifier: ML-powered finding classification (sklearn + XGBoost)
+- PlaybookExecutor: Deploys defense policies
+- FeedbackLogger: Records decisions for learning (725+ historical entries)
+
+## Resolution Types
+
+| Type | When Used |
+|------|-----------|
+| **FIXED** | Code changed to remediate |
+| **ACCEPTED_RISK** | Won't fix, documented why |
+| **STALE** | Code no longer exists |
+| **SKIP_INTENTIONAL** | Test fixture, archive |
+| **ESCALATED** | Needs human expert |
+
+## File Structure
+
+```
+GP-BEDROCK-AGENTS/
+├── jsa-devsec/
+│   └── src/
+│       ├── main.py              # CLI entry point
+│       ├── daemon.py            # 24/7 mode
+│       ├── agent.py             # Core agent logic
+│       ├── event_processor.py   # Rank routing + playbooks
+│       └── fixers/              # Code fixers
+
+├── jsa-infrasec/
+│   └── src/
+│       ├── main.py              # CLI entry point
+│       ├── agent.py             # 1700+ lines, main agent
+│       ├── domain_loader.py     # Dynamic module loading
+│       ├── analyzers/           # 40+ K8sGPT-style analyzers
+│       ├── fixers/              # 30+ domain fixers
+│       ├── watchers/            # Event watchers
+│       └── scanners/            # Scanner integrations
+
+├── shared/
+│   ├── ranking/
+│   │   └── rank_classifier.py   # ML classification
+│   ├── supervisor/
+│   │   ├── jade_supervisor.py   # JADE logic
+│   │   └── playbook_executor.py # Defense deployment
+│   └── feedback/
+│       └── feedback_logger.py   # Decision logging
+
+└── charts/
+    ├── jsa-devsec/              # Helm chart
+    └── jsa-infrasec/            # Helm chart
+```
+
+## Platform Metrics
+
+| Metric | Value |
+|--------|-------|
+| jsa-infrasec modules | 117 |
+| jsa-infrasec lines | ~28,000 |
+| Historical decisions | 725+ |
+| Scanners integrated | 12 |
+| Defense playbooks | 8 |
 
 ## What Makes JSA Special
 
-1. **Truly Autonomous**: Runs 24/7 without human intervention
-2. **Rank-Based Intelligence**: Knows when to fix vs escalate
-3. **Comprehensive Coverage**: 14 scanners across all security domains
-4. **Audit Trail**: Every action is logged for compliance
-5. **Learning Loop**: Successful fixes become JADE training data
+1. **Truly Autonomous for Low-Risk**: E/D rank issues fixed 24/7 without human intervention
+2. **Defense-First**: D-rank findings auto-trigger protective policies
+3. **Rank-Based Intelligence**: Knows when to fix vs escalate vs block
+4. **Comprehensive Coverage**: 117 modules across all security domains
+5. **Learning Loop**: JADE improves from 725+ historical decisions
+6. **K8sGPT-Style Analysis**: Structured AnalyzerResult/Failure model for consistent output

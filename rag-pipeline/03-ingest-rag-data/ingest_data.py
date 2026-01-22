@@ -342,6 +342,8 @@ def main():
                         help='Show collection stats and exit')
     parser.add_argument('--file', type=str,
                         help='Specific prepared_*.jsonl file to ingest')
+    parser.add_argument('--no-move', action='store_true',
+                        help='Do not move files after ingestion (for multi-target sync)')
     args = parser.parse_args()
 
     print_header("RAG PIPELINE: INGEST DATA")
@@ -456,8 +458,8 @@ def main():
         print(f"  Run without --dry-run to actually ingest")
         return
 
-    # Stage 4: Move processed files
-    if files_processed:
+    # Stage 4: Move processed files (unless --no-move)
+    if files_processed and not args.no_move:
         print_stage(4, "MOVE - Moving prepared files to processed")
         moved_count = 0
         for pf in files_processed:
@@ -465,6 +467,9 @@ def main():
                 print(f"  Moved: {pf.name} -> 04-processed-rag-data/")
                 moved_count += 1
         print(f"\n  Moved {moved_count} file(s) to 04-processed-rag-data/")
+    elif files_processed and args.no_move:
+        print_stage(4, "SKIP MOVE - Files kept for multi-target sync")
+        print(f"  Kept {len(files_processed)} file(s) in 02-prepared-rag-data/")
 
     # Final stats
     client = get_chroma_client()

@@ -11,7 +11,8 @@ rag-pipeline/
 │   └── prepare_data.py        # Stage 1-3: Discover, Sanitize, Format
 ├── 03-ingest-rag-data/        # Embedding station
 │   ├── ingest_data.py         # Stage 4-5: Chunk, Embed, Store, Archive
-│   └── ingest_k8s.sh          # Sync to K8s ChromaDB (production)
+│   ├── ingest_k8s.sh          # Sync to K8s ChromaDB only
+│   └── sync_all.sh            # Sync to BOTH local + K8s (recommended)
 ├── 04-processed-rag-data/     # Archive of ingested files
 ├── run_pipeline.py            # All-in-one (runs all 5 stages together)
 └── README.md
@@ -35,18 +36,22 @@ python prepare_data.py
 ```bash
 cd ../03-ingest-rag-data
 
-# Local ChromaDB (dev/backup)
+# BOTH local + K8s (recommended)
+./sync_all.sh
+
+# OR local only
 python ingest_data.py
 
-# OR K8s ChromaDB (production)
+# OR K8s only
 ./ingest_k8s.sh
 ```
 
 - Reads from `02-prepared-rag-data/`
-- Chunks documents (~512 tokens)
 - Embeds via Ollama `nomic-embed-text` (768-dim)
 - Stores in ChromaDB `portfolio_knowledge` collection
 - Archives to `04-processed-rag-data/`
+
+> **Tip**: Use `sync_all.sh` to keep both local and K8s in sync with one command.
 
 ### Option B: All-in-One
 
@@ -73,6 +78,7 @@ STAGE 7: ARCHIVE    → Move to 04-processed-rag-data/
 
 1. **Drop files** in `00-new-rag-data/`
    - Supported: `.md`, `.txt`, `.json`, `.jsonl`
+   - JSONL formats: `question/answer` pairs or `instruction/input/output` (auto-detected)
    - Use descriptive filenames (becomes source metadata)
 
 2. **Run prepare** to sanitize
@@ -186,8 +192,12 @@ Two separate databases - local acts as dev/backup, K8s is production:
 
 **Workflow:**
 1. Run `prepare_data.py` (same for both)
-2. Run `ingest_data.py` for local backup
-3. Run `./ingest_k8s.sh` to push to production
+2. Run `./sync_all.sh` to sync both targets at once
+
+**Or separately:**
+
+1. Run `python ingest_data.py` for local only
+2. Run `./ingest_k8s.sh` for K8s only
 
 **Recovery:** If K8s PVC dies, re-run `./ingest_k8s.sh` to restore from archived files.
 
@@ -214,4 +224,4 @@ The ingestion model MUST match the query model. Both use `nomic-embed-text` (768
 ---
 
 **Author**: Jimmie Coleman
-**Last Updated**: 2025-12-05
+**Last Updated**: 2026-01-22

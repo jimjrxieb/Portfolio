@@ -19,10 +19,13 @@ const ChatBoxFixed: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change (scroll container only, not page)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages, loading]);
 
   const quickPrompts = [
@@ -126,7 +129,7 @@ const ChatBoxFixed: React.FC = () => {
       </div>
 
       {/* Chat Messages */}
-      <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+      <div ref={messagesContainerRef} className="space-y-3 max-h-80 overflow-y-auto pr-2">
         {messages.length === 0 && (
           <div className="text-center py-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-crystal-500/20 to-jade-500/20 flex items-center justify-center">

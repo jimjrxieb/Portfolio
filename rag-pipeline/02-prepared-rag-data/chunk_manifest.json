@@ -1,6 +1,6 @@
 {
-  "created_at": "2026-01-07T08:53:41.105369",
-  "output_file": "prepared_20260107_085341.jsonl",
+  "created_at": "2026-01-22T15:22:48.651404",
+  "output_file": "prepared_20260122_152248.jsonl",
   "config": {
     "chunk_size": 512,
     "chunk_overlap": 50,
@@ -10,16 +10,27 @@
     "target_embedding_model": "nomic-embed-text"
   },
   "stats": {
-    "files_processed": 15,
+    "files_processed": 34,
     "files_failed": 0,
-    "total_chunks": 71,
+    "total_chunks": 293,
     "duplicate_chunks_removed": 0,
-    "total_tokens": 23507,
-    "avg_chunk_size": 331.0845070422535,
-    "processing_time_seconds": 0.077137
+    "total_tokens": 96965,
+    "avg_chunk_size": 330.938566552901,
+    "processing_time_seconds": 0.371779
   },
   "source_files": [
+    "01-infrastructure-deployment.md",
     "01-jsa-variant-capabilities.jsonl",
+    "02-practice-makes-perfect.jsonl",
+    "02-ui-architecture.md",
+    "03-security-policies.md",
+    "04-api-backend-architecture.md",
+    "05-jimmie-coleman-bio-projects.md",
+    "06-portfolio-deployment-session.md",
+    "07-sheyla-personality-easter-eggs.md",
+    "2025-12-04-cloudflare-tunnel-pattern.md",
+    "2025-12-04-docker-image-deployment-pattern.md",
+    "2025-12-04-k8s-chromadb-sync-pattern.md",
     "2025-12-04-k8s-deployment-triple-failure-pattern.md",
     "2025-12-04-terraform-localstack-deployment-pattern.md",
     "2025-12-05-chromadb-embedding-timeout-pattern.md",
@@ -33,7 +44,15 @@
     "2026-01-07-portfolio-security-journey.md",
     "2026-01-07-security-tools-portfolio.md",
     "2026-01-07-sheyla-security.md",
-    "gp-copilot-overview.md"
+    "2026-01-22-practice-makes-perfect.md",
+    "CONFTEST-POLICY-REVIEW.md",
+    "DEPLOYMENT-SUMMARY.md",
+    "GATEKEEPER-POLICY-REVIEW.md",
+    "METHOD2-DEPLOYMENT-RESULTS.md",
+    "POLICY-IMPROVEMENTS-SUMMARY.md",
+    "gp-copilot-overview.md",
+    "method1-deployment-troubleshooting.md",
+    "rag-grounding-fix-tldr.md"
   ],
   "dependencies": {
     "langchain": true,

@@ -87,12 +87,17 @@ export default function CurrentVenture() {
                 <span className="text-2xl">🧠</span>
                 <div>
                   <span className="text-crystal-400 font-bold">JADE</span>
-                  <span className="text-text-secondary text-sm ml-2">— The Brain</span>
+                  <span className="text-text-secondary text-sm ml-2">— The Supervisor</span>
                 </div>
               </div>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                Fine-tuned security LLM trained on 800k examples. Knows when to act alone and when to call for backup.
+              <p className="text-text-secondary text-xs leading-relaxed mb-2">
+                C-rank approval authority. Reviews JSA findings, generates fixes, executes defense playbooks. Learning from 725+ historical decisions to improve accuracy.
               </p>
+              <div className="flex flex-wrap gap-1">
+                <span className="px-1.5 py-0.5 bg-crystal-500/10 text-crystal-400/80 text-[10px] rounded">LogBrain</span>
+                <span className="px-1.5 py-0.5 bg-crystal-500/10 text-crystal-400/80 text-[10px] rounded">RankClassifier</span>
+                <span className="px-1.5 py-0.5 bg-crystal-500/10 text-crystal-400/80 text-[10px] rounded">PlaybookExecutor</span>
+              </div>
             </div>
 
             {/* JSA */}
@@ -109,37 +114,40 @@ export default function CurrentVenture() {
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-crystal-400">→</span>
                     <strong className="text-white text-xs">JSA-DEVSEC</strong>
-                    <span className="text-text-secondary/60 text-xs">(Code & CI Security)</span>
+                    <span className="px-1.5 py-0.5 bg-jade-500/20 text-jade-400 text-[10px] rounded ml-1">24/7</span>
                   </div>
                   <p className="text-text-secondary text-xs pl-4 leading-relaxed">
-                    Monitors GitHub webhooks for pipeline failures. Scans with gitleaks, bandit, semgrep. Auto-fixes E/D-rank issues.
+                    Autonomous daemon monitoring GitHub Actions webhooks. Runs 8 scanners (gitleaks, bandit, semgrep, trivy, eslint, hadolint, checkov, safety). Auto-triggers defense playbooks for D-rank issues. Escalates C-rank to JADE for approval.
                   </p>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-crystal-400">→</span>
                     <strong className="text-white text-xs">JSA-INFRASEC</strong>
-                    <span className="text-text-secondary/60 text-xs">(Infrastructure Security)</span>
+                    <span className="px-1.5 py-0.5 bg-jade-500/20 text-jade-400 text-[10px] rounded ml-1">117 modules</span>
                   </div>
                   <p className="text-text-secondary text-xs pl-4 leading-relaxed">
-                    Scans IaC (Terraform, K8s, Helm) with Checkov, Kubescape, Polaris. Catches misconfigs before production.
+                    K8sGPT-style analyzers for Kubernetes, Cloud (AWS), IaC (Terraform), Policy (OPA/Gatekeeper/Kyverno), Secrets, and Compliance (CIS/NIST/SOC2). Blast radius analysis before fixes. Domain-aware routing to specialized fixers.
                   </p>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-crystal-400">→</span>
                     <strong className="text-white text-xs">JSA-SECOPS</strong>
-                    <span className="text-gold-400/80 text-xs ml-1">(in progress)</span>
+                    <span className="text-gold-400/80 text-xs ml-1">(planned)</span>
                   </div>
                   <p className="text-text-secondary text-xs pl-4 leading-relaxed">
-                    Watches runtime events from Falco, GuardDuty. Handles B/S-rank escalations with human oversight.
+                    Runtime security monitoring via Falco, GuardDuty, CloudTrail. Incident response automation for B/S-rank events.
                   </p>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-white/5">
-                <p className="text-text-secondary/60 text-xs font-mono">
-                  jsa-devsec → jsa-infrasec → deploy → jsa-secops
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-text-secondary/60 text-xs font-mono">
+                    code → infra → deploy → runtime
+                  </p>
+                  <span className="text-jade-400/60 text-[10px]">28k+ lines</span>
+                </div>
               </div>
             </div>
           </div>

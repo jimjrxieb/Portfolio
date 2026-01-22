@@ -418,7 +418,17 @@ def process_file(
             try:
                 data = json.loads(line)
                 # Extract content from common JSONL formats
-                text = data.get('content') or data.get('text') or data.get('output') or str(data)
+                # Handle Q&A format (question/answer pairs for RAG)
+                if 'question' in data and 'answer' in data:
+                    text = f"Q: {data['question']}\n\nA: {data['answer']}"
+                # Handle instruction/output format (fine-tuning format)
+                elif 'instruction' in data and 'output' in data:
+                    instruction = data['instruction']
+                    if data.get('input'):
+                        instruction = f"{instruction}\n{data['input']}"
+                    text = f"Q: {instruction}\n\nA: {data['output']}"
+                else:
+                    text = data.get('content') or data.get('text') or data.get('output') or str(data)
                 text = sanitize_text(text)
 
                 if len(text) < 50:
@@ -432,13 +442,21 @@ def process_file(
 
                 token_count = token_counter.count(text)
 
+                # Use question/instruction as title for Q&A pairs, otherwise fall back to title field or filename
+                if 'question' in data:
+                    title = data['question'][:80] + ('...' if len(data['question']) > 80 else '')
+                elif 'instruction' in data:
+                    title = data['instruction'][:80] + ('...' if len(data['instruction']) > 80 else '')
+                else:
+                    title = data.get('title', filepath.stem)
+
                 chunk = Chunk(
                     chunk_id=f"{filepath.stem}_{line_num}_{chunk_hash[:8]}",
                     content=text,
                     token_count=token_count,
                     char_count=len(text),
                     source_file=filepath.name,
-                    source_title=data.get('title', filepath.stem),
+                    source_title=title,
                     chunk_index=line_num,
                     total_chunks=-1,  # Unknown for JSONL
                     created_at=datetime.now().isoformat(),
