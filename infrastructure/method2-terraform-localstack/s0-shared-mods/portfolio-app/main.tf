@@ -102,7 +102,7 @@ resource "kubernetes_deployment" "chroma" {
         container {
           name              = "chroma"
           image             = var.chroma_image
-          image_pull_policy = "IfNotPresent"
+          image_pull_policy = "Always"
 
           port {
             container_port = 8000
@@ -533,7 +533,7 @@ EOF
         container {
           name              = "api"
           image             = var.api_image
-          image_pull_policy = "IfNotPresent"
+          image_pull_policy = "Always"
 
           port {
             container_port = 8000
@@ -781,7 +781,7 @@ resource "kubernetes_deployment" "ui" {
         container {
           name              = "ui"
           image             = var.ui_image
-          image_pull_policy = "IfNotPresent"
+          image_pull_policy = "Always"
 
           port {
             container_port = 80
