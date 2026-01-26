@@ -7,7 +7,7 @@ services:
     ports:
     - "8001:8000"
     volumes:
-    - ./data/chroma:/data
+    - ./data/chroma:/chroma/data
     environment:
     - CHROMA_DB_IMPL=duckdb+parquet
     - CHROMA_PERSIST_DIRECTORY=/chroma/data
@@ -19,9 +19,9 @@ services:
       retries: 3
 
   # API Backend Service (Claude + RAG)
-
-
-
+    security_opt:
+    - no-new-privileges:true
+    read_only: true
   api:
     build:
       context: .
@@ -31,7 +31,7 @@ services:
     environment:
       # ChromaDB
     - CHROMA_URL=http://chromadb:8000
-    - DATA_DIR=/app/data
+    - DATA_DIR=/home/jimmie/linkops-industries/Portfolio/data
       # LLM Configuration (Claude)
     - LLM_PROVIDER=claude
     - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
@@ -43,8 +43,8 @@ services:
     - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     - PYTHONPATH=/app
     volumes:
-    - ./data:/app/data/
-    
+    - ./data/chroma:/home/jimmie/linkops-industries/Portfolio/data/chroma
+    - ./data/uploads:/home/jimmie/linkops-industries/Portfolio/data/uploads
     depends_on:
     - chromadb
     healthcheck:
