@@ -27,7 +27,7 @@ spec:
       containers:
         - name: ui
           # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
-          image: ghcr.io/shadow-link-industries/portfolio-ui@sha256:ecb11d39dd55b1bb4abd733e45f05710e80892dad1c3deb20ec3279914eb9eba
+          image: ghcr.io/jimjrxieb/portfolio-ui@sha256:41e24f4d7a1c51290acc0463e5948ea384bfce9e82532b2683df7e1100b70482
           # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
           imagePullPolicy: Always
           securityContext:
