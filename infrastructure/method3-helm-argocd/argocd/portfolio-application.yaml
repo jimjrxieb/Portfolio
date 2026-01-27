@@ -56,7 +56,7 @@ spec:
 
     # path: The specific folder INSIDE the repo containing your Helm chart
     # ArgoCD only watches THIS folder, not the entire repo
-    path: infrastructure/charts/portfolio
+    path: infrastructure/method3-helm-argocd/helm-chart/portfolio
 
     # targetRevision: Which branch/tag/commit to track
     # HEAD = latest commit on the default branch (usually 'main')
@@ -67,26 +67,20 @@ spec:
     # ArgoCD will run "helm template" with these values
     helm:
       # valueFiles: Which values files to use (in order)
+      # values.prod.yaml overlays production settings onto base values
       valueFiles:
         - values.yaml
+        - values.prod.yaml
 
       # parameters: Override specific values (like command-line --set flags)
-      # These take priority over values.yaml
+      # These take priority over values files
+      # Image tags - when these change, ArgoCD deploys the new version!
+      # Your CI pipeline updates these after building new images
       parameters:
-        - name: global.imagePrefix
-          value: ghcr.io/jimjrxieb/portfolio
-        - name: global.namespace
-          value: portfolio
-        # Image tags - when these change, ArgoCD deploys the new version!
-        # Your CI pipeline updates these after building new images
+        - name: image.tag
+          value: "v1.0.0"
         - name: ui.image.tag
-          value: latest
-        - name: api.image.tag
-          value: latest
-        - name: chromadb.image.tag
-          value: latest
-        # Simplified architecture - Jade-Brain merged into API
-        # RAG pipeline is local-only, not deployed
+          value: "vite-fix-v4"
 
   # ==========================================================================
   # DESTINATION: WHERE ARGOCD DEPLOYS TO

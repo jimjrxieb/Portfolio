@@ -3,15 +3,18 @@
 
 # Image Configuration (CI Pipeline touches these)
 image:
-  repository: ghcr.io/shadow-link-industries/portfolio-api
-  tag: "main-latest"  # CI updates this to main-<shortsha>
+  repository: ghcr.io/jimjrxieb/portfolio-api
+  tag: "v1.0.0"  # CI updates this to main-<shortsha>
   pullPolicy: IfNotPresent
 
 ui:
   image:
-    repository: ghcr.io/shadow-link-industries/portfolio-ui
-    tag: "main-latest"  # CI updates this to main-<shortsha>
+    repository: ghcr.io/jimjrxieb/portfolio-ui
+    tag: "vite-fix-v4"  # CI updates this
     pullPolicy: IfNotPresent
+
+# Image pull secrets for private GHCR registry
+imagePullSecrets: []
 
 # Application Configuration
 replicaCount: 1
@@ -188,13 +191,13 @@ probes:
     readinessProbe:
       httpGet:
         path: /
-        port: 80
+        port: 8080
       initialDelaySeconds: 10
       periodSeconds: 5
     livenessProbe:
       httpGet:
         path: /
-        port: 80
+        port: 8080
       initialDelaySeconds: 15
       periodSeconds: 30
 
