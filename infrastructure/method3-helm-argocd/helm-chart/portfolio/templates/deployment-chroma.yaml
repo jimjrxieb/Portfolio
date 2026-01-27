@@ -50,10 +50,10 @@ spec:
           env:
             - name: HOME
               value: "/tmp"
-            - name: CHROMA_DB_IMPL
-              value: "chromadb.db.impl.sqlite.SqliteDB"
             - name: PERSIST_DIRECTORY
               value: "/chroma/chroma"
+            - name: ANONYMIZED_TELEMETRY
+              value: "false"
           ports:
             - name: http
               containerPort: {{ .Values.chroma.service.port }}
