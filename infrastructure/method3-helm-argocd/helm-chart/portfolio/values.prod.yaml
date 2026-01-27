@@ -18,15 +18,11 @@ imagePullSecrets:
   - name: ghcr-pull
 
 # Ingress Configuration for linksmlm.com
+# k3s uses Traefik as default ingress controller
 ingress:
   enabled: true
-  className: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://linksmlm.com"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
+  className: traefik
+  annotations: {}
   host: linksmlm.com
   tls: false  # Cloudflare handles TLS
 

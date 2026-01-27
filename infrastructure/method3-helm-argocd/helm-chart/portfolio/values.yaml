@@ -33,12 +33,8 @@ service:
 # Ingress Configuration
 ingress:
   enabled: true
-  className: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"
+  className: traefik
+  annotations: {}
   host: portfolio.localtest.me
   tls: false
 
