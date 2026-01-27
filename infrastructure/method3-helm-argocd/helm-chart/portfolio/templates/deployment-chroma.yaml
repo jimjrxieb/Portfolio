@@ -69,10 +69,8 @@ spec:
               cpu: "500m"
               memory: "1Gi"
           volumeMounts:
-            {{- if .Values.chroma.persistence.enabled }}
             - name: chroma-data
               mountPath: /chroma/chroma
-            {{- end }}
             # Temporary volumes for read-only root filesystem
             - name: tmp
               mountPath: /tmp
@@ -81,11 +79,13 @@ spec:
             - name: var-cache
               mountPath: /var/cache
       volumes:
-        {{- if .Values.chroma.persistence.enabled }}
         - name: chroma-data
+          {{- if .Values.chroma.persistence.enabled }}
           persistentVolumeClaim:
-            claimName: portfolio-chroma
-        {{- end }}
+            claimName: {{ include "portfolio.fullname" . }}-chroma
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         # Temporary volumes for read-only root filesystem
         - name: tmp
           emptyDir: {}

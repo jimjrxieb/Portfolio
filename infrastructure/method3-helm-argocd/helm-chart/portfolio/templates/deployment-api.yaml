@@ -103,18 +103,16 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if .Values.persistence.enabled }}
             - name: UPLOAD_DIR
-              value: "{{ .Values.persistence.mountPath }}/uploads"
+              value: "{{ .Values.persistence.mountPath | default "/data" }}/uploads"
             - name: CHROMA_DIR
-              value: "{{ .Values.persistence.mountPath }}/chroma"
+              value: "{{ .Values.persistence.mountPath | default "/data" }}/chroma"
             - name: SENTENCE_TRANSFORMERS_HOME
-              value: "{{ .Values.persistence.mountPath }}/cache"
+              value: "{{ .Values.persistence.mountPath | default "/data" }}/cache"
             - name: TRANSFORMERS_CACHE
-              value: "{{ .Values.persistence.mountPath }}/cache"
+              value: "{{ .Values.persistence.mountPath | default "/data" }}/cache"
             - name: DATA_DIR
-              value: {{ .Values.persistence.mountPath | quote }}
-            {{- end }}
+              value: {{ .Values.persistence.mountPath | default "/data" | quote }}
             {{- if .Values.chroma.enabled }}
             - name: CHROMA_URL
               value: "http://{{ include "portfolio.fullname" . }}-chroma:{{ .Values.chroma.service.port }}"
@@ -140,10 +138,8 @@ spec:
           resources:
             {{- toYaml .Values.resources.api | nindent 12 }}
           volumeMounts:
-            {{- if .Values.persistence.enabled }}
             - name: data
-              mountPath: {{ .Values.persistence.mountPath }}
-            {{- end }}
+              mountPath: {{ .Values.persistence.mountPath | default "/data" }}
             # Temporary volumes for read-only root filesystem
             - name: tmp
               mountPath: /tmp
@@ -152,11 +148,13 @@ spec:
             - name: var-cache
               mountPath: /var/cache
       volumes:
-        {{- if .Values.persistence.enabled }}
         - name: data
+          {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "portfolio.fullname" . }}-data
-        {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         # Temporary volumes for read-only root filesystem
         - name: tmp
           emptyDir: {}

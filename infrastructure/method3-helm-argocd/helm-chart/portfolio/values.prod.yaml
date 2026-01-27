@@ -57,17 +57,13 @@ chroma:
   service:
     port: 8000
   persistence:
-    enabled: true
-    size: 5Gi
-    # Use hostPath for local KinD - data will be copied in
-    hostPath: /data/chroma
+    enabled: false  # Use emptyDir — rag-sync repopulates on startup
 
 # Persistence Configuration
+# Disabled: PSS restricted blocks the root fix-perms init container
+# Using emptyDir instead (matches method1 deployment)
 persistence:
-  enabled: true
-  storageClass: ""  # Use default
-  accessMode: ReadWriteOnce
-  size: 10Gi
+  enabled: false
 
 # Environment Variables - Production
 env:
