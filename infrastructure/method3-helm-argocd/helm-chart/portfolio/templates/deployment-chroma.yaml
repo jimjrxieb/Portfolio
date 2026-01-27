@@ -70,7 +70,7 @@ spec:
               memory: "1Gi"
           volumeMounts:
             - name: chroma-data
-              mountPath: /chroma/chroma
+              mountPath: /chroma
             # Temporary volumes for read-only root filesystem
             - name: tmp
               mountPath: /tmp
