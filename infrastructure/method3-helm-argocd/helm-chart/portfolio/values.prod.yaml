@@ -82,8 +82,7 @@ env:
     API_HOST: "0.0.0.0"
     CORS_ALLOW_ORIGINS: "https://linksmlm.com,http://localhost:8080"
     RAG_NAMESPACE: "portfolio"
-    CHROMA_URL: "http://portfolio-chroma:8000"
-    DATA_DIR: "/data"
+    # CHROMA_URL and DATA_DIR are set by template conditionals (chroma.enabled, persistence.enabled)
     TTS_ENGINE: "disabled"
     AVATAR_ENGINE: "disabled"
   ui:

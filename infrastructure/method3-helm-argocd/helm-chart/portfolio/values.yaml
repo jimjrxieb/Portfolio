@@ -212,7 +212,7 @@ env:
     API_HOST: "0.0.0.0"
     CORS_ALLOW_ORIGINS: "*"
     RAG_NAMESPACE: "portfolio"
-    DATA_DIR: "/data"
+    # DATA_DIR is set by template conditional (persistence.enabled)
   ui:
     VITE_API_BASE_URL: "http://portfolio.localtest.me/api"
 
