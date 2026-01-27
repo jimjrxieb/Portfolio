@@ -14,12 +14,12 @@ RUN --mount=type=cache,target=/root/.npm \
 COPY ui/ .
 RUN npm run build
 
-FROM nginx:alpine
+FROM nginxinc/nginx-unprivileged:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Add nginx config for SPA with security headers
+# Add nginx config for SPA with security headers (port 8080 for non-root)
 RUN echo 'server { \
-    listen 80; \
+    listen 8080; \
     server_name _; \
     root /usr/share/nginx/html; \
     index index.html; \
@@ -38,5 +38,5 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
