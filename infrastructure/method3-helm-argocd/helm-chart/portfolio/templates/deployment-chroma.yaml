@@ -43,8 +43,6 @@ spec:
           command: ["/bin/bash", "-c"]
           args:
             - |
-              export HOME=/tmp
-              pip install --force-reinstall --no-cache-dir chroma-hnswlib
               export IS_PERSISTENT=1
               export CHROMA_SERVER_NOFILE=65535
               sed 's|filename: chroma.log|filename: /tmp/chroma.log|' chromadb/log_config.yml > /tmp/log_config.yml
