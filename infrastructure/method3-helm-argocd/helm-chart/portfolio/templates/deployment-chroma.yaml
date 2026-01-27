@@ -40,7 +40,18 @@ spec:
             capabilities:
               drop:
                 - ALL
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              export HOME=/tmp
+              pip install --force-reinstall --no-cache-dir chroma-hnswlib
+              export IS_PERSISTENT=1
+              export CHROMA_SERVER_NOFILE=65535
+              sed 's|filename: chroma.log|filename: /tmp/chroma.log|' chromadb/log_config.yml > /tmp/log_config.yml
+              uvicorn chromadb.app:app --workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config /tmp/log_config.yml --timeout-keep-alive 30
           env:
+            - name: HOME
+              value: "/tmp"
             - name: CHROMA_DB_IMPL
               value: "chromadb.db.impl.sqlite.SqliteDB"
             - name: PERSIST_DIRECTORY
@@ -53,13 +64,13 @@ spec:
             httpGet:
               path: /api/v1/heartbeat
               port: {{ .Values.chroma.service.port }}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /api/v1/heartbeat
               port: {{ .Values.chroma.service.port }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 45
             periodSeconds: 30
           resources:
             requests:
@@ -70,7 +81,7 @@ spec:
               memory: "1Gi"
           volumeMounts:
             - name: chroma-data
-              mountPath: /chroma
+              mountPath: /chroma/chroma
             # Temporary volumes for read-only root filesystem
             - name: tmp
               mountPath: /tmp
