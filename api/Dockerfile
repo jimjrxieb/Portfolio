@@ -23,8 +23,10 @@ COPY api/ /app/
 COPY backend/ /app/backend/
 
 # Create non-root user for security
+# Ensure files are world-readable so K8s runAsUser (any UID) can read them
 RUN useradd -m -r -u 1000 appuser && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /app && \
+    chmod -R a+rX /app
 
 # Create data directories
 RUN mkdir -p /data/uploads /data/chroma && \

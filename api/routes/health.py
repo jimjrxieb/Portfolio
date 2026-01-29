@@ -12,7 +12,7 @@ import httpx
 import os
 from datetime import datetime
 
-router = APIRouter(prefix="/api", tags=["health"])
+router = APIRouter(tags=["health"])
 
 
 @router.get("/health")

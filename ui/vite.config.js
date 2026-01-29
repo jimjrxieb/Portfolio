@@ -30,7 +30,7 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
-    allowedHosts: 'all',
+    allowedHosts: ['localhost', '127.0.0.1', 'linksmlm.com', '.linksmlm.com'],
     // Development configuration - proxy API calls locally
     proxy: {
       '/api': {

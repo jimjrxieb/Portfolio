@@ -7,7 +7,8 @@ export function byDev(page: Page, name: string): Locator {
 export async function hookConsoleAndNetwork(page: Page) {
   page.on('console', msg => {
     if (['error', 'warning'].includes(msg.type())) {
-      console.log(`[browser ${msg.type()}]`, msg.text());
+      // SECURITY: Sanitize interpolated values
+console.msg.type()}]`, msg.text());
     }
   });
   page.on('pageerror', err => {

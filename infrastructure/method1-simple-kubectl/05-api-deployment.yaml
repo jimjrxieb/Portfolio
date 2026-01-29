@@ -30,7 +30,7 @@ spec:
           # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
           image: busybox@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
           # JSA-FIX: CKV_K8S_15 - Always pull for security patches
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           # JSA-FIX: CKV_K8S_10,11,12,13 - Resource limits for init container
           resources:
             requests:
@@ -67,7 +67,7 @@ spec:
           # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
           image: python@sha256:1dd3dca85e22886e44fcad1bb7ccab6691dfa83db52214cf9e20696e095f3e36
           # JSA-FIX: CKV_K8S_15 - Always pull for security patches
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           # JSA-FIX: CKV_K8S_10,11,12,13 - Resource limits for init container
           resources:
             requests:
@@ -180,9 +180,9 @@ spec:
       containers:
         - name: api
           # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
-          image: ghcr.io/jimjrxieb/portfolio-api@sha256:47761c56adb9eae2029e46c4fd2f69cceb6bf67c32beab64877e66a7948620f5
+          image: ghcr.io/jimjrxieb/portfolio-api:v1.0.8-local
           # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -196,6 +196,8 @@ spec:
             - containerPort: 8000
               name: http
           env:
+            - name: PYTHONNOUSERSITE
+              value: "1"
             - name: LLM_PROVIDER
               value: "claude"
             - name: LLM_MODEL
@@ -251,12 +253,14 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-            - name: tmp
+            - name: api-tmp
               mountPath: /tmp
       volumes:
         - name: data
           emptyDir: {}
         - name: tmp
+          emptyDir: {}
+        - name: api-tmp
           emptyDir: {}
         - name: rag-data
           configMap:

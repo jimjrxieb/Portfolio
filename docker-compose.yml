@@ -3,6 +3,8 @@ version: '3.8'
 services:
   # ChromaDB Vector Database Service
   chromadb:
+    security_opt:
+      - no-new-privileges:true
     image: chromadb/chroma:latest
     ports:
     - "8001:8000"

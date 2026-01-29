@@ -16,6 +16,8 @@ version: '3.8'
 
 services:
   localstack:
+    security_opt:
+      - no-new-privileges:true
     container_name: localstack
     image: localstack/localstack:3.0
     ports:
@@ -36,8 +38,6 @@ services:
     volumes:
       # Persist LocalStack data between restarts
       - localstack_data:/var/lib/localstack
-      # Docker socket for Lambda containers
-      - /var/run/docker.sock:/var/run/docker.sock
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s

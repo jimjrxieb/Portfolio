@@ -102,7 +102,7 @@ resource "kubernetes_deployment" "chroma" {
         container {
           name              = "chroma"
           image             = var.chroma_image
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
 
           port {
             container_port = 8000
@@ -533,7 +533,7 @@ EOF
         container {
           name              = "api"
           image             = var.api_image
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
 
           port {
             container_port = 8000
@@ -781,10 +781,10 @@ resource "kubernetes_deployment" "ui" {
         container {
           name              = "ui"
           image             = var.ui_image
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
 
           port {
-            container_port = 80
+            container_port = 8080
             name           = "http"
           }
 
@@ -809,7 +809,7 @@ resource "kubernetes_deployment" "ui" {
           liveness_probe {
             http_get {
               path = "/"
-              port = 80
+              port = 8080
             }
             initial_delay_seconds = 30
             period_seconds        = 10
@@ -820,7 +820,7 @@ resource "kubernetes_deployment" "ui" {
           readiness_probe {
             http_get {
               path = "/"
-              port = 80
+              port = 8080
             }
             initial_delay_seconds = 10
             period_seconds        = 5
@@ -889,7 +889,7 @@ resource "kubernetes_service" "ui" {
 
     port {
       port        = 80
-      target_port = 80
+      target_port = 8080
       name        = "http"
     }
 
