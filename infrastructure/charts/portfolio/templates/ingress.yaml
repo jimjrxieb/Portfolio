@@ -9,6 +9,7 @@ metadata:
     {{- if .Values.ingress.tls.enabled }}
     cert-manager.io/cluster-issuer: letsencrypt-prod
     {{- end }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Values.global.namespace }}-strip-api@kubernetescrd
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
