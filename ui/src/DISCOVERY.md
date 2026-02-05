@@ -121,7 +121,7 @@ Portfolio/
 
 - **CKA** (Certified Kubernetes Administrator): Complete
 - **Security+** (CompTIA Security+): Complete
-- **AWS AI Practitioner**: In Progress
+- **AWS CloudOps Engineer Associate**: In Progress
 
 ## Resume
 

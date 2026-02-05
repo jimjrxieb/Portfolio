@@ -288,7 +288,7 @@ export default function Projects() {
         <div className="text-sm space-y-1">
           <div className="text-white">✅ CKA (Certified Kubernetes Administrator)</div>
           <div className="text-white">✅ CompTIA Security+</div>
-          <div className="text-crystal-400">🔄 AWS AI Practitioner (In Progress)</div>
+          <div className="text-crystal-400">🔄 AWS CloudOps Engineer Associate (In Progress)</div>
         </div>
       </div>
 
