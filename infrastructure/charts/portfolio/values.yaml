@@ -9,6 +9,12 @@ global:
   imagePrefix: ghcr.io/jimjrxieb/portfolio
 
 # =============================================================================
+# IMAGE PULL SECRETS (Required for private ghcr.io registry)
+# =============================================================================
+imagePullSecrets:
+  - name: ghcr-login-secret
+
+# =============================================================================
 # API SERVICE (FastAPI Backend)
 # =============================================================================
 api:
