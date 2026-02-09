@@ -148,7 +148,7 @@ ingress:
     api: /api
   tls:
     enabled: true
-    secretName: portfolio-tls
+    secretName: portfolio-tls # pragma: allowlist secret
 
 # =============================================================================
 # SECURITY CONTEXT
@@ -206,7 +206,7 @@ secrets:
   # If true, create the secret from values below
   # If false, expect external secret to exist with name: portfolio-api-secrets
   create: false
-  externalSecretName: portfolio-api-secrets
+  externalSecretName: portfolio-api-secrets # pragma: allowlist secret
 
 # =============================================================================
 # AUTOSCALING (Disabled by default for home server)
