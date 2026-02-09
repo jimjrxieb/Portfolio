@@ -17,7 +17,7 @@ api:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-api
-    tag: "latest"
+    tag: "v1.0.0"
     pullPolicy: Always
 
   service:
@@ -73,7 +73,7 @@ ui:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-ui
-    tag: "latest"
+    tag: "v1.0.0"
     pullPolicy: Always
 
   service:
@@ -113,7 +113,7 @@ chroma:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-chromadb
-    tag: "latest"
+    tag: "v1.0.0"
     pullPolicy: Always
 
   service:
