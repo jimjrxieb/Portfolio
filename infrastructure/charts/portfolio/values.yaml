@@ -79,7 +79,7 @@ ui:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-ui
-    tag: "v1.0.0"
+    tag: "vite-fix-v4"
     pullPolicy: Always
 
   service:
@@ -118,8 +118,9 @@ chroma:
   replicaCount: 1
 
   image:
-    repository: ghcr.io/jimjrxieb/portfolio-chromadb
-    tag: "v1.0.0"
+    # Use official ChromaDB image (no custom Dockerfile)
+    repository: chromadb/chroma
+    tag: "latest"
     pullPolicy: Always
 
   service:
