@@ -33,6 +33,20 @@ RUN echo 'server { \
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; \
     add_header Content-Security-Policy "default-src '\''self'\''; script-src '\''self'\'' '\''unsafe-inline'\'' '\''unsafe-eval'\''; style-src '\''self'\'' '\''unsafe-inline'\'' https://fonts.googleapis.com; font-src '\''self'\'' https://fonts.gstatic.com; img-src '\''self'\'' data: https:; connect-src '\''self'\'' https://linksmlm.com wss://linksmlm.com; frame-ancestors '\''self'\'';" always; \
     \
+    # Cache static assets (JS/CSS/images) with versioned filenames \
+    location ~* \\.(?:css|js|jpg|jpeg|gif|png|ico|svg|woff|woff2|ttf|eot)$ { \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+        try_files $uri =404; \
+    } \
+    \
+    # Never cache index.html (entry point) \
+    location = /index.html { \
+        add_header Cache-Control "no-cache, no-store, must-revalidate"; \
+        expires 0; \
+    } \
+    \
+    # SPA fallback for routes \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
