@@ -117,10 +117,12 @@ export default function PortfolioBuild() {
           Welcome to My Portfolio Platform
         </h2>
         <p className="text-text-secondary text-sm leading-relaxed">
-          I built this React application from scratch using Claude Code. Below you'll find{' '}
-          <span className="text-crystal-400 font-medium">Sheyla</span>, my AI-powered chatbox
-          where you can ask any question about my DevSecOps and AI/ML experience — simulating
-          building a conversational assistant for a company and its policies.
+          This is my full-stack React portfolio platform where I display my AI/ML and DevSecOps experience.
+          This application was built using DevSecOps best practices — from a secure GitHub Actions CI pipeline
+          to ArgoCD GitOps deployment on a dedicated Linux server (converted from an old Windows laptop).
+          Below you'll find{' '}
+          <span className="text-crystal-400 font-medium">Sheyla</span>, my AI-powered chatbox where you can
+          ask any question about my experience.
         </p>
       </div>
 
