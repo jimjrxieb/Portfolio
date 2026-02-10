@@ -403,6 +403,65 @@ jobs:
         echo "🔍 Container security scan completed for ${{ matrix.name }}"
         echo "💡 Results would upload to Security tab if GitHub Advanced Security was enabled"
 
+  update-image-tags:
+    runs-on: ubuntu-latest
+    needs: build-images
+    permissions:
+      contents: write
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Update Helm values with new image tags
+      env:
+        IMAGE_TAG: ${{ needs.build-images.outputs.image-tag }}
+      run: |
+        echo "📝 Updating image tags in values.yaml to: ${IMAGE_TAG}"
+
+        # Update UI image tag
+        sed -i "s|tag: \"vite-fix-v[0-9]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
+        sed -i "s|tag: \"main-[a-f0-9]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
+
+        # Update API image tag (match both v1.0.0 pattern and main-* pattern)
+        sed -i "s|tag: \"v[0-9]*\.[0-9]*\.[0-9]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
+
+        echo "✅ Updated values.yaml:"
+        grep -A 2 "image:" infrastructure/charts/portfolio/values.yaml | grep "tag:"
+
+    - name: Commit and push updated values
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Check if there are changes
+        if git diff --quiet infrastructure/charts/portfolio/values.yaml; then
+          echo "ℹ️ No changes to values.yaml (tags already up to date)"
+          exit 0
+        fi
+
+        git add infrastructure/charts/portfolio/values.yaml
+        git commit -m "chore: update image tags to ${{ needs.build-images.outputs.image-tag }} [skip ci]"
+
+        # Push with retry logic (in case of concurrent pushes)
+        for i in {1..3}; do
+          if git push; then
+            echo "✅ Successfully pushed updated values.yaml"
+            exit 0
+          else
+            echo "⚠️ Push failed, pulling and retrying... (attempt $i/3)"
+            git pull --rebase
+            sleep 2
+          fi
+        done
+
+        echo "❌ Failed to push after 3 attempts"
+        exit 1
+
   validate-k8s:
     runs-on: ubuntu-latest
     needs: [sast-scanning, python-security, secrets-scanning, code-quality]
@@ -486,7 +545,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build-images, security-scan]
+    needs: [build-images, security-scan, update-image-tags]
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     environment: production
 
@@ -544,7 +603,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [sast-scanning, python-security, secrets-scanning, sonarcloud, code-quality, build-images, security-scan, validate-k8s, deploy]
+    needs: [sast-scanning, python-security, secrets-scanning, sonarcloud, code-quality, build-images, security-scan, update-image-tags, validate-k8s, deploy]
     if: always()
 
     steps:
