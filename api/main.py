@@ -125,8 +125,9 @@ def health_check():
 
 
 # Include routers
-app.include_router(health_router, prefix="/api", tags=["health"])
-app.include_router(chat_router, prefix="/api", tags=["chat"])
+# NOTE: Traefik middleware strips /api prefix, so routes should be registered without it
+app.include_router(health_router, tags=["health"])
+app.include_router(chat_router, tags=["chat"])
 # app.include_router(actions_router, tags=["avatar"])  # UNUSED - Avatar endpoints not called
 # app.include_router(uploads_router, prefix="/api", tags=["uploads"])  # UNUSED
 # app.include_router(rag_router, prefix="/api/rag", tags=["rag"])  # UNUSED
