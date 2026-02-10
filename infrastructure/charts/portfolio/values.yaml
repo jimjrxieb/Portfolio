@@ -22,7 +22,7 @@ api:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-api
-    tag: "v1.0.0"
+    tag: "main-76806e57"
     pullPolicy: Always
 
   service:
@@ -78,7 +78,7 @@ ui:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-ui
-    tag: "vite-fix-v4"
+    tag: "main-76806e57"
     pullPolicy: Always
 
   service:
