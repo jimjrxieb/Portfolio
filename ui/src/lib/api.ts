@@ -30,7 +30,7 @@ export async function chat(
     context: null,
   };
 
-  const r = await fetch(`${API_BASE}/api/chat`, {
+  const r = await fetch(`${API_BASE}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(backendRequest),
