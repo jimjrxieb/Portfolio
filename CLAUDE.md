@@ -189,8 +189,8 @@ Traefik `strip-api` middleware removes `/api` prefix before forwarding to FastAP
 
 - Browser calls `/api/chat` → Traefik strips to `/chat` → FastAPI handles `/chat`
 - Browser calls `/api/health` → Traefik strips to `/health` → FastAPI handles `/health`
-- `VITE_API_BASE_URL` is baked at Docker build time (Vite), NOT runtime. CI builds with empty default, so `API_BASE=""` in production.
-- **All UI fetch calls must use `/api/` prefix** (e.g., `fetch('/api/chat')`), not bare paths like `/chat` which would hit the UI nginx instead of the API.
+- `VITE_API_BASE_URL=/api` is baked at Docker build time (Vite, not runtime). Set in Dockerfile default and CI build-args.
+- `API_BASE` from `ui/src/lib/api.ts` provides the `/api` prefix. **Fetch calls use `${API_BASE}/chat`** — never hardcode `/api` in fetch URLs.
 
 ### ArgoCD GitOps Flow
 

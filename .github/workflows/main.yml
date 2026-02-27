@@ -347,6 +347,7 @@ jobs:
         build-args: |
           BUILD_DATE=${{ github.run_id }}
           BUILD_SHA=${{ steps.meta.outputs.short-sha }}
+          VITE_API_BASE_URL=/api
         cache-from: |
           type=gha,scope=${{ matrix.name }}-build
         cache-to: |
