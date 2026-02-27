@@ -11,7 +11,7 @@ export default function ChatPanel() {
   }>({});
 
   useEffect(() => {
-    fetch(`${API_BASE}/health`)
+    fetch(`${API_BASE}/api/health`)
       .then(r => r.json())
       .then(data => {
         // Map backend health response to expected format

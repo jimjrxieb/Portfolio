@@ -86,7 +86,7 @@ async def security_headers(request: Request, call_next):
 @app.middleware("http")
 async def rate_limiting(request: Request, call_next):
     """Rate limiting for chat endpoints"""
-    if request.url.path.startswith("/api/chat"):
+    if request.url.path.startswith("/chat"):
         client_ip = request.client.host
         if not rate_limit_check(client_ip):
             return Response(
