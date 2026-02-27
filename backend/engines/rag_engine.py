@@ -8,6 +8,22 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+# Lazy-loaded fastembed model (avoids import cost on every request)
+_fastembed_model = None
+
+
+def _get_fastembed_model():
+    """Lazy-load fastembed nomic-embed-text model (ONNX, ~100MB, no PyTorch)"""
+    global _fastembed_model
+    if _fastembed_model is None:
+        try:
+            from fastembed import TextEmbedding
+            _fastembed_model = TextEmbedding("nomic-ai/nomic-embed-text-v1.5")
+            logger.info("Loaded fastembed nomic-embed-text-v1.5 (768-dim)")
+        except Exception as e:
+            logger.error(f"Failed to load fastembed model: {e}")
+    return _fastembed_model
+
 
 @dataclass
 class Doc:
@@ -22,11 +38,16 @@ class RAGEngine:
     def __init__(self):
         from backend.settings import CHROMA_URL, CHROMA_DIR
 
-        # Use HTTP client for Kubernetes deployment, fallback to PersistentClient for local dev
+        # Build ChromaDB URL from CHROMA_HOST + CHROMA_PORT (K8s) or CHROMA_URL
+        chroma_host = os.getenv("CHROMA_HOST")
+        chroma_port = os.getenv("CHROMA_PORT", "8000")
         chroma_url = os.getenv("CHROMA_URL", CHROMA_URL)
-        use_http_client = chroma_url and not chroma_url.startswith("file://")
 
-        if use_http_client:
+        if chroma_host:
+            # K8s deployment: CHROMA_HOST and CHROMA_PORT are set by Helm
+            self.client = chromadb.HttpClient(host=chroma_host, port=int(chroma_port))
+            logger.info(f"Connected to ChromaDB at {chroma_host}:{chroma_port}")
+        elif chroma_url and not chroma_url.startswith("file://"):
             # Parse HTTP URL for host and port
             import re
             match = re.match(r'http://([^:]+):(\d+)', chroma_url)
@@ -49,27 +70,52 @@ class RAGEngine:
         self.active_alias = f"{self.namespace}_active"
         self.collection = self._get_active_collection()
 
-        # Use Ollama for embeddings (proper embedding model)
+        # Embedding config: try Ollama first, fallback to fastembed (ONNX)
         self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
         self.embed_model = os.getenv("EMBED_MODEL", "nomic-embed-text")
+        self._use_fastembed = not self._check_ollama()
+        if self._use_fastembed:
+            logger.info("Ollama unavailable — using fastembed for query embeddings")
+
+    def _check_ollama(self) -> bool:
+        """Check if Ollama is reachable"""
+        try:
+            r = requests.get(f"{self.ollama_url}/api/tags", timeout=3)
+            return r.status_code == 200
+        except Exception:
+            return False
 
     def _get_embedding(self, text: str) -> List[float]:
-        """Get embedding from Ollama"""
-        try:
-            response = requests.post(
-                f"{self.ollama_url}/api/embeddings",
-                json={"model": self.embed_model, "prompt": text},
-                timeout=30
-            )
-            response.raise_for_status()
-            return response.json()["embedding"]
-        except Exception as e:
-            logger.error(f"Ollama embedding failed: {e}")
-            # Return zero vector as fallback (768 for nomic-embed-text)
-            return [0.0] * 768
+        """Get 768-dim embedding from Ollama or fastembed fallback"""
+        # Try Ollama first
+        if not self._use_fastembed:
+            try:
+                response = requests.post(
+                    f"{self.ollama_url}/api/embeddings",
+                    json={"model": self.embed_model, "prompt": text},
+                    timeout=30
+                )
+                response.raise_for_status()
+                return response.json()["embedding"]
+            except Exception as e:
+                logger.warning(f"Ollama embedding failed, switching to fastembed: {e}")
+                self._use_fastembed = True
+
+        # Fastembed fallback (nomic-embed-text-v1.5, 768-dim, ONNX)
+        model = _get_fastembed_model()
+        if model:
+            embeddings = list(model.embed([text]))
+            return embeddings[0].tolist()
+
+        logger.error("No embedding backend available")
+        return [0.0] * 768
 
     def _get_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
         """Get embeddings for multiple texts"""
+        if self._use_fastembed:
+            model = _get_fastembed_model()
+            if model:
+                return [e.tolist() for e in model.embed(texts)]
         return [self._get_embedding(text) for text in texts]
 
     def _get_active_collection(self):
@@ -235,8 +281,8 @@ as legacy/learning experience only
 enterprise automation
 - TOOLS: Current stack - GitHub Actions, Azure DevOps, Kubernetes, \
 HuggingFace, LangGraph, MCP
-- MODEL: This runs Qwen2.5-1.5B-Instruct (HuggingFace) + ChromaDB RAG \
-for resource efficiency
+- MODEL: This runs Claude 3 Haiku (Anthropic) + ChromaDB RAG \
+for quality and cost efficiency
 - If repo access questions: explain clone vs fork and PR etiquette
 - Keep answers focused and practical unless asked for detail
 """
