@@ -98,10 +98,10 @@ Alternatively, create secrets directly:
 
 ```bash
 kubectl create secret generic portfolio-api-secrets \
-  --from-literal=CLAUDE_API_KEY="your-claude-key" \
-  --from-literal=OPENAI_API_KEY="your-openai-key" \
-  --from-literal=ELEVENLABS_API_KEY="your-elevenlabs-key" \
-  --from-literal=DID_API_KEY="your-did-key" \
+  --from-literal=CLAUDE_API_KEY="your-claude-key" \       # pragma: allowlist secret
+  --from-literal=OPENAI_API_KEY="your-openai-key" \      # pragma: allowlist secret
+  --from-literal=ELEVENLABS_API_KEY="your-elevenlabs-key" \  # pragma: allowlist secret
+  --from-literal=DID_API_KEY="your-did-key" \             # pragma: allowlist secret
   -n portfolio
 ```
 

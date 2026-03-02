@@ -104,7 +104,7 @@ spec:
   tls:
     - hosts:
         - secure.portfolio.local
-      secretName: secure-tls
+      secretName: secure-tls  # pragma: allowlist secret
   rules:
     - host: secure.portfolio.local
       http:

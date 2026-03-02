@@ -165,8 +165,8 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 kubectl create namespace portfolio
 
 kubectl create secret generic portfolio-api-secrets \
-  --from-literal=CLAUDE_API_KEY="sk-ant-..." \
-  --from-literal=OPENAI_API_KEY="sk-..." \
+  --from-literal=CLAUDE_API_KEY="sk-ant-..." \   # pragma: allowlist secret
+  --from-literal=OPENAI_API_KEY="sk-..." \      # pragma: allowlist secret
   --from-literal=ELEVENLABS_API_KEY="..." \
   --from-literal=DID_API_KEY="..." \
   -n portfolio

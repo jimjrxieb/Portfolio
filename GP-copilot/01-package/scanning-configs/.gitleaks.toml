@@ -38,8 +38,8 @@ paths = [
 ]
 
 regexes = [
-  '''AKIAIOSFODNN7EXAMPLE''',
-  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+  '''AKIAIOSFODNN7EXAMPLE''',  # pragma: allowlist secret
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',  # pragma: allowlist secret
   '''(sk_test_|pk_test_)[a-zA-Z0-9]{10,}''',
   '''(YOUR|CHANGE|REPLACE|EXAMPLE|PLACEHOLDER)[_-]?(API[_-]?KEY|KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)''',
   '''<(YOUR|MY|THE)[_-]?[A-Z_]+>''',
@@ -82,5 +82,5 @@ keywords = ["jwt_secret", "jwt_key", "jwt-secret"]
 [[rules]]
 id = "private-key-block"
 description = "PEM private key block"
-regex = '''-----BEGIN[ A-Z]*(RSA |EC |DSA |OPENSSH )?PRIVATE KEY( BLOCK)?-----'''
-keywords = ["BEGIN PRIVATE KEY", "BEGIN RSA PRIVATE KEY", "BEGIN EC PRIVATE KEY"]
+regex = '''-----BEGIN[ A-Z]*(RSA |EC |DSA |OPENSSH )?PRIVATE KEY( BLOCK)?-----'''  # pragma: allowlist secret
+keywords = ["BEGIN PRIVATE KEY", "BEGIN RSA PRIVATE KEY", "BEGIN EC PRIVATE KEY"]  # pragma: allowlist secret
