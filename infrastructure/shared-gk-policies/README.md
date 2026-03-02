@@ -1,1 +1,0 @@
-all gatekeeper policies moved to -> /home/jimmie/linkops-industries/Portfolio/GP-copilot/gatekeeper-temps/ 

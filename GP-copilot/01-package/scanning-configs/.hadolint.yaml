@@ -1,0 +1,34 @@
+# Hadolint Configuration — Portfolio Dockerfiles
+# Dockerfile linter for security and best practices
+# Docs: https://github.com/hadolint/hadolint
+
+# Trusted registries (Portfolio uses ghcr.io for images)
+trustedRegistries:
+  - docker.io
+  - ghcr.io
+  - gcr.io
+  - registry.k8s.io
+  - quay.io
+
+# Severity overrides
+override:
+  error:
+    - DL3001  # Using :latest tag
+    - DL3002  # Missing USER instruction
+    - DL3003  # Using cd instead of WORKDIR
+    - DL3007  # Using :latest tag
+    - DL3020  # Using COPY with more than 2 arguments
+  warning:
+    - DL3008  # Pin versions in apt-get install
+    - DL3015  # Avoid additional packages with yum
+    - DL3018  # Pin versions in apk add
+  info:
+    - DL3006  # Always tag the version of an image explicitly
+    - DL3009  # Delete apt-get lists after installing
+    - DL3013  # Pin versions in pip install
+
+inline-ignore: true
+strict-labels: false
+failure-threshold: warning
+no-fail: false
+format: tty

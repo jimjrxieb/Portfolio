@@ -516,18 +516,18 @@ jobs:
 
         # Verify policy templates are valid
         echo "🧪 Verifying OPA policy templates..."
-        ./conftest verify --policy GP-copilot/conftest-policies/ || echo "Policy template verification failed"
+        ./conftest verify --policy GP-copilot/02-package/conftest-policies/ || echo "Policy template verification failed"
 
         # Test Helm rendered manifests if they exist
         if [ -f "/tmp/rendered-manifests.yaml" ]; then
           echo "🧪 Testing Helm manifests against enterprise policies..."
-          ./conftest test /tmp/rendered-manifests.yaml --policy GP-copilot/conftest-policies/ || echo "Policy violations found in Helm manifests"
+          ./conftest test /tmp/rendered-manifests.yaml --policy GP-copilot/02-package/conftest-policies/ || echo "Policy violations found in Helm manifests"
         fi
 
         # Test Method 1 (Simple kubectl) manifests
         if [ -d "infrastructure/method1-simple-kubectl" ]; then
           echo "🧪 Testing Method 1 (kubectl) manifests against enterprise policies..."
-          ./conftest test infrastructure/method1-simple-kubectl/*.yaml --policy GP-copilot/conftest-policies/ || echo "Policy violations found in Method 1 manifests"
+          ./conftest test infrastructure/method1-simple-kubectl/*.yaml --policy GP-copilot/02-package/conftest-policies/ || echo "Policy violations found in Method 1 manifests"
         fi
 
         # Test Method 3 (Helm+ArgoCD) ArgoCD applications

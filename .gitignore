@@ -24,6 +24,8 @@ infrastructure/**/secrets.yaml
 **/*credentials*
 **/*password*
 **/*secret*
+!GP-copilot/02-package/conftest-policies/secrets-management.rego
+!GP-copilot/01-package/fixers/secrets/
 **/*api-key*
 **/*apikey*
 **/config.json

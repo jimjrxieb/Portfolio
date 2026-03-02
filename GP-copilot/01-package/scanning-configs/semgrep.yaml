@@ -1,0 +1,63 @@
+# Semgrep Configuration — Portfolio
+# Multi-language SAST scanning
+# Docs: https://semgrep.dev/docs/
+
+rules:
+  # Security rulesets
+  - p/security-audit        # General security vulnerabilities
+  - p/owasp-top-ten         # OWASP Top 10 coverage
+  - p/secrets               # Secret detection patterns
+
+  # Language-specific — Portfolio stack
+  - p/python                # FastAPI backend
+  - p/javascript            # React frontend
+  - p/typescript            # React frontend
+
+  # Infrastructure as Code
+  - p/kubernetes            # K8s manifest scanning
+  - p/dockerfile            # Dockerfile best practices
+  - p/github-actions        # GHA workflow security
+
+  # Supply chain
+  - p/supply-chain          # Supply chain attacks
+  - p/jwt                   # JWT vulnerabilities
+
+# Paths — Portfolio directory structure
+paths:
+  include:
+    - api/
+    - backend/
+    - ui/src/
+    - rag-pipeline/
+    - infrastructure/
+    - .github/workflows/
+    - Dockerfile
+
+  exclude:
+    - tests/
+    - node_modules/
+    - venv/
+    - .venv/
+    - dist/
+    - build/
+    - ui/dist/
+    - coverage/
+    - .git/
+    - "*.min.js"
+    - "*.bundle.js"
+    - data/
+
+# Output
+output:
+  format: json
+
+# Performance
+max_memory: 5000
+max_target_bytes: 5000000
+timeout: 30
+timeout_threshold: 3
+
+ignore_config:
+  nosem: true
+
+metrics: off

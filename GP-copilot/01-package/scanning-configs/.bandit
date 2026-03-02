@@ -1,0 +1,29 @@
+# Bandit Configuration — Portfolio API
+# Python SAST security scanner
+# Docs: https://bandit.readthedocs.io/
+
+[bandit]
+# Exclude non-application paths
+exclude_dirs = [
+    '/tests',
+    '/test',
+    '/.venv',
+    '/venv',
+    '/env',
+    '/node_modules',
+    '/migrations',
+    '/.git',
+    '/build',
+    '/dist',
+    '/rag-pipeline/04-processed-rag-data'
+]
+
+# Skip low-value checks
+skips = [
+    'B101',  # assert_used — common in tests and validation
+    'B601',  # paramiko_calls — not used in Portfolio
+]
+
+recursive = true
+aggregate = file
+context_lines = 3

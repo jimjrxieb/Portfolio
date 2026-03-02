@@ -83,8 +83,8 @@ Portfolio/
 ### Policy-as-Code
 | Skill | Path | GitHub URL |
 |-------|------|------------|
-| OPA/Conftest | `GP-copilot/conftest-policies/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies |
-| Gatekeeper | `GP-copilot/gatekeeper-temps/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/gatekeeper-temps |
+| OPA/Conftest | `GP-copilot/02-package/conftest-policies/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/02-package/conftest-policies |
+| Gatekeeper | `GP-copilot/02-package/gatekeeper-constraints/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/02-package/gatekeeper-constraints |
 | Policy Tests | `.github/workflows/main.yml#L369` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L369 |
 
 ### Deployment Methods

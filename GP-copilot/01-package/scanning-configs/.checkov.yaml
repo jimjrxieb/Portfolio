@@ -1,0 +1,30 @@
+# Checkov Configuration — Portfolio
+# Infrastructure as Code security scanner
+# Docs: https://www.checkov.io/
+
+# Frameworks relevant to Portfolio
+framework:
+  - kubernetes
+  - dockerfile
+  - helm
+  - github_actions
+
+directory:
+  - .
+
+output:
+  - cli
+  - json
+  - sarif
+
+# Skips aligned with main.yml pipeline
+skip-check:
+  - CKV_DOCKER_2   # HEALTHCHECK — using K8s probes instead
+  - CKV_DOCKER_3   # HEALTHCHECK — using K8s probes instead
+  - CKV_K8S_43     # Image digest — maintenance overhead for dev
+
+download-external-modules: true
+evaluate-variables: true
+compact: false
+soft-fail: false
+enable-ckv2-checks: true

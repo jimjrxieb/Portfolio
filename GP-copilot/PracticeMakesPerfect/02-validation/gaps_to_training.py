@@ -29,7 +29,7 @@ class GapsToTrainingConverter:
         self.validation_path = self.base_path / "02-validation"
         self.jade_responses_path = self.base_path / "03-jadesresponses"
         self.user_responses_path = self.base_path / "01-myresponses"
-        self.training_output_path = Path("/home/jimmie/linkops-industries/GP-copilot/GP-SAGEMAKER/1-GP-GLUE/01-raw-data-lake")
+        self.training_output_path = Path("/home/jimmie/linkops-industries/GP-copilot/GP-MODEL-OPS/1-GP-GLUE/01-raw-data-lake")
 
     def load_validation(self) -> str:
         """Load the validation file."""

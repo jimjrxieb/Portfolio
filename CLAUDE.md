@@ -54,8 +54,8 @@ make helm-security     # Render Helm → kubeconform → Conftest policy check
 
 ### OPA Policy Tests
 ```bash
-conftest test rendered-manifests.yaml --policy GP-copilot/conftest-policies/
-conftest verify --policy GP-copilot/conftest-policies/  # Run policy unit tests
+conftest test rendered-manifests.yaml --policy GP-copilot/02-package/conftest-policies/
+conftest verify --policy GP-copilot/02-package/conftest-policies/  # Run policy unit tests
 ```
 
 ## Architecture

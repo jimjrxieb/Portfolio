@@ -1,0 +1,86 @@
+# Gitleaks Configuration — Portfolio
+# Secret detection for git repos
+# Docs: https://github.com/gitleaks/gitleaks
+
+title = "Portfolio Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Exclude test data, build artifacts, docs, and placeholder values"
+
+paths = [
+  '''\.git/''',
+  '''tests?/''',
+  '''__tests__/''',
+  '''fixtures?/''',
+  '''node_modules/''',
+  '''vendor/''',
+  '''\.venv/''',
+  '''venv/''',
+  '''\.env\.example$''',
+  '''dist/''',
+  '''build/''',
+  '''ui/dist/''',
+  '''__pycache__/''',
+  '''package-lock\.json$''',
+  '''yarn\.lock$''',
+  '''Pipfile\.lock$''',
+  '''.*\.min\.js$''',
+  '''.*\.min\.css$''',
+  '''.*\.map$''',
+  '''docs?/''',
+  '''.*\.md$''',
+  '''\.gitleaks\.toml$''',
+  '''data/''',
+  '''rag-pipeline/04-processed-rag-data/''',
+]
+
+regexes = [
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+  '''(sk_test_|pk_test_)[a-zA-Z0-9]{10,}''',
+  '''(YOUR|CHANGE|REPLACE|EXAMPLE|PLACEHOLDER)[_-]?(API[_-]?KEY|KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL)''',
+  '''<(YOUR|MY|THE)[_-]?[A-Z_]+>''',
+  '''\{\{[ ]*[A-Z_]+[ ]*\}\}''',
+  '''\$\{[A-Z_]+\}''',
+  '''(.)\1{19,}''',
+  '''(test|demo|sample|example|fake|mock|dummy)[_-]?(secret|key|token|password|credential)''',
+]
+
+stopwords = [
+  "example", "test", "demo", "sample", "placeholder",
+  "changeme", "change_me", "your_", "replace", "todo",
+  "fixme", "insert", "put_your",
+]
+
+# Custom rules for patterns the default ruleset misses
+
+[[rules]]
+id = "database-connection-string"
+description = "Database connection string with embedded credentials"
+regex = '''(?i)(postgresql|mysql|mariadb|mongodb|redis|mssql):\/\/[^:\s]{1,64}:[^@\s]{1,128}@[^\s/]+'''
+keywords = ["postgresql://", "mysql://", "mongodb://", "redis://"]
+[rules.allowlist]
+  regexes = ['''(localhost|127\.0\.0\.1|example\.com|your[-_]host)''']
+
+[[rules]]
+id = "slack-webhook"
+description = "Slack Incoming Webhook URL"
+regex = '''https://hooks\.slack\.com/services/T[A-Z0-9]{8,}/B[A-Z0-9]{8,}/[A-Za-z0-9]{20,}'''
+keywords = ["hooks.slack.com"]
+
+[[rules]]
+id = "jwt-secret"
+description = "Hardcoded JWT signing secret"
+regex = '''(?i)(jwt[_-]?(secret|key|signing[_-]?key))\s*[=:]\s*['"]([^'"]{16,})['"]'''
+keywords = ["jwt_secret", "jwt_key", "jwt-secret"]
+[rules.allowlist]
+  regexes = ['''(os\.environ|process\.env|getenv|config\[)''']
+
+[[rules]]
+id = "private-key-block"
+description = "PEM private key block"
+regex = '''-----BEGIN[ A-Z]*(RSA |EC |DSA |OPENSSH )?PRIVATE KEY( BLOCK)?-----'''
+keywords = ["BEGIN PRIVATE KEY", "BEGIN RSA PRIVATE KEY", "BEGIN EC PRIVATE KEY"]

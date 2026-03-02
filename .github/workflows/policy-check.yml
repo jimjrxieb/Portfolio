@@ -1,0 +1,63 @@
+name: Policy Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infrastructure/**/*.yaml'
+      - 'GP-copilot/02-package/conftest-policies/**'
+
+jobs:
+  conftest:
+    runs-on: ubuntu-latest
+    name: OPA Policy Validation
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install conftest
+      run: |
+        wget -q https://github.com/open-policy-agent/conftest/releases/download/v0.46.0/conftest_0.46.0_Linux_x86_64.tar.gz
+        tar xzf conftest_0.46.0_Linux_x86_64.tar.gz
+        chmod +x conftest
+        sudo mv conftest /usr/local/bin/
+
+    - name: Verify policies (unit tests)
+      run: conftest verify --policy GP-copilot/02-package/conftest-policies/
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: '3.12.0'
+
+    - name: Render Helm manifests
+      id: helm
+      run: |
+        if [ -d "infrastructure/charts/portfolio" ]; then
+          helm template portfolio infrastructure/charts/portfolio/ \
+            --values infrastructure/charts/portfolio/values.yaml \
+            > /tmp/rendered-manifests.yaml
+          echo "rendered=true" >> $GITHUB_OUTPUT
+        else
+          echo "rendered=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Test Helm manifests against policies
+      if: steps.helm.outputs.rendered == 'true'
+      run: |
+        conftest test /tmp/rendered-manifests.yaml \
+          --policy GP-copilot/02-package/conftest-policies/ \
+          --all-namespaces
+
+    - name: Test infrastructure manifests
+      run: |
+        # Find all non-chart YAML files in infrastructure/
+        YAMLS=$(find infrastructure/ -name "*.yaml" -not -path "*/charts/*" 2>/dev/null || true)
+        if [ -n "$YAMLS" ]; then
+          echo "$YAMLS" | xargs conftest test \
+            --policy GP-copilot/02-package/conftest-policies/ \
+            --all-namespaces
+        else
+          echo "No infrastructure manifests found outside charts/"
+        fi

@@ -1,0 +1,236 @@
+# Pod Security Context Templates
+# CKS Exam: Minimize Microservice Vulnerabilities (20%)
+# Reference: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+
+---
+# PSS Restricted compliant pod template
+# Most restrictive - use for production workloads
+apiVersion: v1
+kind: Pod
+metadata:
+  name: restricted-pod
+  annotations:
+    linkops.io/remediation: "pod-pss-restricted"
+    linkops.io/pss-level: "restricted"
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.25
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 10001
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /var/cache/nginx
+        - name: run
+          mountPath: /var/run
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+  volumes:
+    - name: tmp
+      emptyDir: {}
+    - name: cache
+      emptyDir: {}
+    - name: run
+      emptyDir: {}
+
+---
+# PSS Baseline compliant pod template
+# Less restrictive - allows some capabilities
+apiVersion: v1
+kind: Pod
+metadata:
+  name: baseline-pod
+  annotations:
+    linkops.io/remediation: "pod-pss-baseline"
+    linkops.io/pss-level: "baseline"
+spec:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.25
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+          add:
+            - NET_BIND_SERVICE  # Allow binding to ports < 1024
+        seccompProfile:
+          type: RuntimeDefault
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+---
+# Deployment patch: Add restricted security context
+_deployment_patch_restricted:
+  spec:
+    template:
+      spec:
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          fsGroup: 10001
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+          - name: CONTAINER_NAME
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              capabilities:
+                drop:
+                  - ALL
+              seccompProfile:
+                type: RuntimeDefault
+
+---
+# Deployment patch: Fix run as root
+_deployment_patch_run_as_nonroot:
+  spec:
+    template:
+      spec:
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+        containers:
+          - name: CONTAINER_NAME
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 10001
+
+---
+# Deployment patch: Fix privilege escalation
+_deployment_patch_no_privilege_escalation:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: CONTAINER_NAME
+            securityContext:
+              allowPrivilegeEscalation: false
+
+---
+# Deployment patch: Add read-only root filesystem
+_deployment_patch_readonly_rootfs:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: CONTAINER_NAME
+            securityContext:
+              readOnlyRootFilesystem: true
+            volumeMounts:
+              - name: tmp
+                mountPath: /tmp
+        volumes:
+          - name: tmp
+            emptyDir: {}
+
+---
+# Deployment patch: Drop all capabilities
+_deployment_patch_drop_capabilities:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: CONTAINER_NAME
+            securityContext:
+              capabilities:
+                drop:
+                  - ALL
+
+---
+# Deployment patch: Add resource limits
+_deployment_patch_resource_limits:
+  spec:
+    template:
+      spec:
+        containers:
+          - name: CONTAINER_NAME
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+---
+# Deployment patch: Disable service account token automount
+_deployment_patch_no_sa_token:
+  spec:
+    template:
+      spec:
+        automountServiceAccountToken: false
+
+---
+# Complete security hardening patch
+_deployment_patch_full_hardening:
+  spec:
+    template:
+      spec:
+        automountServiceAccountToken: false
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          fsGroup: 10001
+          seccompProfile:
+            type: RuntimeDefault
+        containers:
+          - name: CONTAINER_NAME
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              runAsNonRoot: true
+              runAsUser: 10001
+              capabilities:
+                drop:
+                  - ALL
+              seccompProfile:
+                type: RuntimeDefault
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+            volumeMounts:
+              - name: tmp
+                mountPath: /tmp
+        volumes:
+          - name: tmp
+            emptyDir:
+              sizeLimit: 100Mi
