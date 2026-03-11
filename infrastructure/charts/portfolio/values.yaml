@@ -142,19 +142,16 @@ chroma:
     accessMode: ReadWriteOnce
 
 # =============================================================================
-# INGRESS
+# GATEWAY API (replaces legacy Ingress — SC-7, AC-6)
 # =============================================================================
-ingress:
+gateway:
   enabled: true
-  className: traefik
-  annotations: {}
+  className: gp-gateway
   host: linksmlm.com
-  paths:
-    ui: /
-    api: /api
-  tls:
-    enabled: true
-    secretName: portfolio-tls # pragma: allowlist secret
+  # Must match Traefik entrypoint port (web=8000, websecure=8443)
+  listenerPort: 8000
+  annotations: {}
+  #   cert-manager.io/cluster-issuer: "letsencrypt-prod"
 
 # =============================================================================
 # SECURITY CONTEXT

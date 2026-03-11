@@ -1,0 +1,26 @@
+{{- if .Values.gateway.enabled }}
+# Gateway API — Namespace-scoped Gateway
+# NIST 800-53: SC-7 (Boundary Protection), AC-6 (Least Privilege)
+# Ref: GP-CONSULTING/02-CLUSTER-HARDENING/templates/gateway-api/gateway.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "portfolio.fullname" . }}-gateway
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    control: SC-7
+  {{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className }}
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: {{ .Values.gateway.listenerPort }}
+      hostname: {{ .Values.gateway.host | quote }}
+      allowedRoutes:
+        namespaces:
+          from: Same    # AC-6: Only HTTPRoutes in this namespace
+{{- end }}

@@ -1,0 +1,63 @@
+{{- if .Values.gateway.enabled }}
+# Gateway API HTTPRoutes — App team owns routing rules
+# NIST 800-53: SC-7 (Boundary Protection)
+# Ref: GP-CONSULTING/02-CLUSTER-HARDENING/templates/gateway-api/httproute.yaml
+---
+# API backend (/api/* → strips prefix → backend)
+{{- if .Values.api.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "portfolio.fullname" . }}-api
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+    control: SC-7
+spec:
+  parentRefs:
+    - name: {{ include "portfolio.fullname" . }}-gateway
+      sectionName: http
+  hostnames:
+    - {{ .Values.gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: {{ include "portfolio.fullname" . }}-api
+          port: {{ .Values.api.service.port }}
+{{- end }}
+---
+# UI / frontend (catch-all /)
+{{- if .Values.ui.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "portfolio.fullname" . }}-ui
+  labels:
+    {{- include "portfolio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+    control: SC-7
+spec:
+  parentRefs:
+    - name: {{ include "portfolio.fullname" . }}-gateway
+      sectionName: http
+  hostnames:
+    - {{ .Values.gateway.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ include "portfolio.fullname" . }}-ui
+          port: {{ .Values.ui.service.port }}
+{{- end }}
+{{- end }}
