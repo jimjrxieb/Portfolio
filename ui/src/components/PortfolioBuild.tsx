@@ -111,19 +111,10 @@ function buildGitHubUrl(item: SkillItem): string {
 export default function PortfolioBuild() {
   return (
     <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-      {/* Welcome Section */}
-      <div className="mb-8 pb-6 border-b border-white/10">
-        <h2 className="text-xl font-bold text-white mb-4">
-          Welcome to My Portfolio Platform
-        </h2>
-        <p className="text-text-secondary text-sm leading-relaxed">
-          This is my full-stack React portfolio platform where I display my AI/ML and DevSecOps experience.
-          This application was built using DevSecOps best practices — from a secure GitHub Actions CI pipeline
-          to ArgoCD GitOps deployment on a dedicated Linux server (converted from an old Windows laptop).
-          Below you'll find{' '}
-          <span className="text-crystal-400 font-medium">Sheyla</span>, my AI-powered chatbox where you can
-          ask any question about my experience.
-        </p>
+      {/* Column Header */}
+      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+        <span className="text-2xl">🤖</span>
+        <h2 className="text-xl font-bold text-white">AI & Automation</h2>
       </div>
 
       {/* Chat Section - Sheyla */}

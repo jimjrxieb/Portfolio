@@ -121,7 +121,8 @@ Portfolio/
 
 - **CKA** (Certified Kubernetes Administrator): Complete
 - **Security+** (CompTIA Security+): Complete
-- **AWS Certified Solutions Architect – Associate**: In Progress
+- **AWS Certified Solutions Architect – Associate**: Complete
+- **CNPA** (Certified Cloud Native Platform Engineering Associate): In Progress
 
 ## Resume
 

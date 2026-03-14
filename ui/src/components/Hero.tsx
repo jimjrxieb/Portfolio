@@ -13,7 +13,8 @@ interface Certification {
 const certifications: Certification[] = [
   { name: 'CKA', full: 'Certified Kubernetes Administrator', status: 'complete' },
   { name: 'Security+', full: 'CompTIA Security+', status: 'complete' },
-  { name: 'AWS Solutions Architect Associate', full: 'AWS Certified Solutions Architect – Associate', status: 'in_progress' },
+  { name: 'AWS SAA', full: 'AWS Certified Solutions Architect – Associate', status: 'complete' },
+  { name: 'CNPA', full: 'Certified Cloud Native Platform Engineering Associate', status: 'in_progress' },
 ];
 
 export default function Hero() {

@@ -35,6 +35,14 @@ function getRankColor(color: 'green' | 'yellow' | 'red'): string {
 export default function CurrentVenture() {
   return (
     <div className="space-y-6">
+      {/* Column Header */}
+      <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🏗️</span>
+          <h2 className="text-xl font-bold text-white">Platform Engineering</h2>
+        </div>
+      </div>
+
       {/* Current Focus - LinkOps AI-BOX */}
       <div className="bg-gradient-to-br from-jade-500/10 to-crystal-500/10 backdrop-blur-sm rounded-2xl border border-jade-500/30 p-6">
         <div className="flex items-center gap-3 mb-4">
