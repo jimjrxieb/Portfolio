@@ -3,34 +3,6 @@ import React from 'react';
 const GP_COPILOT_URL = 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot';
 const PORTFOLIO_URL = 'https://github.com/jimjrxieb/Portfolio';
 
-interface RankLevel {
-  label: string;
-  action: string;
-  percent: string;
-  color: 'green' | 'yellow' | 'red';
-}
-
-const rankLevels: RankLevel[] = [
-  { label: 'E/D-Rank', action: 'Auto-handled', percent: '80%', color: 'green' },
-  { label: 'C-Rank', action: 'Quick approval', percent: '15%', color: 'yellow' },
-  { label: 'B/S-Rank', action: 'Human expertise', percent: '5%', color: 'red' },
-];
-
-function getRankBarWidth(percent: string): string {
-  const num = parseInt(percent);
-  return `${num}%`;
-}
-
-function getRankColor(color: 'green' | 'yellow' | 'red'): string {
-  switch (color) {
-    case 'green':
-      return 'bg-jade-500';
-    case 'yellow':
-      return 'bg-gold-500';
-    case 'red':
-      return 'bg-red-500';
-  }
-}
 
 export default function CurrentVenture() {
   return (
@@ -41,26 +13,6 @@ export default function CurrentVenture() {
           <span className="text-2xl">🏗️</span>
           <h2 className="text-xl font-bold text-white">Platform Engineering</h2>
         </div>
-      </div>
-
-      {/* Current Focus - LinkOps AI-BOX */}
-      <div className="bg-gradient-to-br from-jade-500/10 to-crystal-500/10 backdrop-blur-sm rounded-2xl border border-jade-500/30 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl">🎯</span>
-          <h2 className="text-xl font-bold text-white">Current Focus</h2>
-        </div>
-        <h3 className="text-2xl font-bold text-jade-400 mb-3">LinkOps AI-BOX</h3>
-        <p className="text-text-secondary text-sm leading-relaxed mb-4">
-          I'm an aspiring <span className="text-white font-medium">AI & Automation Engineer</span> with
-          certifications in <span className="text-crystal-400 font-medium">Kubernetes (CKA)</span> and{' '}
-          <span className="text-crystal-400 font-medium">Security (CompTIA Security+)</span>. My focus is
-          production-grade RAG systems, policy-as-code, and enterprise DevSecOps pipelines.
-        </p>
-        <p className="text-text-secondary text-sm leading-relaxed">
-          My first major project is creating a platform with agentic AI that can secure the entire DevSecOps
-          process — automation agents that streamline workflows while maintaining human oversight through
-          approval-based systems.
-        </p>
       </div>
 
       {/* GP-Copilot Featured Card */}
@@ -74,130 +26,72 @@ export default function CurrentVenture() {
 
         <div className="mb-4">
           <h3 className="text-2xl font-bold text-crystal-400 mb-1">GP-COPILOT</h3>
-          <p className="text-text-secondary text-sm">Cloud Security Automation Platform</p>
+          <p className="text-text-secondary text-sm">End-to-End Platform Engineering Toolkit</p>
         </div>
 
         <p className="text-text-secondary text-sm mb-6 leading-relaxed">
-          What if you had <span className="text-jade-400 font-medium">30 DevSecOps engineers</span> working 24/7,
-          never sleeping, never missing a vulnerability?
+          A platform that gives platform engineers{' '}
+          <span className="text-jade-400 font-medium">end-to-end security coverage</span> using
+          playbooks and engagement guides. AI agents read the playbooks and execute autonomously —
+          you provide oversight for the hard decisions.
         </p>
 
-        {/* Iron Legion Section */}
+        {/* Consulting Packages */}
         <div className="mb-6">
           <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">
-            The Iron Legion for Cloud Security
+            Consulting Packages
           </h4>
 
-          <div className="space-y-4">
-            {/* JADE */}
-            <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">🧠</span>
-                <div>
-                  <span className="text-crystal-400 font-bold">JADE</span>
-                  <span className="text-text-secondary text-sm ml-2">— The Supervisor</span>
-                </div>
+          <div className="space-y-3">
+            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-crystal-400 text-xs">01</span>
+                <strong className="text-white text-xs">APP-SEC</strong>
               </div>
-              <p className="text-text-secondary text-xs leading-relaxed mb-2">
-                C-rank approval authority. Reviews JSA findings, generates fixes, executes defense playbooks. Learning from 725+ historical decisions to improve accuracy.
+              <p className="text-text-secondary text-xs leading-relaxed">
+                Pre-deploy code security. Runs 8 parallel scanners (Semgrep, Bandit, Trivy, gitleaks, etc.) with auto-triage and fixer scripts for Dockerfiles, Python, and web vulnerabilities.
               </p>
-              <div className="flex flex-wrap gap-1">
-                <span className="px-1.5 py-0.5 bg-crystal-500/10 text-crystal-400/80 text-[10px] rounded">LogBrain</span>
-                <span className="px-1.5 py-0.5 bg-crystal-500/10 text-crystal-400/80 text-[10px] rounded">RankClassifier</span>
-                <span className="px-1.5 py-0.5 bg-crystal-500/10 text-crystal-400/80 text-[10px] rounded">PlaybookExecutor</span>
-              </div>
             </div>
 
-            {/* JSA */}
-            <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">🦾</span>
-                <div>
-                  <span className="text-jade-400 font-bold">JSA</span>
-                  <span className="text-text-secondary text-sm ml-2">— Legion</span>
-                </div>
+            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-crystal-400 text-xs">02</span>
+                <strong className="text-white text-xs">CLUSTER-HARDENING</strong>
               </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-crystal-400">→</span>
-                    <strong className="text-white text-xs">JSA-DEVSEC</strong>
-                    <span className="px-1.5 py-0.5 bg-jade-500/20 text-jade-400 text-[10px] rounded ml-1">24/7</span>
-                  </div>
-                  <p className="text-text-secondary text-xs pl-4 leading-relaxed">
-                    Autonomous daemon monitoring GitHub Actions webhooks. Runs 8 scanners (gitleaks, bandit, semgrep, trivy, eslint, hadolint, checkov, safety). Auto-triggers defense playbooks for D-rank issues. Escalates C-rank to JADE for approval.
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-crystal-400">→</span>
-                    <strong className="text-white text-xs">JSA-INFRASEC</strong>
-                    <span className="px-1.5 py-0.5 bg-jade-500/20 text-jade-400 text-[10px] rounded ml-1">117 modules</span>
-                  </div>
-                  <p className="text-text-secondary text-xs pl-4 leading-relaxed">
-                    K8sGPT-style analyzers for Kubernetes, Cloud (AWS), IaC (Terraform), Policy (OPA/Gatekeeper/Kyverno), Secrets, and Compliance (CIS/NIST/SOC2). Blast radius analysis before fixes. Domain-aware routing to specialized fixers.
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-crystal-400">→</span>
-                    <strong className="text-white text-xs">JSA-SECOPS</strong>
-                    <span className="text-gold-400/80 text-xs ml-1">(planned)</span>
-                  </div>
-                  <p className="text-text-secondary text-xs pl-4 leading-relaxed">
-                    Runtime security monitoring via Falco, GuardDuty, CloudTrail. Incident response automation for B/S-rank events.
-                  </p>
-                </div>
+              <p className="text-text-secondary text-xs leading-relaxed">
+                Deploy-time Kubernetes hardening. Kyverno/OPA policies, RBAC scoping, PSS enforcement, and admission control — audit first, enforce after validation.
+              </p>
+            </div>
+
+            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-crystal-400 text-xs">03</span>
+                <strong className="text-white text-xs">DEPLOY-RUNTIME</strong>
               </div>
-              <div className="mt-4 pt-3 border-t border-white/5">
-                <div className="flex items-center justify-between">
-                  <p className="text-text-secondary/60 text-xs font-mono">
-                    code → infra → deploy → runtime
-                  </p>
-                  <span className="text-jade-400/60 text-[10px]">28k+ lines</span>
-                </div>
+              <p className="text-text-secondary text-xs leading-relaxed">
+                Runtime security monitoring with Falco, service mesh, and distributed tracing. Detects drift, privilege escalation, and cryptomining in real time with automated incident response.
+              </p>
+            </div>
+
+            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-crystal-400 text-xs">07</span>
+                <strong className="text-white text-xs">FEDRAMP-READY</strong>
               </div>
+              <p className="text-text-secondary text-xs leading-relaxed">
+                FedRAMP Moderate compliance automation. Maps 323 NIST 800-53 controls to infrastructure evidence, runs gap analysis, and generates SSP artifacts.
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* ML Rank System */}
-        <div className="mb-6">
-          <h4 className="text-sm font-semibold text-white mb-3 uppercase tracking-wide">
-            ML-Powered Rank System
-          </h4>
-          <p className="text-text-secondary text-xs mb-3">
-            sklearn + XGBoost determine what agents handle alone
-          </p>
-          <div className="space-y-2">
-            {rankLevels.map((rank) => (
-              <div key={rank.label} className="flex items-center gap-3">
-                <div className="w-20 text-xs text-text-secondary">{rank.label}</div>
-                <div className="flex-1 h-2 bg-snow/10 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${getRankColor(rank.color)} rounded-full`}
-                    style={{ width: getRankBarWidth(rank.percent) }}
-                  />
-                </div>
-                <div className="w-24 text-xs text-text-secondary text-right">
-                  {rank.percent} {rank.action}
-                </div>
-              </div>
-            ))}
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <p className="text-text-secondary/60 text-xs font-mono">
+                code → harden → deploy → comply
+              </p>
+              <span className="text-jade-400/60 text-[10px]">28k+ lines</span>
+            </div>
           </div>
-          <p className="text-jade-400 text-xs mt-3 font-medium">
-            One engineer manages 10x more infrastructure
-          </p>
-        </div>
-
-        {/* Consulting */}
-        <div className="bg-snow/5 rounded-lg p-3 mb-4 border border-white/5">
-          <h5 className="text-xs font-semibold text-white mb-1 uppercase tracking-wide">
-            Built for Consulting
-          </h5>
-          <p className="text-text-secondary text-xs">
-            Multi-tenant. Each client gets their own security legion. You provide oversight for the hard stuff.
-          </p>
         </div>
 
         {/* CTA */}
@@ -214,37 +108,24 @@ export default function CurrentVenture() {
         </a>
       </div>
 
-      {/* Other Projects */}
+      {/* Projects */}
       <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <span>🚀</span>
-          <span>Other Projects</span>
+          <span>Projects</span>
         </h2>
 
         <div className="space-y-3">
-          {/* AI Interview Platform */}
+          {/* Portfolio */}
           <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">AI Interview Platform</h3>
+              <h3 className="text-white font-medium">Portfolio</h3>
               <span className="px-2 py-0.5 bg-jade-500/20 text-jade-400 text-xs rounded-full">
-                Deployed
-              </span>
-            </div>
-            <p className="text-text-secondary text-xs">
-              Secure cloud architecture with AWS. Real-time AI-powered mock interviews.
-            </p>
-          </div>
-
-          {/* This Portfolio */}
-          <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">This Portfolio</h3>
-              <span className="px-2 py-0.5 bg-crystal-500/20 text-crystal-400 text-xs rounded-full">
-                Active
+                Live
               </span>
             </div>
             <p className="text-text-secondary text-xs mb-2">
-              The platform you're viewing now. Full-stack RAG + DevSecOps showcase.
+              This platform. Full-stack React + FastAPI with RAG-powered AI assistant, 8-scanner CI pipeline, ArgoCD GitOps on k3s.
             </p>
             <a
               href={PORTFOLIO_URL}
@@ -257,6 +138,32 @@ export default function CurrentVenture() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
+          </div>
+
+          {/* Anthra-Cloud */}
+          <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-medium">Anthra-Cloud</h3>
+              <span className="px-2 py-0.5 bg-crystal-500/20 text-crystal-400 text-xs rounded-full">
+                Active
+              </span>
+            </div>
+            <p className="text-text-secondary text-xs">
+              Multi-tenant SaaS security monitoring platform. EKS, Terraform, OPA policies, and full CI/CD hardening pipeline.
+            </p>
+          </div>
+
+          {/* Anthra-FedRAMP */}
+          <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-medium">Anthra-FedRAMP</h3>
+              <span className="px-2 py-0.5 bg-gold-500/20 text-gold-400 text-xs rounded-full">
+                In Progress
+              </span>
+            </div>
+            <p className="text-text-secondary text-xs">
+              FedRAMP Moderate compliance project. 323 NIST 800-53 controls mapped to infrastructure evidence with automated gap analysis.
+            </p>
           </div>
         </div>
       </div>
