@@ -173,11 +173,12 @@ securityContext:
     allowPrivilegeEscalation: false
     privileged: false
 
-  # App pods don't call K8s API — no token needed
-  automountServiceAccountToken: false
     capabilities:
       drop:
         - ALL
+
+  # App pods don't call K8s API — no token needed
+  automountServiceAccountToken: false
 
 # =============================================================================
 # NETWORK POLICY
