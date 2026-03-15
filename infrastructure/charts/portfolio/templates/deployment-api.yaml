@@ -25,6 +25,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "portfolio.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.securityContext.automountServiceAccountToken | default false }}
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot }}
         runAsUser: {{ .Values.securityContext.pod.runAsUser }}

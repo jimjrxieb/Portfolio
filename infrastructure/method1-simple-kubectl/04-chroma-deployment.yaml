@@ -28,7 +28,7 @@ spec:
       containers:
         - name: chromadb
           # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
-          image: chromadb/chroma:0.5.18
+          image: chromadb/chroma@sha256:14523ab9ac9e1d1f5913766be0afcdf276b47a2c9c730508dde8d7078ca0d490
           # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
           imagePullPolicy: Always
           securityContext:

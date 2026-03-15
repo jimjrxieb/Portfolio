@@ -1,4 +1,4 @@
-FROM chromadb/chroma:latest
+FROM chromadb/chroma@sha256:3ce58229cf62ab1450e3120f31b613bf19037d896f25c8469d2be469aed2a155
 
 # Add health check endpoint
 COPY health-check.py /app/health-check.py
