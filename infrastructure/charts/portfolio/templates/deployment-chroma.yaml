@@ -69,7 +69,11 @@ spec:
           volumeMounts:
             - name: chroma-data
               mountPath: /data
+            - name: tmp
+              mountPath: /tmp
       volumes:
+        - name: tmp
+          emptyDir: {}
         - name: chroma-data
           {{- if .Values.chroma.persistence.enabled }}
           persistentVolumeClaim:
