@@ -8,6 +8,7 @@ interface Project {
   icon: string;
   highlights: string[];
   repoUrl?: string;
+  screenshots?: { src: string; alt: string }[];
 }
 
 interface Tool {
@@ -22,7 +23,7 @@ interface ToolCategory {
   tools: Tool[];
 }
 
-type ProjectKey = 'gpcopilot' | 'interview' | 'jade';
+type ProjectKey = 'gpcopilot' | 'anthra' | 'interview' | 'jade';
 type CategoryKey = 'languages' | 'aiml' | 'cloud' | 'security' | 'devops';
 
 // Constants
@@ -41,6 +42,29 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
       'Real clients: Deployed for ZRS Management property portfolio (4,000+ units)',
       'Policy-as-Code: OPA/Gatekeeper with automated policy generation',
       'Zero cloud dependency: 100% local inference, HIPAA/SOC2 ready',
+    ],
+  },
+  anthra: {
+    title: 'Anthra-FedRAMP — Security Compliance Platform',
+    description: 'FedRAMP Moderate authorization engagement — 323 NIST 800-53 controls, real scan data, GitOps deployment',
+    status: 'Production',
+    icon: '🏛️',
+    repoUrl: 'https://github.com/jimjrxieb/Anthra-FedRAMP',
+    screenshots: [
+      { src: '/projects/anthra-compliance.jpeg', alt: 'FedRAMP Compliance Dashboard — 14 NIST control families with real scan data' },
+      { src: '/projects/anthra-findings.jpeg', alt: 'Security Findings — industry standard vs GP-Copilot scanners' },
+      { src: '/projects/anthra-ssp.jpeg', alt: 'System Security Plan — SSP best practices and 3PAO guidance' },
+      { src: '/projects/anthra-poam.jpeg', alt: 'POA&M — 21 tracked items with severity and milestones' },
+    ],
+    highlights: [
+      '🎯 Impact: FedRAMP Moderate readiness for federal agency sales (DHS, VA, GSA)',
+      'NIST 800-53: 53 controls tracked, 36% compliance with automated evidence collection',
+      'Real scan data: Checkov (785 pass/70 fail), Polaris (81/100), 14 NIST-mapped findings',
+      'GitOps: Kustomize base/overlays + ArgoCD — dev/staging/prod promotion pipeline',
+      'Golden path: create-app-deployment.sh stamps hardened K8s manifests in 30 seconds',
+      'Platform engineering: Kyverno admission (13 policies), PSS restricted, NetworkPolicy default-deny',
+      '11 FedRAMP playbooks: Access Control through Continuous Compliance (CA-7)',
+      'GP-Copilot value-add: auto-fix E/D rank, JADE approves C rank, human decides B/S rank',
     ],
   },
   interview: {
@@ -183,6 +207,23 @@ const ProjectCard: React.FC<{
             </div>
           ))}
         </div>
+        {project.screenshots && project.screenshots.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-2">
+              {project.screenshots.map((ss, i) => (
+                <a key={i} href={ss.src} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={ss.src}
+                    alt={ss.alt}
+                    className="rounded border border-white/10 hover:border-crystal-500/50 transition-colors w-full"
+                    loading="lazy"
+                  />
+                  <span className="text-text-secondary text-[10px] mt-0.5 block">{ss.alt}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         {project.repoUrl && (
           <div className="mt-3 pt-3 border-t border-white/10">
             <a
