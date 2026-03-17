@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const GP_COPILOT_URL = 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot';
 const PORTFOLIO_URL = 'https://github.com/jimjrxieb/Portfolio';
+const ANTHRA_URL = 'https://github.com/jimjrxieb/Anthra-FedRAMP';
 
 
 export default function CurrentVenture() {
+  const [fedrampExpanded, setFedrampExpanded] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* Column Header */}
@@ -153,17 +156,102 @@ export default function CurrentVenture() {
             </p>
           </div>
 
-          {/* Anthra-FedRAMP */}
-          <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">Anthra-FedRAMP</h3>
-              <span className="px-2 py-0.5 bg-gold-500/20 text-gold-400 text-xs rounded-full">
-                In Progress
-              </span>
-            </div>
-            <p className="text-text-secondary text-xs">
-              FedRAMP Moderate compliance project. 323 NIST 800-53 controls mapped to infrastructure evidence with automated gap analysis.
-            </p>
+          {/* Anthra-FedRAMP (expandable) */}
+          <div className="bg-snow/5 rounded-lg border border-white/5 overflow-hidden">
+            <button
+              onClick={() => setFedrampExpanded(!fedrampExpanded)}
+              className="w-full text-left p-4 hover:bg-snow/10 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-medium">Anthra-FedRAMP</h3>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-gold-500/20 text-gold-400 text-xs rounded-full">
+                    In Progress
+                  </span>
+                  <span className="text-text-secondary text-xs">{fedrampExpanded ? '▼' : '▶'}</span>
+                </div>
+              </div>
+              <p className="text-text-secondary text-xs">
+                FedRAMP Moderate compliance project. 323 NIST 800-53 controls mapped to infrastructure evidence with automated gap analysis.
+              </p>
+            </button>
+
+            {fedrampExpanded && (
+              <div className="border-t border-white/5 p-4 space-y-4">
+                {/* Screenshots */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { src: '/projects/anthra-compliance.jpeg', alt: 'Compliance Dashboard' },
+                    { src: '/projects/anthra-findings.jpeg', alt: 'Security Findings' },
+                    { src: '/projects/anthra-ssp.jpeg', alt: 'System Security Plan' },
+                    { src: '/projects/anthra-poam.jpeg', alt: 'POA&M Tracking' },
+                  ].map((img, i) => (
+                    <a key={i} href={img.src} target="_blank" rel="noopener noreferrer">
+                      <img src={img.src} alt={img.alt} className="rounded border border-white/10 hover:border-crystal-500/50 transition-colors w-full" loading="lazy" />
+                      <span className="text-text-secondary text-[10px] mt-0.5 block">{img.alt}</span>
+                    </a>
+                  ))}
+                </div>
+
+                {/* Industry Standard vs GP-Copilot */}
+                <div className="space-y-3">
+                  <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
+                    <h4 className="text-xs font-semibold text-white mb-2">Industry Standard (best practice)</h4>
+                    <div className="space-y-1 text-xs text-text-secondary">
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>Checkov, Trivy, Kubescape — IaC + CVE + K8s scanning</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>NIST 800-53 control mapping (manual spreadsheets)</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>SSP written in Word, POA&M in Excel</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>Evidence screenshots collected by hand</span></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-crystal-500/5 rounded-lg p-3 border border-crystal-500/20">
+                    <h4 className="text-xs font-semibold text-crystal-400 mb-2">GP-Copilot Value-Add (what I built)</h4>
+                    <div className="space-y-1 text-xs text-text-secondary">
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">scan-and-map.py</span> — auto-maps findings to NIST control IDs</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">gap-analysis.py</span> — generates control matrix + POA&M + remediation plan in one run</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">Golden path</span> — stamps hardened Kustomize deployments with ArgoCD GitOps (dev/staging/prod)</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">11 FedRAMP playbooks</span> — Access Control through Continuous Compliance (CA-7)</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">Rank engine</span> — E/D auto-fix, C needs JADE approval, B/S needs human</span></div>
+                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">Evidence as code</span> — JSON scans with timestamps, not Word docs and screenshots</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scan Results */}
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="bg-snow/5 rounded-lg p-2">
+                    <div className="text-lg font-bold text-crystal-400">53</div>
+                    <div className="text-text-secondary text-[10px]">Controls Tracked</div>
+                  </div>
+                  <div className="bg-snow/5 rounded-lg p-2">
+                    <div className="text-lg font-bold text-gold-400">36%</div>
+                    <div className="text-text-secondary text-[10px]">Compliance</div>
+                  </div>
+                  <div className="bg-snow/5 rounded-lg p-2">
+                    <div className="text-lg font-bold text-jade-400">785</div>
+                    <div className="text-text-secondary text-[10px]">Checkov Pass</div>
+                  </div>
+                  <div className="bg-snow/5 rounded-lg p-2">
+                    <div className="text-lg font-bold text-red-400">21</div>
+                    <div className="text-text-secondary text-[10px]">POA&M Items</div>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <a
+                  href={ANTHRA_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-crystal-400 hover:text-crystal-300 transition-colors text-xs font-medium"
+                >
+                  View Repository on GitHub
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
