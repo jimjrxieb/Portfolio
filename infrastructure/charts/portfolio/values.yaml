@@ -146,7 +146,7 @@ chroma:
 # =============================================================================
 gateway:
   enabled: true
-  className: gp-gateway
+  className: traefik
   host: linksmlm.com
   # Must match Traefik entrypoint port (web=8000, websecure=8443)
   listenerPort: 8000
