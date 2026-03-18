@@ -25,12 +25,17 @@ export default function Landing() {
               <span className="text-crystal-400 font-medium">senior-level outcomes</span> without senior-level headcount.
             </p>
             <p className="text-text-secondary text-sm leading-relaxed max-w-3xl mx-auto mb-4">
-              This portfolio is a live proof point: a full-stack React app deployed via{' '}
-              <span className="text-crystal-400 font-medium">ArgoCD GitOps</span> on a dedicated Linux server,
-              secured by an 8-scanner CI pipeline. On the left,{' '}
-              <span className="text-crystal-400 font-medium">Platform Engineering</span> — the core work. On the right,{' '}
-              <span className="text-crystal-400 font-medium">AI & Automation</span> — the force multiplier. Below,{' '}
-              <span className="text-crystal-400 font-medium">Sheyla</span> — ask her anything about my experience.
+              The result: a Kubernetes cluster that went from{' '}
+              <span className="text-crystal-400 font-medium">34% to 71.5% compliance</span>,{' '}
+              <span className="text-crystal-400 font-medium">264 findings</span> triaged automatically, and{' '}
+              <span className="text-crystal-400 font-medium">~$13K/quarter</span> in manual labor eliminated —
+              built and operated by one engineer.
+            </p>
+            <p className="text-text-secondary text-sm leading-relaxed max-w-3xl mx-auto mb-4">
+              This portfolio is the proof. A production app deployed via{' '}
+              <span className="text-crystal-400 font-medium">ArgoCD GitOps</span>, secured by an 8-scanner CI pipeline.
+              On the left, the work. On the right, the AI that multiplies it. Below,{' '}
+              <span className="text-crystal-400 font-medium">Sheyla</span> — ask her anything.
             </p>
           </div>
         </div>

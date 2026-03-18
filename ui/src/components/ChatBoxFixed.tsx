@@ -29,7 +29,7 @@ const ChatBoxFixed: React.FC = () => {
   }, [messages, loading]);
 
   const quickPrompts = [
-    "Tell me about Jimmie's DevSecOps experience",
+    "How does Jimmie approach securing a Kubernetes cluster?",
     'How did Jimmie secure this application?',
     'What technologies does Jimmie use?',
     'How was the CI/CD pipeline built?',
@@ -137,7 +137,7 @@ const ChatBoxFixed: React.FC = () => {
             </div>
             <p className="text-white font-medium">Hi! I'm Sheyla</p>
             <p className="text-text-secondary text-sm mt-1">
-              Ask me about Jimmie's DevSecOps or AI/ML work
+              Ask me about Jimmie's approach to securing and optimizing infrastructure
             </p>
           </div>
         )}
@@ -214,7 +214,7 @@ const ChatBoxFixed: React.FC = () => {
             type="text"
             value={message}
             onChange={e => setMessage(e.target.value)}
-            placeholder="Ask about my AI/ML or DevSecOps work..."
+            placeholder="Ask about securing or optimizing infrastructure..."
             disabled={loading}
             className="flex-1 px-4 py-2.5 bg-snow/5 border border-white/10 rounded-xl text-white placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-crystal-500/50 focus:border-crystal-500/50 disabled:opacity-50 text-sm"
           />
