@@ -416,7 +416,7 @@ jobs:
         echo "📝 Updating image tags in values.yaml to: ${IMAGE_TAG}"
 
         # Match any tag starting with main-, v, or vite- (skips chroma's bare "1.0.0")
-        sed -i "s|tag: \"\(main-\|v\|vite-\)[^\"]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
+        sed -i -E "s|tag: \"(main-\|v\|vite-)[^\"]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
 
         echo "✅ Updated values.yaml:"
         grep -A 2 "image:" infrastructure/charts/portfolio/values.yaml | grep "tag:"
