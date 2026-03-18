@@ -29,7 +29,7 @@ export default function CurrentVenture() {
 
         <div className="mb-4">
           <h3 className="text-2xl font-bold text-crystal-400 mb-1">GP-COPILOT</h3>
-          <p className="text-text-secondary text-sm">End-to-End Platform Engineering Toolkit</p>
+          <p className="text-text-secondary text-sm">Reduces attack surface and cloud spend in the same engagement</p>
         </div>
 
         <p className="text-text-secondary text-sm mb-6 leading-relaxed">
@@ -273,8 +273,8 @@ export default function CurrentVenture() {
             <div className="text-text-secondary text-xs">RAG Search</div>
           </div>
           <div className="text-center p-3 bg-snow/5 rounded-lg">
-            <div className="text-2xl font-bold text-crystal-300">118</div>
-            <div className="text-text-secondary text-xs">Embeddings</div>
+            <div className="text-2xl font-bold text-crystal-300">2,656+</div>
+            <div className="text-text-secondary text-xs">RAG Vectors</div>
           </div>
         </div>
       </div>

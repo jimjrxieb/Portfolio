@@ -16,25 +16,21 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="bg-gradient-to-br from-jade-500/10 to-crystal-500/10 backdrop-blur-sm rounded-2xl border border-jade-500/30 p-8 text-center">
             <h2 className="text-2xl font-bold text-white mb-4">
-              Platform Engineer & AI Builder
+              Secure → Optimize → Outcome
             </h2>
             <p className="text-text-secondary text-sm leading-relaxed max-w-3xl mx-auto mb-4">
-              I'm a{' '}
-              <span className="text-white font-medium">Platform Engineer</span> with certifications in{' '}
-              <span className="text-crystal-400 font-medium">Kubernetes (CKA)</span>,{' '}
-              <span className="text-crystal-400 font-medium">AWS Solutions Architect</span>, and{' '}
-              <span className="text-crystal-400 font-medium">Security (CompTIA Security+)</span>.
-              I build internal developer platforms, CI/CD pipelines, and policy-as-code guardrails —
-              then wire AI agents into the workflow to handle the repetitive security work autonomously.
+              I secure infrastructure before optimizing it. SAST to runtime, application code to cluster config —{' '}
+              <span className="text-white font-medium">GP-Copilot</span> automates the full engagement cycle so
+              platform engineers deliver{' '}
+              <span className="text-crystal-400 font-medium">senior-level outcomes</span> without senior-level headcount.
             </p>
             <p className="text-text-secondary text-sm leading-relaxed max-w-3xl mx-auto mb-4">
-              This portfolio is a live example: a full-stack React app deployed via{' '}
+              This portfolio is a live proof point: a full-stack React app deployed via{' '}
               <span className="text-crystal-400 font-medium">ArgoCD GitOps</span> on a dedicated Linux server,
-              secured by an 8-scanner CI pipeline. On the left you'll find my{' '}
-              <span className="text-crystal-400 font-medium">AI & Automation</span> work, on the right my{' '}
-              <span className="text-crystal-400 font-medium">Platform Engineering</span> projects, and below{' '}
-              <span className="text-crystal-400 font-medium">Sheyla</span> — my AI-powered chatbox you can ask
-              anything about my experience.
+              secured by an 8-scanner CI pipeline. On the left,{' '}
+              <span className="text-crystal-400 font-medium">Platform Engineering</span> — the core work. On the right,{' '}
+              <span className="text-crystal-400 font-medium">AI & Automation</span> — the force multiplier. Below,{' '}
+              <span className="text-crystal-400 font-medium">Sheyla</span> — ask her anything about my experience.
             </p>
           </div>
         </div>
@@ -44,11 +40,11 @@ export default function Landing() {
       <div className="relative z-10 px-6 pb-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-[55%_45%] gap-8">
-            {/* Left Column - AI & Automation (includes Sheyla chatbox) */}
-            <PortfolioBuild />
-
-            {/* Right Column - Platform Engineering */}
+            {/* Left Column - Platform Engineering (the core work) */}
             <CurrentVenture />
+
+            {/* Right Column - AI & Automation (includes Sheyla chatbox) */}
+            <PortfolioBuild />
           </div>
         </div>
       </div>

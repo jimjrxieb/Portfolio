@@ -14,7 +14,6 @@ const certifications: Certification[] = [
   { name: 'CKA', full: 'Certified Kubernetes Administrator', status: 'complete' },
   { name: 'Security+', full: 'CompTIA Security+', status: 'complete' },
   { name: 'AWS SAA', full: 'AWS Certified Solutions Architect – Associate', status: 'complete' },
-  { name: 'CNPA', full: 'Certified Cloud Native Platform Engineering Associate', status: 'in_progress' },
 ];
 
 export default function Hero() {
@@ -28,7 +27,7 @@ export default function Hero() {
 
         {/* Title */}
         <p className="text-lg md:text-xl text-crystal-400 font-light mb-6">
-          AI Solutions Architect & DevSecOps Engineer
+          Platform Engineer
         </p>
 
         {/* Links Row */}

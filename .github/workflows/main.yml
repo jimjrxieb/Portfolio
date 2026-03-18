@@ -38,9 +38,6 @@ env:
   REGISTRY: ghcr.io
   API_IMAGE: ghcr.io/jimjrxieb/portfolio-api
   UI_IMAGE: ghcr.io/jimjrxieb/portfolio-ui
-  # Production image tags - match what K8s deployments expect
-  API_TAG: v1.0.0
-  UI_TAG: vite-fix-v4
 
 jobs:
   # Parallel security scanning jobs (like microservices)
@@ -295,15 +292,10 @@ jobs:
             path: ./api/Dockerfile
             context: .
             image: ghcr.io/jimjrxieb/portfolio-api
-            prod_tag: v1.0.0
           - name: ui
             path: ./ui/Dockerfile
             context: .
             image: ghcr.io/jimjrxieb/portfolio-ui
-            prod_tag: vite-fix-v4
-
-    outputs:
-      image-tag: ${{ steps.meta.outputs.image-tag }}
 
     steps:
     - name: Checkout code
@@ -326,7 +318,7 @@ jobs:
         IMAGE_TAG="main-${SHORT_SHA}"
         echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         echo "short-sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
-        echo "📦 Build tags: ${IMAGE_TAG}, ${{ matrix.prod_tag }}"
+        echo "📦 Build tag: ${IMAGE_TAG}"
 
     - name: Check Dockerfile exists
       run: |
@@ -343,7 +335,6 @@ jobs:
         push: true
         tags: |
           ${{ matrix.image }}:${{ steps.meta.outputs.image-tag }}
-          ${{ matrix.image }}:${{ matrix.prod_tag }}
         build-args: |
           BUILD_DATE=${{ github.run_id }}
           BUILD_SHA=${{ steps.meta.outputs.short-sha }}
@@ -356,7 +347,6 @@ jobs:
 
     - name: Output image info
       run: |
-        echo "✅ Built: ${{ matrix.image }}:${{ matrix.prod_tag }}"
         echo "✅ Built: ${{ matrix.image }}:${{ steps.meta.outputs.image-tag }}"
 
   security-scan:
@@ -371,12 +361,14 @@ jobs:
         include:
           - name: api
             image: ghcr.io/jimjrxieb/portfolio-api
-            tag: v1.0.0
           - name: ui
             image: ghcr.io/jimjrxieb/portfolio-ui
-            tag: vite-fix-v4
 
     steps:
+    - name: Compute image tag
+      id: meta
+      run: echo "image-tag=main-$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+
     - name: Log in to Container Registry
       uses: docker/login-action@v3
       with:
@@ -389,7 +381,7 @@ jobs:
       uses: aquasecurity/trivy-action@0.28.0
       continue-on-error: true
       with:
-        image-ref: '${{ matrix.image }}:${{ matrix.tag }}'
+        image-ref: '${{ matrix.image }}:${{ steps.meta.outputs.image-tag }}'
         format: 'sarif'
         output: '${{ matrix.name }}-trivy-results.sarif'
         severity: 'CRITICAL,HIGH,MEDIUM'
@@ -419,17 +411,12 @@ jobs:
         fetch-depth: 0
 
     - name: Update Helm values with new image tags
-      env:
-        IMAGE_TAG: ${{ needs.build-images.outputs.image-tag }}
       run: |
+        IMAGE_TAG="main-$(echo ${{ github.sha }} | cut -c1-8)"
         echo "📝 Updating image tags in values.yaml to: ${IMAGE_TAG}"
 
-        # Update UI image tag
-        sed -i "s|tag: \"vite-fix-v[0-9]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
-        sed -i "s|tag: \"main-[a-f0-9]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
-
-        # Update API image tag (match both v1.0.0 pattern and main-* pattern)
-        sed -i "s|tag: \"v[0-9]*\.[0-9]*\.[0-9]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
+        # Match any tag starting with main-, v, or vite- (skips chroma's bare "1.0.0")
+        sed -i "s|tag: \"\(main-\|v\|vite-\)[^\"]*\"|tag: \"${IMAGE_TAG}\"|" infrastructure/charts/portfolio/values.yaml
 
         echo "✅ Updated values.yaml:"
         grep -A 2 "image:" infrastructure/charts/portfolio/values.yaml | grep "tag:"
@@ -446,7 +433,7 @@ jobs:
         fi
 
         git add infrastructure/charts/portfolio/values.yaml
-        git commit -m "chore: update image tags to ${{ needs.build-images.outputs.image-tag }} [skip ci]"
+        git commit -m "chore: update image tags to ${IMAGE_TAG} [skip ci]"
 
         # Push with retry logic (in case of concurrent pushes)
         for i in {1..3}; do
@@ -555,20 +542,14 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Create deployment summary
-      env:
-        IMAGE_TAG: ${{ needs.build-images.outputs.image-tag }}
       run: |
+        IMAGE_TAG="main-$(echo ${{ github.sha }} | cut -c1-8)"
         echo "🚀 Portfolio Platform Deployment"
         echo "================================="
         echo ""
         echo "📦 Container Images Pushed to GHCR:"
-        echo "  API: ${{ env.API_IMAGE }}:${{ env.API_TAG }}"
-        echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
-        echo ""
-        echo "🏷️ Image Tags:"
-        echo "  Commit: ${IMAGE_TAG}"
-        echo "  API Production: ${{ env.API_TAG }}"
-        echo "  UI Production: ${{ env.UI_TAG }}"
+        echo "  API: ${{ env.API_IMAGE }}:${IMAGE_TAG}"
+        echo "  UI:  ${{ env.UI_IMAGE }}:${IMAGE_TAG}"
         echo ""
 
     - name: Deploy Instructions (Terraform + LocalStack)
@@ -635,8 +616,9 @@ jobs:
         echo "📦 CONTAINER IMAGES"
         echo "═══════════════════════════════════════════════════════════"
         echo ""
-        echo "  API: ${{ env.API_IMAGE }}:${{ env.API_TAG }}"
-        echo "  UI:  ${{ env.UI_IMAGE }}:${{ env.UI_TAG }}"
+        IMAGE_TAG="main-$(echo ${{ github.sha }} | cut -c1-8)"
+        echo "  API: ${{ env.API_IMAGE }}:${IMAGE_TAG}"
+        echo "  UI:  ${{ env.UI_IMAGE }}:${IMAGE_TAG}"
         echo ""
         echo "═══════════════════════════════════════════════════════════"
         echo "🔒 SECURITY TOOLS (8-Tool Parallel Scanning)"
