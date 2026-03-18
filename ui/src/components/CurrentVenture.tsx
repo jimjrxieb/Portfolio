@@ -42,55 +42,115 @@ export default function CurrentVenture() {
         {/* Consulting Packages */}
         <div className="mb-6">
           <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">
-            Consulting Packages
+            Engagement Packages
           </h4>
 
-          <div className="space-y-3">
-            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-crystal-400 text-xs">01</span>
-                <strong className="text-white text-xs">APP-SEC</strong>
-              </div>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                Pre-deploy code security. Runs 8 parallel scanners (Semgrep, Bandit, Trivy, gitleaks, etc.) with auto-triage and fixer scripts for Dockerfiles, Python, and web vulnerabilities.
-              </p>
+          {/* Phase 1: Secure */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+              <span className="text-red-400 text-[10px] font-semibold uppercase tracking-wider">Secure</span>
             </div>
-
-            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-crystal-400 text-xs">02</span>
-                <strong className="text-white text-xs">CLUSTER-HARDENING</strong>
+            <div className="space-y-2 ml-3 border-l border-red-400/20 pl-3">
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">01</span>
+                  <strong className="text-white text-xs">APP-SEC</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  16 parallel scanners. Auto-triage by severity rank. Fixer scripts for every finding. Issues caught here cost nothing.
+                </p>
               </div>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                Deploy-time Kubernetes hardening. Kyverno/OPA policies, RBAC scoping, PSS enforcement, and admission control — audit first, enforce after validation.
-              </p>
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">02</span>
+                  <strong className="text-white text-xs">CLUSTER-HARDENING</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  50+ policies across CI, admission, and runtime. Kyverno/OPA/Gatekeeper. Audit first, enforce after validation. Portfolio: 34% → 71.5%.
+                </p>
+              </div>
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">03</span>
+                  <strong className="text-white text-xs">DEPLOY-RUNTIME</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  Falco + 20 watchers + 15 responders. 21-second MTTR. Cryptomining, privilege escalation, and drift detected and killed autonomously.
+                </p>
+              </div>
             </div>
+          </div>
 
-            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-crystal-400 text-xs">03</span>
-                <strong className="text-white text-xs">DEPLOY-RUNTIME</strong>
-              </div>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                Runtime security monitoring with Falco, service mesh, and distributed tracing. Detects drift, privilege escalation, and cryptomining in real time with automated incident response.
-              </p>
+          {/* Phase 2: Understand */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
+              <span className="text-gold-400 text-[10px] font-semibold uppercase tracking-wider">Understand</span>
             </div>
-
-            <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-crystal-400 text-xs">07</span>
-                <strong className="text-white text-xs">FEDRAMP-READY</strong>
+            <div className="space-y-2 ml-3 border-l border-gold-400/20 pl-3">
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">04</span>
+                  <strong className="text-white text-xs">KUBESTER</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  13-playbook specialist pass. Perfects what 01-03 built — RBAC, seccomp, mTLS, CIS benchmarks. Takes compliance from 71% to 95%+.
+                </p>
               </div>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                FedRAMP Moderate compliance automation. Maps 323 NIST 800-53 controls to infrastructure evidence, runs gap analysis, and generates SSP artifacts.
-              </p>
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">05</span>
+                  <strong className="text-white text-xs">JSA-AUTONOMOUS</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  4 agents running 24/7. E/D rank findings fixed without humans. Every runtime finding generates prevention rules that flow back to CI — issues never recur.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Phase 3: Optimize */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-jade-400" />
+              <span className="text-jade-400 text-[10px] font-semibold uppercase tracking-wider">Optimize</span>
+            </div>
+            <div className="space-y-2 ml-3 border-l border-jade-400/20 pl-3">
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">06</span>
+                  <strong className="text-white text-xs">CLOUD-SECURITY</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  Secure AWS migration with Terraform. VPC isolation, IAM hardening, Karpenter right-sizing. 45% infrastructure cost reduction.
+                </p>
+              </div>
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">07</span>
+                  <strong className="text-white text-xs">FEDRAMP-READY</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  NIST 800-53 compliance in weeks, not months. Automated gap analysis, machine-verifiable evidence, SSP generation. Unlocks federal revenue.
+                </p>
+              </div>
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-crystal-400 text-xs">08</span>
+                  <strong className="text-white text-xs">VENDOR-INTEGRATION</strong>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  CrowdStrike, Wiz, Prisma findings normalized, deduplicated, and auto-remediated. Makes $200K vendor spend actually pay for itself.
+                </p>
+              </div>
             </div>
           </div>
 
           <div className="mt-3 pt-3 border-t border-white/5">
             <div className="flex items-center justify-between">
               <p className="text-text-secondary/60 text-xs font-mono">
-                code → harden → deploy → comply
+                secure → understand → optimize → outcome
               </p>
               <span className="text-jade-400/60 text-[10px]">28k+ lines</span>
             </div>
