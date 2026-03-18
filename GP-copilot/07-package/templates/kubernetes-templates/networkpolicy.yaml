@@ -1,0 +1,97 @@
+# NetworkPolicy — FedRAMP SC-7 Boundary Protection
+# Replace {{NAMESPACE}}, {{APP_NAME}}, {{APP_PORT}}, {{DB_NAME}}, {{DB_PORT}}.
+
+---
+# Default deny all ingress and egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# Allow application ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "allow-{{APP_NAME}}-ingress"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{APP_NAME}}"
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: "{{APP_PORT}}"
+
+---
+# Allow application → database + DNS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "allow-{{APP_NAME}}-egress"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{APP_NAME}}"
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: "{{DB_NAME}}"
+      ports:
+        - protocol: TCP
+          port: "{{DB_PORT}}"
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# Allow database ingress from application only + DNS egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "allow-{{DB_NAME}}-traffic"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{DB_NAME}}"
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: "{{APP_NAME}}"
+      ports:
+        - protocol: TCP
+          port: "{{DB_PORT}}"
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

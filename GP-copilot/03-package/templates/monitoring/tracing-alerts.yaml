@@ -1,0 +1,114 @@
+# Tracing Infrastructure — Prometheus Alert Rules
+#
+# Monitors the health of the tracing pipeline:
+# OTel Collector → Jaeger/Tempo → Grafana
+#
+# Deploy:
+#   kubectl apply -f templates/monitoring/tracing-alerts.yaml -n monitoring
+
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tracing-alerts
+  namespace: monitoring
+  labels:
+    app: observability
+    component: tracing
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: tracing-infrastructure
+      rules:
+
+        # OTel Collector not running
+        - alert: OTelCollectorDown
+          expr: |
+            absent(up{job="otel-collector"} == 1)
+          for: 5m
+          labels:
+            severity: warning
+            component: tracing
+          annotations:
+            summary: "OpenTelemetry Collector is down"
+            description: |
+              OTel Collector DaemonSet pods are not running.
+              Traces are being dropped.
+              Check: kubectl get ds otel-collector -n observability
+              Logs: kubectl logs -n observability -l app=otel-collector --tail=50
+
+        # OTel Collector dropping spans
+        - alert: OTelCollectorDroppingSpans
+          expr: |
+            rate(otelcol_exporter_send_failed_spans_total[5m]) > 0
+          for: 10m
+          labels:
+            severity: warning
+            component: tracing
+          annotations:
+            summary: "OTel Collector is dropping trace spans"
+            description: |
+              {{ $value | printf "%.0f" }} spans/sec being dropped.
+              Possible causes: backend (Jaeger/Tempo) unreachable, memory limit hit.
+              Check exporter logs and backend health.
+
+        # OTel Collector memory pressure
+        - alert: OTelCollectorMemoryHigh
+          expr: |
+            container_memory_usage_bytes{namespace="observability", container="collector"}
+            / container_spec_memory_limit_bytes{namespace="observability", container="collector"}
+            > 0.85
+          for: 5m
+          labels:
+            severity: warning
+            component: tracing
+          annotations:
+            summary: "OTel Collector memory usage above 85%"
+            description: |
+              Collector may OOM. Increase memory limits or reduce batch_size.
+              Current: {{ $value | printf "%.0f" }}%
+
+        # Jaeger query latency high
+        - alert: JaegerQuerySlow
+          expr: |
+            histogram_quantile(0.95,
+              rate(jaeger_query_latency_bucket[5m])
+            ) > 5
+          for: 10m
+          labels:
+            severity: info
+            component: tracing
+          annotations:
+            summary: "Jaeger query p95 latency above 5s"
+            description: |
+              Trace searches are slow. Consider increasing Jaeger resources
+              or reducing trace retention.
+
+        # Tempo compaction failing
+        - alert: TempoCompactionFailing
+          expr: |
+            increase(tempo_compactor_compactions_errors_total[1h]) > 0
+          for: 15m
+          labels:
+            severity: warning
+            component: tracing
+          annotations:
+            summary: "Tempo compaction errors detected"
+            description: |
+              Trace storage compaction is failing. Check disk space and permissions.
+              Logs: kubectl logs -n observability -l app.kubernetes.io/name=tempo --tail=50
+
+        # No traces received (pipeline dead)
+        - alert: NoTracesReceived
+          expr: |
+            rate(otelcol_receiver_accepted_spans_total[15m]) == 0
+          for: 15m
+          labels:
+            severity: warning
+            component: tracing
+          annotations:
+            summary: "No traces received in 15 minutes"
+            description: |
+              The OTel Collector is not receiving any trace spans.
+              Either no applications are instrumented or the collector is unreachable.
+              Verify: apps sending to otel-collector:4317 (gRPC) or :4318 (HTTP)

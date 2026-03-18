@@ -1,0 +1,76 @@
+# operator-deployment.yaml — Namespace Operator pod
+# Runs the Python watch loop that reconciles TeamNamespace CRDs.
+# ─────────────────────────────────────────────────────────────────
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: namespace-operator
+  namespace: gp-security
+  labels:
+    app: namespace-operator
+    app.kubernetes.io/managed-by: gp-copilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: namespace-operator
+  template:
+    metadata:
+      labels:
+        app: namespace-operator
+    spec:
+      serviceAccountName: namespace-operator
+      automountServiceAccountToken: true      # Operator needs API access
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: operator
+          image: python:3.12-slim
+          command: ["python3", "/app/namespace-operator.py"]
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+
+          volumeMounts:
+            - name: app
+              mountPath: /app
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+
+          livenessProbe:
+            exec:
+              command: ["python3", "-c", "import os; os.path.exists('/tmp/healthy')"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
+      volumes:
+        - name: app
+          configMap:
+            name: namespace-operator-code
+        - name: tmp
+          emptyDir: {}

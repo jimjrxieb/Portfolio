@@ -1,0 +1,71 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vendor-integration-alerts
+  namespace: gp-security
+  labels:
+    app: gp-copilot
+    component: vendor-integration
+spec:
+  groups:
+    - name: vendor-integration
+      rules:
+        # Ingestion failures
+        - alert: VendorIngestionDown
+          expr: time() - gp_vendor_last_poll_timestamp > 900
+          for: 5m
+          labels:
+            severity: warning
+            component: vendor-integration
+          annotations:
+            summary: "Vendor adapter {{ $labels.adapter }} has not polled in 15+ minutes"
+            description: "Last successful poll was {{ $value | humanizeDuration }} ago. Check API credentials and network connectivity."
+            runbook: "bash 08-VENDOR-INTEGRATION/tools/test-connection.sh --adapter {{ $labels.adapter }}"
+
+        # High error rate
+        - alert: VendorAPIErrorRate
+          expr: rate(gp_vendor_api_errors_total[5m]) > 0.1
+          for: 10m
+          labels:
+            severity: warning
+            component: vendor-integration
+          annotations:
+            summary: "High API error rate for {{ $labels.adapter }} adapter"
+            description: "Error rate: {{ $value | humanizePercentage }}. Check vendor API status and rate limits."
+
+        # Ingestion backlog growing
+        - alert: VendorIngestionBacklog
+          expr: gp_vendor_ingestion_backlog > 1000
+          for: 15m
+          labels:
+            severity: warning
+            component: vendor-integration
+          annotations:
+            summary: "Ingestion backlog growing for {{ $labels.adapter }}"
+            description: "{{ $value }} findings waiting to be processed. Check processing pipeline capacity."
+
+        # Dedup rate anomaly
+        - alert: VendorDedupRateAnomaly
+          expr: |
+            abs(
+              (gp_vendor_findings_deduplicated_total / gp_vendor_findings_ingested_total)
+              - (gp_vendor_findings_deduplicated_total offset 1d / gp_vendor_findings_ingested_total offset 1d)
+            ) > 0.15
+          for: 30m
+          labels:
+            severity: info
+            component: vendor-integration
+          annotations:
+            summary: "Dedup rate changed significantly for {{ $labels.adapter }}"
+            description: "Dedup rate shifted by >15% compared to yesterday. This may indicate a mapping change or new finding category."
+
+        # Writeback failures
+        - alert: VendorWritebackFailing
+          expr: rate(gp_vendor_writeback_errors_total[5m]) > 0
+          for: 15m
+          labels:
+            severity: warning
+            component: vendor-integration
+          annotations:
+            summary: "Writeback failures for {{ $labels.adapter }}"
+            description: "Unable to write remediation status back to vendor platform. Check write API permissions."

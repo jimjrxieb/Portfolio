@@ -1,0 +1,299 @@
+# ============================================================================
+# jsa-kubester Domain Knowledge Map
+# ============================================================================
+# Maps all 19 CKS/CKA/CKAD exam domains to:
+#   1. What to check (audit commands)
+#   2. Where the tools are (platform cross-reference)
+#   3. What "perfect" looks like (pass criteria)
+#   4. Quick-ref templates for instant fixes
+# ============================================================================
+
+# ============================================================================
+# CKS — Certified Kubernetes Security Specialist (8 domains)
+# ============================================================================
+
+cks:
+
+  01_cluster_setup:
+    name: "Cluster Setup"
+    weight: "10%"
+    reference: "04-KUBESTER/reference/cks/01-cluster-setup.md"
+    checks:
+      - "CIS benchmark passing (kube-bench)"
+      - "NetworkPolicy in every app namespace"
+      - "Ingress with TLS termination"
+      - "API server hardened (no anonymous auth, RBAC mode)"
+    tools:
+      audit: "04-KUBESTER/tools/domain-audit.sh --cks"
+      scanner: "kube-bench run --json"
+      fixer: "02-CLUSTER-HARDENING/tools/hardening/fix-cluster-security.sh"
+    perfect:
+      - "kube-bench: 0 FAIL on critical sections (1.1, 1.2, 1.3)"
+      - "Every app namespace has default-deny NetworkPolicy"
+      - "All Ingress resources have TLS configured"
+      - "API server: anonymous-auth=false, authorization-mode=Node,RBAC"
+    quick_ref: "04-KUBESTER/templates/quick-ref/networkpolicy-default-deny.yaml"
+
+  02_cluster_hardening:
+    name: "Cluster Hardening"
+    weight: "15%"
+    reference: "04-KUBESTER/reference/cks/02-cluster-hardening.md"
+    checks:
+      - "cluster-admin bindings ≤2 (kube-system only)"
+      - "No wildcard RBAC verbs or resources"
+      - "Admission control deployed + enforcing"
+      - "automountServiceAccountToken=false on app pods"
+      - "Binary checksums verified"
+    tools:
+      audit: "04-KUBESTER/tools/domain-audit.sh --cks"
+      rbac: "02-CLUSTER-HARDENING/playbooks/07a-rbac-audit.md"
+      admission: "02-CLUSTER-HARDENING/tools/admission/deploy-policies.sh"
+    perfect:
+      - "cluster-admin: only system:masters, system:node"
+      - "0 wildcard RBAC permissions in user-created roles"
+      - "Kyverno/Gatekeeper in enforce mode on all critical policies"
+      - "Default SA in every namespace: automountServiceAccountToken=false"
+    quick_ref: "04-KUBESTER/templates/quick-ref/rbac-least-privilege.yaml"
+
+  03_system_hardening:
+    name: "System Hardening"
+    weight: "15%"
+    reference: "04-KUBESTER/reference/cks/03-system-hardening.md"
+    checks:
+      - "seccomp RuntimeDefault on all pods"
+      - "AppArmor runtime/default on all pods (if available)"
+      - "Node hardening applied (sysctl, auditd, kubelet flags)"
+      - "No unnecessary host access (hostPID, hostNetwork, hostIPC)"
+    tools:
+      watcher_seccomp: "03-DEPLOY-RUNTIME/watchers/watch-seccomp.sh"
+      watcher_apparmor: "03-DEPLOY-RUNTIME/watchers/watch-apparmor.sh"
+      node_harden: "02-CLUSTER-HARDENING/tools/hardening/harden-nodes.sh"
+    perfect:
+      - "100% pods have seccompProfile.type=RuntimeDefault"
+      - "100% pods have AppArmor annotation (where available)"
+      - "kubelet: --protect-kernel-defaults=true, --read-only-port=0"
+
+  04_microservice_vulnerabilities:
+    name: "Minimize Microservice Vulnerabilities"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/cks/04-microservice-vulnerabilities.md"
+    checks:
+      - "PSS enforce=restricted on production namespaces"
+      - "All pods: runAsNonRoot, readOnlyRootFilesystem, drop ALL"
+      - "Secrets encrypted at rest"
+      - "Service mesh mTLS=STRICT"
+      - "RuntimeClass configured for untrusted workloads"
+    tools:
+      watcher_pss: "03-DEPLOY-RUNTIME/watchers/watch-pss.sh"
+      fixer_context: "01-APP-SEC/fixers/k8s-manifests/add-security-context.sh"
+      policies: "02-CLUSTER-HARDENING/templates/policies/kyverno/"
+    perfect:
+      - "0 privileged containers in app namespaces"
+      - "0 pods running as root in app namespaces"
+      - "etcd encryption verified (create secret → read from etcd → encrypted)"
+    quick_ref: "04-KUBESTER/templates/quick-ref/security-context.yaml"
+
+  05_supply_chain:
+    name: "Supply Chain Security"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/cks/05-supply-chain-security.md"
+    checks:
+      - "All images from trusted registries"
+      - "No :latest tags"
+      - "imagePullPolicy=Always"
+      - "Images scanned for CVEs (0 CRITICAL)"
+      - "Image signing with cosign (optional)"
+      - "SBOM generated (optional)"
+    tools:
+      scanner: "01-APP-SEC/tools/run-all-scanners.sh (Trivy, Grype)"
+      fixer: "01-APP-SEC/fixers/supply-chain/pin-base-image.sh"
+      watcher: "03-DEPLOY-RUNTIME/watchers/watch-supply-chain.sh"
+      policy: "02-CLUSTER-HARDENING/templates/policies/kyverno/disallow-latest-tag.yaml"
+    perfect:
+      - "0 :latest tags in running pods"
+      - "0 CRITICAL CVEs in any running image"
+      - "All images pinned to digest"
+
+  06_monitoring_runtime:
+    name: "Monitoring, Logging & Runtime Security"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/cks/06-monitoring-logging-runtime.md"
+    checks:
+      - "Falco running and producing alerts"
+      - "K8s audit logging enabled"
+      - "readOnlyRootFilesystem on all app pods"
+      - "Incident response tested (isolate, capture, kill)"
+    tools:
+      falco: "03-DEPLOY-RUNTIME/tools/deploy.sh --component falco"
+      tune: "03-DEPLOY-RUNTIME/tools/tune-falco.sh"
+      watchers: "03-DEPLOY-RUNTIME/watchers/ (11 scripts)"
+      responders: "03-DEPLOY-RUNTIME/responders/ (6 scripts)"
+    perfect:
+      - "Falco DaemonSet on all nodes, producing events"
+      - "Audit policy deployed: RequestResponse for sensitive operations"
+      - "readOnlyRootFilesystem=true on 100% of app pods"
+    quick_ref: "04-KUBESTER/templates/quick-ref/audit-policy.yaml"
+
+  07_binary_verification:
+    name: "Binary Verification"
+    reference: "04-KUBESTER/reference/cks/07-binary-verification.md"
+    checks:
+      - "kubectl, kubelet, kubeadm checksums match official release"
+    perfect:
+      - "SHA256 verified for all K8s binaries"
+
+  08_image_policy_webhook:
+    name: "Image Policy Webhook"
+    reference: "04-KUBESTER/reference/cks/08-image-policy-webhook.md"
+    checks:
+      - "ImagePolicyWebhook configured (if required by engagement)"
+      - "defaultAllow=false"
+    note: "Most clusters use Kyverno/Gatekeeper instead. This is exam-specific."
+
+# ============================================================================
+# CKA — Certified Kubernetes Administrator (5 domains)
+# ============================================================================
+
+cka:
+
+  01_cluster_architecture:
+    name: "Cluster Architecture, Installation & Configuration"
+    weight: "25%"
+    reference: "04-KUBESTER/reference/cka/01-cluster-architecture.md"
+    checks:
+      - "kubeadm cluster healthy"
+      - "Cluster upgrade path clear"
+      - "etcd backup tested and verified"
+      - "RBAC configured for admin + operators"
+    perfect:
+      - "etcd backup exists and restore tested"
+      - "Cluster version current (or n-1)"
+    quick_ref: "04-KUBESTER/templates/quick-ref/etcd-backup-restore.sh"
+
+  02_workloads_scheduling:
+    name: "Workloads & Scheduling"
+    weight: "15%"
+    reference: "04-KUBESTER/reference/cka/02-workloads-scheduling.md"
+    checks:
+      - "All deployments have resource requests + limits"
+      - "All deployments have liveness + readiness probes"
+      - "Rolling update strategy configured"
+    perfect:
+      - "0 pods without resource limits"
+      - "0 deployments without health probes"
+
+  03_services_networking:
+    name: "Services & Networking"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/cka/03-services-networking.md"
+    checks:
+      - "CoreDNS healthy"
+      - "CNI plugin functional"
+      - "Service types appropriate (no NodePort in prod)"
+      - "Ingress controller deployed"
+    perfect:
+      - "DNS resolution working (nslookup kubernetes.default)"
+      - "0 NodePort services in production"
+
+  04_storage:
+    name: "Storage"
+    weight: "10%"
+    reference: "04-KUBESTER/reference/cka/04-storage.md"
+    checks:
+      - "StorageClass defined"
+      - "No PVs with Recycle reclaim policy"
+      - "No ReadWriteMany without clear justification"
+      - "No hostPath volumes in production"
+    perfect:
+      - "All PVs use Retain or Delete reclaim policy"
+      - "0 hostPath volumes in app namespaces"
+
+  05_troubleshooting:
+    name: "Troubleshooting"
+    weight: "30%"
+    reference: "04-KUBESTER/reference/cka/05-troubleshooting.md"
+    checks:
+      - "0 pods in non-Running state (except Completed Jobs)"
+      - "0 nodes in NotReady state"
+      - "0 Warning events older than 1 hour"
+    tools:
+      diagnostic: "04-jsa-kubester/diagnostic-engine.yaml"
+    perfect:
+      - "All pods Running/Completed"
+      - "All nodes Ready"
+      - "Clean event stream"
+
+# ============================================================================
+# CKAD — Certified Kubernetes Application Developer (6 domains)
+# ============================================================================
+
+ckad:
+
+  01_design_build:
+    name: "Application Design & Build"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/ckad/01-application-design-build.md"
+    topics: ["multi-container pods", "init containers", "sidecar pattern", "adapter pattern"]
+
+  02_deployment:
+    name: "Application Deployment"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/ckad/02-application-deployment.md"
+    topics: ["rolling update", "blue-green", "canary", "Helm", "Kustomize"]
+
+  03_environment:
+    name: "Application Environment, Configuration & Security"
+    weight: "25%"
+    reference: "04-KUBESTER/reference/ckad/03-application-environment.md"
+    topics: ["ConfigMap", "Secret", "volumes", "env vars", "SecurityContext"]
+
+  04_services:
+    name: "Services & Networking"
+    weight: "20%"
+    reference: "04-KUBESTER/reference/ckad/04-services-networking.md"
+    topics: ["ClusterIP", "NodePort", "Ingress", "NetworkPolicy"]
+
+  05_observability:
+    name: "Application Observability & Maintenance"
+    weight: "15%"
+    reference: "04-KUBESTER/reference/ckad/05-application-observability.md"
+    topics: ["liveness probe", "readiness probe", "startup probe", "logging", "monitoring"]
+
+  06_helm:
+    name: "Helm Package Manager"
+    reference: "04-KUBESTER/reference/ckad/06-helm-package-manager.md"
+    topics: ["helm install", "helm upgrade", "helm values", "helm template", "chart structure"]
+
+# ============================================================================
+# PLATFORM TOOL MAP — Where every K8s capability lives
+# ============================================================================
+
+platform_tools:
+  scanning:
+    kubescape: { package: "02-CLUSTER-HARDENING", tool: "tools/hardening/run-cluster-audit.sh" }
+    kube_bench: { package: "04-KUBESTER", tool: "tools/domain-audit.sh" }
+    polaris: { package: "02-CLUSTER-HARDENING", tool: "tools/hardening/run-cluster-audit.sh" }
+    trivy: { package: "01-APP-SEC", tool: "tools/run-all-scanners.sh" }
+    checkov: { package: "01-APP-SEC", tool: "tools/run-all-scanners.sh" }
+
+  fixing:
+    security_context: { package: "01-APP-SEC", tool: "fixers/k8s-manifests/add-security-context.sh" }
+    resource_limits: { package: "02-CLUSTER-HARDENING", tool: "tools/hardening/profile-and-set-limits.sh" }
+    networkpolicy: { package: "02-CLUSTER-HARDENING", tool: "tools/hardening/fix-cluster-security.sh" }
+    readonly_fs: { package: "GP-BEDROCK-AGENTS", tool: "jsa-infrasec/src/layer3_runtime/fixers/k8s_readonly_fs_fixer.py" }
+
+  admission:
+    kyverno: { package: "02-CLUSTER-HARDENING", tool: "tools/admission/deploy-policies.sh" }
+    gatekeeper: { package: "02-CLUSTER-HARDENING", tool: "tools/admission/deploy-policies.sh" }
+    conftest: { package: "01-APP-SEC", tool: "scanning-configs/conftest-policy.rego" }
+
+  runtime:
+    falco: { package: "03-DEPLOY-RUNTIME", tool: "tools/deploy.sh --component falco" }
+    watchers: { package: "03-DEPLOY-RUNTIME", tool: "watchers/ (11 scripts)" }
+    responders: { package: "03-DEPLOY-RUNTIME", tool: "responders/ (6 scripts)" }
+
+  practice:
+    cks: { package: "04-KUBESTER", tool: "tools/cks-practice.sh" }
+    cka: { package: "04-KUBESTER", tool: "tools/cka-practice.sh" }
+    ckad: { package: "04-KUBESTER", tool: "tools/ckad-practice.sh" }
+    speedrun: { package: "04-KUBESTER", tool: "tools/exam-speedrun.sh" }

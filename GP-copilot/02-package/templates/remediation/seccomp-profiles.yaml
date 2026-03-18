@@ -1,0 +1,260 @@
+# Seccomp Profile Templates for jsa-infrasec
+# CKS Exam: Monitoring, Logging and Runtime Security (20%)
+# Reference: https://kubernetes.io/docs/tutorials/security/seccomp/
+
+---
+# RuntimeDefault - Use the container runtime's default seccomp profile
+# Suitable for most workloads
+apiVersion: v1
+kind: Pod
+metadata:
+  name: seccomp-runtime-default
+  annotations:
+    jsa-infrasec.io/remediation: "seccomp-runtime-default"
+spec:
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: nginx:1.25
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+
+---
+# Localhost - Custom seccomp profile from node filesystem
+# Profile must exist at /var/lib/kubelet/seccomp/profiles/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: seccomp-localhost
+  annotations:
+    jsa-infrasec.io/remediation: "seccomp-localhost"
+spec:
+  securityContext:
+    seccompProfile:
+      type: Localhost
+      localhostProfile: profiles/audit.json
+  containers:
+    - name: app
+      image: nginx:1.25
+
+---
+# Fine-grained seccomp profile (audit mode)
+# Save to: /var/lib/kubelet/seccomp/profiles/audit.json
+# This logs all syscalls without blocking - use for profiling
+_seccomp_profile_audit:
+  defaultAction: SCMP_ACT_LOG
+  architectures:
+    - SCMP_ARCH_X86_64
+    - SCMP_ARCH_AARCH64
+
+---
+# Fine-grained seccomp profile (restrictive)
+# Save to: /var/lib/kubelet/seccomp/profiles/restricted.json
+# Blocks dangerous syscalls, allows common ones
+_seccomp_profile_restricted:
+  defaultAction: SCMP_ACT_ERRNO
+  architectures:
+    - SCMP_ARCH_X86_64
+    - SCMP_ARCH_AARCH64
+  syscalls:
+    # Allow basic operations
+    - names:
+        - read
+        - write
+        - open
+        - close
+        - stat
+        - fstat
+        - lstat
+        - poll
+        - lseek
+        - mmap
+        - mprotect
+        - munmap
+        - brk
+        - rt_sigaction
+        - rt_sigprocmask
+        - ioctl
+        - access
+        - pipe
+        - select
+        - sched_yield
+        - mremap
+        - msync
+        - mincore
+        - madvise
+        - dup
+        - dup2
+        - pause
+        - nanosleep
+        - getitimer
+        - alarm
+        - setitimer
+        - getpid
+        - socket
+        - connect
+        - accept
+        - sendto
+        - recvfrom
+        - sendmsg
+        - recvmsg
+        - shutdown
+        - bind
+        - listen
+        - getsockname
+        - getpeername
+        - socketpair
+        - setsockopt
+        - getsockopt
+        - clone
+        - fork
+        - vfork
+        - execve
+        - exit
+        - wait4
+        - kill
+        - uname
+        - fcntl
+        - flock
+        - fsync
+        - fdatasync
+        - truncate
+        - ftruncate
+        - getdents
+        - getcwd
+        - chdir
+        - fchdir
+        - rename
+        - mkdir
+        - rmdir
+        - creat
+        - link
+        - unlink
+        - symlink
+        - readlink
+        - chmod
+        - fchmod
+        - chown
+        - fchown
+        - lchown
+        - umask
+        - gettimeofday
+        - getrlimit
+        - getrusage
+        - sysinfo
+        - times
+        - getuid
+        - getgid
+        - geteuid
+        - getegid
+        - setpgid
+        - getppid
+        - getpgrp
+        - setsid
+        - setreuid
+        - setregid
+        - getgroups
+        - setgroups
+        - setresuid
+        - getresuid
+        - setresgid
+        - getresgid
+        - getpgid
+        - setfsuid
+        - setfsgid
+        - getsid
+        - capget
+        - capset
+        - rt_sigpending
+        - rt_sigtimedwait
+        - rt_sigqueueinfo
+        - rt_sigsuspend
+        - sigaltstack
+        - utime
+        - mknod
+        - statfs
+        - fstatfs
+        - getpriority
+        - setpriority
+        - sched_setparam
+        - sched_getparam
+        - sched_setscheduler
+        - sched_getscheduler
+        - sched_get_priority_max
+        - sched_get_priority_min
+        - sched_rr_get_interval
+        - mlock
+        - munlock
+        - mlockall
+        - munlockall
+        - prctl
+        - arch_prctl
+        - futex
+        - set_tid_address
+        - epoll_create
+        - epoll_ctl
+        - epoll_wait
+        - set_robust_list
+        - get_robust_list
+        - epoll_pwait
+        - eventfd
+        - eventfd2
+        - epoll_create1
+        - pipe2
+        - inotify_init1
+        - accept4
+        - dup3
+        - getrandom
+        - memfd_create
+        - openat
+        - newfstatat
+        - readlinkat
+        - faccessat
+        - pselect6
+        - ppoll
+        - unshare
+        - exit_group
+        - clock_gettime
+        - clock_getres
+        - clock_nanosleep
+        - tgkill
+        - prlimit64
+      action: SCMP_ACT_ALLOW
+    # Block dangerous syscalls explicitly
+    - names:
+        - ptrace
+        - personality
+        - mount
+        - umount2
+        - pivot_root
+        - swapon
+        - swapoff
+        - reboot
+        - sethostname
+        - setdomainname
+        - ioperm
+        - iopl
+        - init_module
+        - delete_module
+        - kexec_load
+        - perf_event_open
+        - bpf
+        - userfaultfd
+        - keyctl
+        - add_key
+        - request_key
+      action: SCMP_ACT_ERRNO
+      errnoRet: 1
+
+---
+# Deployment patch for adding seccomp
+_deployment_patch_seccomp:
+  spec:
+    template:
+      spec:
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault

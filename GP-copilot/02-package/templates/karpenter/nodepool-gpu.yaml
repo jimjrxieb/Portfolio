@@ -1,0 +1,107 @@
+# =============================================================================
+# Ghost Protocol -- Karpenter GPU NodePool
+# GPU instances only provisioned when GPU workloads are pending
+# Zero GPU cost when idle — nodes terminate when no GPU pods are scheduled
+#
+# Usage: Pods requesting nvidia.com/gpu land here automatically
+# =============================================================================
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: gpu
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+spec:
+  template:
+    metadata:
+      labels:
+        managed-by: karpenter
+        nodepool: gpu
+        nvidia.com/gpu.present: "true"
+    spec:
+      requirements:
+        # GPU instance families
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["p3", "g4dn", "g5"]
+
+        # Sizes
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values: ["xlarge", "2xlarge", "4xlarge"]
+
+        # Spot for GPU training, on-demand for inference
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+
+      # GPU nodes expire faster — cost control
+      expireAfter: 72h
+
+      # Taint: only GPU workloads land here
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 30s
+
+  budgets:
+    - nodes: "1"
+
+  # Lower limits for GPU — these are expensive
+  limits:
+    cpu: "32"
+    memory: 128Gi
+
+  # Higher weight = lower priority (default pool tried first)
+  weight: 10
+---
+# =============================================================================
+# EC2NodeClass for GPU nodes (uses same cluster discovery tags)
+# Replace <CLUSTER_NAME> with your cluster name
+# =============================================================================
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+spec:
+  amiSelectorTerms:
+    - alias: al2023@latest
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: <CLUSTER_NAME>
+
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: <CLUSTER_NAME>
+
+  role: KarpenterNodeRole-<CLUSTER_NAME>
+
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 100Gi
+        volumeType: gp3
+        encrypted: true
+        deleteOnTermination: true
+
+  metadataOptions:
+    httpEndpoint: enabled
+    httpProtocolIPv6: disabled
+    httpPutResponseHopLimit: 2
+    httpTokens: required

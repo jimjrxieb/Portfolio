@@ -1,0 +1,99 @@
+# Network Policies — FedRAMP SC-7 Boundary Protection
+# Replace {{NAMESPACE}}, {{APP_NAME}}, {{DB_NAME}}, {{APP_PORT}}, {{DB_PORT}} with client values.
+# Deploy: kubectl apply -f network-policies.yaml
+
+---
+# Default deny all traffic in the namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# Allow application to receive traffic on its port
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "allow-{{APP_NAME}}-ingress"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{APP_NAME}}"
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: "{{APP_PORT}}"
+
+---
+# Allow application to talk to database + DNS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "allow-{{APP_NAME}}-to-db"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{APP_NAME}}"
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: "{{DB_NAME}}"
+      ports:
+        - protocol: TCP
+          port: "{{DB_PORT}}"
+    # Allow DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# Allow database to receive from application only + DNS egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "allow-db-from-{{APP_NAME}}"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: SC-7
+spec:
+  podSelector:
+    matchLabels:
+      app: "{{DB_NAME}}"
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: "{{APP_NAME}}"
+      ports:
+        - protocol: TCP
+          port: "{{DB_PORT}}"
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

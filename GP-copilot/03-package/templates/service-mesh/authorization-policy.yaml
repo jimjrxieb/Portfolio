@@ -1,0 +1,90 @@
+# AuthorizationPolicy — Default-Deny + Allow Rules
+#
+# Zero-trust networking: deny all traffic by default, then allow
+# specific service-to-service paths. This is the L7 equivalent
+# of NetworkPolicy (which only does L4).
+#
+# Requires Istio with ambient mode waypoint proxies for L7 enforcement.
+# Without waypoints, AuthorizationPolicy only works on L4 (TCP).
+
+---
+# ── Default Deny (mesh-wide) ─────────────────────────────────────────
+# Apply this FIRST. All traffic is denied unless explicitly allowed.
+# WARNING: This will break everything. Apply allow rules immediately after.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: istio-system    # mesh-wide
+spec:
+  # Empty spec = deny all
+  {}
+
+---
+# ── Allow: kube-system (always) ───────────────────────────────────────
+# DNS, metrics, and system services must always be reachable.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-kube-system
+  namespace: kube-system
+spec:
+  action: ALLOW
+  rules:
+    - {}    # allow all traffic to kube-system
+
+---
+# ── Allow: monitoring (Prometheus scraping) ───────────────────────────
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: monitoring
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["monitoring"]
+      to:
+        - operation:
+            ports: ["9090", "3000", "9093"]    # prom, grafana, alertmanager
+
+---
+# ── Template: Allow specific service path ─────────────────────────────
+# Copy and customize for each service-to-service communication path.
+#
+# apiVersion: security.istio.io/v1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: allow-frontend-to-api
+#   namespace: production
+# spec:
+#   selector:
+#     matchLabels:
+#       app: api-server
+#   action: ALLOW
+#   rules:
+#     - from:
+#         - source:
+#             principals: ["cluster.local/ns/production/sa/frontend"]
+#       to:
+#         - operation:
+#             methods: ["GET", "POST"]
+#             paths: ["/api/v1/*"]
+
+---
+# ── Template: Deny external namespace access ──────────────────────────
+# Block traffic from untrusted namespaces to sensitive services.
+#
+# apiVersion: security.istio.io/v1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: deny-external-to-payments
+#   namespace: payments
+# spec:
+#   action: DENY
+#   rules:
+#     - from:
+#         - source:
+#             notNamespaces: ["payments", "api-gateway"]

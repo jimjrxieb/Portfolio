@@ -1,0 +1,97 @@
+# <VENDOR_NAME> — Configuration Template
+#
+# Copy to vendors/<vendor>/config.yaml and fill in your values.
+# NEVER commit real credentials — use environment variables.
+#
+# Usage:
+#   export <VENDOR>_API_KEY="your-key-here"
+#   export <VENDOR>_API_SECRET="your-secret-here"
+#   bash tools/test-connection.sh --adapter <vendor>
+
+api:
+  # Base URL for vendor API
+  # Common patterns:
+  #   SaaS:        https://api.<vendor>.com
+  #   Regional:    https://api.<region>.<vendor>.com
+  #   Self-hosted: https://<your-server>:8443
+  base_url: "https://api.<vendor>.com"
+
+  # Credentials — resolved from environment at runtime
+  # The ingester checks: env var first, then config value
+  api_key: "${<VENDOR>_API_KEY}"        # client_id, username, or API key
+  api_secret: "${<VENDOR>_API_SECRET}"  # client_secret, password, or token
+
+  # Authentication method (for documentation — code handles this in authenticate())
+  # Options: oauth2, jwt_login, api_key_header, bearer_token
+  auth_method: "oauth2"
+
+  # Rate limit guidance (for CronJob schedule tuning)
+  # Check your vendor's API docs for exact limits
+  rate_limit_rpm: 300    # requests per minute
+  max_concurrent: 5      # concurrent requests
+
+ingestion:
+  # How often to poll for new findings (seconds)
+  # Recommended: 300 (5 min) for most vendors
+  # High-volume: 600-900 (10-15 min) to avoid rate limits
+  poll_interval_seconds: 300
+
+  # Which finding categories to ingest
+  # Available categories depend on vendor — implement _ingest_<category>() for each
+  categories:
+    - vulnerabilities
+    # - misconfigurations
+    # - runtime_events
+    # - compliance
+    # - iam_risks
+    # - secrets
+
+  # Page size for API pagination
+  # Larger = fewer API calls but more memory per request
+  # Most vendors support 100-500
+  page_size: 100
+
+  # Minimum severity to ingest
+  # Findings below this severity are dropped at ingestion time
+  # Options: critical, high, medium, low, informational
+  severity_floor: "medium"
+
+  # Deduplicate within this source before cross-source dedup
+  # Prevents storing exact duplicates from consecutive polls
+  deduplicate_by_id: true
+
+writeback:
+  # Push remediation status back to vendor console
+  # Requires write permissions on the API key
+  enabled: false
+
+  # How to tag findings in the vendor
+  # Options: tags, status, comments
+  # method: "tags"
+
+  # Tag prefix for GP-Copilot status tags
+  # tag_prefix: "gp"
+
+  # Status tag mapping (GP status → vendor tag/status)
+  # status_tags:
+  #   REMEDIATED: "gp:remediated"
+  #   IN_PROGRESS: "gp:in-progress"
+  #   ACCEPTED_RISK: "gp:accepted-risk"
+  #   FALSE_POSITIVE: "gp:false-positive"
+  #   DEFERRED: "gp:deferred"
+
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+
+  # JSONL audit trail — every finding ingested is logged here
+  # This is your compliance evidence for data provenance
+  audit_log: "/tmp/gp-vendor/<vendor>-audit.jsonl"
+
+  # Poll state file — tracks last successful poll time
+  # Used by poll() to only fetch new findings
+  state_file: "/tmp/gp-vendor/<vendor>-state.json"
+
+  # Output directory for normalized JSONL findings
+  # Always written even if FindingsStore is down (backup path)
+  output_dir: "/tmp/gp-vendor"

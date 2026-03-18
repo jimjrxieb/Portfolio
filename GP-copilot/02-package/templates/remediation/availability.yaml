@@ -1,0 +1,79 @@
+# availability.yaml
+# CKA best practice: PodDisruptionBudget + HorizontalPodAutoscaler.
+#
+# Problem: Without PDB, a node drain kills all replicas of a deployment at once.
+#   - No PDB = kubectl drain / node upgrade can take your app fully offline
+#   - No HPA = manual scaling, risk of under/over-provisioning
+#
+# Apply:
+#   kubectl apply -f availability.yaml -n <namespace>
+#   # Edit the selector matchLabels to match your deployment
+
+---
+# PodDisruptionBudget — guarantees minimum available pods during voluntary disruptions.
+# Voluntary = node drain, cluster upgrade, manual eviction.
+# Does NOT protect against node crashes (involuntary).
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: my-app-pdb
+  annotations:
+    security.ghostprotocol.io/control: "CKA-availability"
+    security.ghostprotocol.io/why: "Prevents node drain/upgrades from taking app fully offline. minAvailable=1 keeps at least 1 pod running."
+spec:
+  # Option A: minAvailable — always keep at least N pods running
+  minAvailable: 1
+  # Option B: maxUnavailable — allow at most N pods down at a time
+  # maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: my-app  # must match your Deployment's pod labels
+
+---
+# HorizontalPodAutoscaler — scale based on CPU/memory load.
+# Requires metrics-server installed: kubectl top pods should work.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-app-hpa
+  annotations:
+    security.ghostprotocol.io/control: "CKA-availability"
+    security.ghostprotocol.io/why: "Auto-scales on load. Prevents manual intervention for traffic spikes."
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-app
+  minReplicas: 2   # never scale below 2 (single replica = no HA)
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70   # scale out when avg CPU > 70%
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80   # scale out when avg memory > 80%
+
+---
+# Quick checks — run these to verify PDB + HPA are working:
+#
+# List all PDBs and their status:
+#   kubectl get pdb -A
+#   kubectl describe pdb my-app-pdb -n <namespace>
+#
+# Check HPA status (shows current/target replicas):
+#   kubectl get hpa -A
+#   kubectl describe hpa my-app-hpa -n <namespace>
+#
+# Verify metrics-server is running (required for HPA):
+#   kubectl top nodes
+#   kubectl top pods -A
+#
+# Test PDB during drain (dry-run):
+#   kubectl drain <node-name> --dry-run --ignore-daemonsets --delete-emptydir-data

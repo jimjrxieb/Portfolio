@@ -1,0 +1,98 @@
+{
+  "dashboard": {
+    "title": "Vendor Integration - Ingestion Metrics",
+    "description": "Monitor vendor adapter health, ingestion rates, deduplication quality, and writeback status",
+    "tags": ["gp-copilot", "vendor-integration"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "Ingestion Rate (findings/min)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(gp_vendor_findings_ingested_total[5m]) * 60",
+            "legendFormat": "{{adapter}}"
+          }
+        ]
+      },
+      {
+        "title": "Findings by Source",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "gp_vendor_findings_ingested_total",
+            "legendFormat": "{{adapter}}"
+          }
+        ]
+      },
+      {
+        "title": "Findings by Severity",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "gp_vendor_findings_ingested_total",
+            "legendFormat": "{{severity}}"
+          }
+        ]
+      },
+      {
+        "title": "Deduplication Rate",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "gp_vendor_findings_deduplicated_total / gp_vendor_findings_ingested_total * 100",
+            "legendFormat": "Dedup %"
+          }
+        ]
+      },
+      {
+        "title": "API Errors",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(gp_vendor_api_errors_total[5m]) * 60",
+            "legendFormat": "{{adapter}} - {{error_type}}"
+          }
+        ]
+      },
+      {
+        "title": "Last Successful Poll",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 8},
+        "targets": [
+          {
+            "expr": "time() - gp_vendor_last_poll_timestamp",
+            "legendFormat": "{{adapter}} (seconds ago)"
+          }
+        ]
+      },
+      {
+        "title": "Writeback Status",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "gp_vendor_writeback_total",
+            "legendFormat": "{{adapter}} - {{status}}"
+          }
+        ]
+      },
+      {
+        "title": "Ingestion Backlog",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "gp_vendor_ingestion_backlog",
+            "legendFormat": "{{adapter}}"
+          }
+        ]
+      }
+    ]
+  }
+}

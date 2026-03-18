@@ -1,0 +1,48 @@
+# example-teamnamespace.yaml — Self-service namespace request
+#
+# Dev applies this → operator provisions a fully hardened namespace.
+# No tickets, no waiting, no manual kubectl.
+#
+# Examples:
+#   kubectl apply -f example-teamnamespace.yaml
+#   kubectl get tns
+#   kubectl describe tns payments-dev
+# ─────────────────────────────────────────────────────────────────
+
+---
+# Dev environment — small quota, single team
+apiVersion: platform.gp-copilot.io/v1alpha1
+kind: TeamNamespace
+metadata:
+  name: payments-dev
+spec:
+  teamName: payments
+  environment: dev
+  resourceTier: small
+  enableExternalSecrets: false
+
+---
+# Staging — medium quota, ESO enabled
+apiVersion: platform.gp-copilot.io/v1alpha1
+kind: TeamNamespace
+metadata:
+  name: payments-staging
+spec:
+  teamName: payments
+  environment: staging
+  resourceTier: medium
+  enableExternalSecrets: true
+
+---
+# Production — large quota, ESO, additional admins
+apiVersion: platform.gp-copilot.io/v1alpha1
+kind: TeamNamespace
+metadata:
+  name: payments-prod
+spec:
+  teamName: payments
+  environment: prod
+  resourceTier: large
+  enableExternalSecrets: true
+  additionalAdmins:
+    - system:serviceaccount:argocd:argocd-application-controller

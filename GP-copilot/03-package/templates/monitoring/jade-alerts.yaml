@@ -1,0 +1,68 @@
+# JADE health PrometheusRule alerts
+# Monitors the JADE AI supervisor system availability and decision quality
+#
+# Apply with:
+#   kubectl apply -f jade-alerts.yaml
+#
+# Requires: prometheus-operator (kube-prometheus-stack) installed in cluster
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: jade-health-alerts
+  namespace: monitoring
+  labels:
+    app: jsa-infrasec
+    role: alert-rules
+    prometheus: kube-prometheus
+spec:
+  groups:
+    - name: jade-health
+      rules:
+        - alert: JADEDown
+          expr: up{job="jade"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "JADE supervisor is down"
+            description: "Prometheus cannot reach the JADE target. The AI supervisor is offline — C-rank decisions will queue and eventually time out. All findings above D-rank require manual triage until JADE recovers."
+            runbook_url: "https://wiki.internal/runbooks/jade/down"
+
+        - alert: HighEscalationRate
+          expr: |
+            rate(jade_escalations_total[1h])
+            / rate(jade_decisions_total[1h]) > 0.20
+          for: 15m
+          labels:
+            severity: warning
+            team: security
+          annotations:
+            summary: "JADE escalating more than 20% of decisions"
+            description: "Escalation rate is {{ $value | humanizePercentage }}. JADE is deferring an unusual number of decisions to human operators. Check if RAG context is degraded or if new finding types are unrecognized."
+            runbook_url: "https://wiki.internal/runbooks/jade/high-escalation-rate"
+
+        - alert: JADEDecisionTimeout
+          expr: histogram_quantile(0.95, rate(jade_decision_latency_seconds_bucket[5m])) > 300
+          for: 10m
+          labels:
+            severity: warning
+            team: security
+          annotations:
+            summary: "JADE decision latency p95 exceeds 300s"
+            description: "p95 decision latency is {{ $value | humanizeDuration }}. JADE is taking too long to process decisions. Check Ollama responsiveness, ChromaDB query latency, and available GPU/CPU resources."
+            runbook_url: "https://wiki.internal/runbooks/jade/decision-timeout"
+
+        - alert: JADEApprovalRateLow
+          expr: |
+            sum(rate(jade_approvals_total[1h]))
+            / sum(rate(jade_decisions_total[1h])) < 0.50
+          for: 30m
+          labels:
+            severity: warning
+            team: security
+          annotations:
+            summary: "JADE approval rate below 50%"
+            description: "Only {{ $value | humanizePercentage }} of decisions are being approved. JADE may be overly conservative or encountering unfamiliar finding patterns. Review denied decisions for false negatives."
+            runbook_url: "https://wiki.internal/runbooks/jade/approval-rate-low"

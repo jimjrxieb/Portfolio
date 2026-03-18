@@ -1,0 +1,49 @@
+# RBAC — FedRAMP AC-2, AC-3
+# Replace {{NAMESPACE}} and {{APP_NAME}}.
+
+---
+# Dedicated ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{APP_NAME}}-sa"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    app: "{{APP_NAME}}"
+    fedramp-control: AC-2
+automountServiceAccountToken: false
+
+---
+# Read-only Role for monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{APP_NAME}}-readonly"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: AC-3
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+
+---
+# Bind SA to read-only role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{APP_NAME}}-sa-readonly"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: AC-2
+subjects:
+  - kind: ServiceAccount
+    name: "{{APP_NAME}}-sa"
+    namespace: "{{NAMESPACE}}"
+roleRef:
+  kind: Role
+  name: "{{APP_NAME}}-readonly"
+  apiGroup: rbac.authorization.k8s.io

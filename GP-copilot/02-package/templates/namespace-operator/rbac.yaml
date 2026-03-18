@@ -1,0 +1,69 @@
+# rbac.yaml — Operator RBAC (least privilege)
+# The operator needs to create namespaces, networkpolicies, quotas, etc.
+# Scoped to only the resources it manages.
+# ─────────────────────────────────────────────────────────────────
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: namespace-operator
+  namespace: gp-security
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: namespace-operator
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+rules:
+  # Watch TeamNamespace CRDs
+  - apiGroups: ["platform.gp-copilot.io"]
+    resources: ["teamnamespaces", "teamnamespaces/status"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+
+  # Create and manage namespaces
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  # Create child resources in namespaces
+  - apiGroups: [""]
+    resources: ["limitranges", "resourcequotas"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["rolebindings"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  # Optional: Create SecretStore for ESO
+  - apiGroups: ["external-secrets.io"]
+    resources: ["secretstores"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+
+  # Events for status reporting
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: namespace-operator
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: namespace-operator
+subjects:
+  - kind: ServiceAccount
+    name: namespace-operator
+    namespace: gp-security

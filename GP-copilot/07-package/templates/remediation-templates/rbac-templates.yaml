@@ -1,0 +1,92 @@
+# RBAC Templates — FedRAMP AC-2, AC-3
+# Replace {{NAMESPACE}} and {{APP_NAME}} with client values.
+
+---
+# Dedicated ServiceAccount (don't use default)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{APP_NAME}}-sa"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    app: "{{APP_NAME}}"
+    fedramp-control: AC-2
+automountServiceAccountToken: false
+
+---
+# Read-only role for application monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{APP_NAME}}-readonly"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: AC-3
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+
+---
+# Application deployer role (no secrets access)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{APP_NAME}}-deployer"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: AC-3
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Explicitly NO access to secrets
+
+---
+# Bind deployer role to CI service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{APP_NAME}}-deployer-binding"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    fedramp-control: AC-2
+subjects:
+  - kind: ServiceAccount
+    name: "{{APP_NAME}}-sa"
+    namespace: "{{NAMESPACE}}"
+roleRef:
+  kind: Role
+  name: "{{APP_NAME}}-deployer"
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Security auditor — read-only cluster-wide for compliance checks
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fedramp-auditor
+  labels:
+    fedramp-control: AC-2
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "pods", "services", "configmaps", "serviceaccounts"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "daemonsets", "statefulsets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+    verbs: ["get", "list"]
+  - apiGroups: ["policy"]
+    resources: ["podsecuritypolicies"]
+    verbs: ["get", "list"]

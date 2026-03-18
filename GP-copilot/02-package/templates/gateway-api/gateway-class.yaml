@@ -1,0 +1,54 @@
+# gateway-class.yaml — GatewayClass definitions (one per controller)
+# NIST 800-53: SC-7 (Boundary Protection)
+#
+# Cluster-scoped. Infra team owns this. Apply ONCE per cluster.
+# Uncomment the controller you're using.
+# ─────────────────────────────────────────────────────────────────
+
+---
+# Envoy Gateway (recommended — lightweight, Gateway API-native)
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: gp-gateway
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+    control: SC-7
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+
+# ---
+# # Cilium (if Cilium is already your CNI)
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: GatewayClass
+# metadata:
+#   name: gp-gateway
+#   labels:
+#     app.kubernetes.io/managed-by: gp-copilot
+#     control: SC-7
+# spec:
+#   controllerName: io.cilium/gateway-controller
+
+# ---
+# # Istio (if running Istio service mesh)
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: GatewayClass
+# metadata:
+#   name: gp-gateway
+#   labels:
+#     app.kubernetes.io/managed-by: gp-copilot
+#     control: SC-7
+# spec:
+#   controllerName: istio.io/gateway-controller
+
+# ---
+# # nginx-gateway-fabric
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: GatewayClass
+# metadata:
+#   name: gp-gateway
+#   labels:
+#     app.kubernetes.io/managed-by: gp-copilot
+#     control: SC-7
+# spec:
+#   controllerName: gateway.nginx.org/nginx-gateway-controller

@@ -1,0 +1,192 @@
+# AppArmor Profile Templates for jsa-infrasec
+# CKS Exam: System Hardening (15%)
+# Reference: https://kubernetes.io/docs/tutorials/security/apparmor/
+
+---
+# Pod with AppArmor runtime/default profile
+# This uses the container runtime's default AppArmor profile
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apparmor-runtime-default
+  annotations:
+    # One annotation per container
+    container.apparmor.security.beta.kubernetes.io/app: runtime/default
+    jsa-infrasec.io/remediation: "apparmor-runtime-default"
+spec:
+  containers:
+    - name: app
+      image: nginx:1.25
+
+---
+# Pod with custom localhost AppArmor profile
+# Profile must be loaded on all nodes: apparmor_parser -r /etc/apparmor.d/k8s-nginx
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apparmor-localhost
+  annotations:
+    container.apparmor.security.beta.kubernetes.io/app: localhost/k8s-nginx
+    jsa-infrasec.io/remediation: "apparmor-localhost"
+spec:
+  containers:
+    - name: app
+      image: nginx:1.25
+
+---
+# Custom AppArmor profile for nginx
+# Save to: /etc/apparmor.d/k8s-nginx on all nodes
+# Load with: apparmor_parser -r /etc/apparmor.d/k8s-nginx
+_apparmor_profile_nginx: |
+  #include <tunables/global>
+
+  profile k8s-nginx flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+    #include <abstractions/nameservice>
+
+    # Nginx binary
+    /usr/sbin/nginx mr,
+
+    # Config files
+    /etc/nginx/** r,
+    /etc/ssl/** r,
+
+    # Log files
+    /var/log/nginx/** rw,
+
+    # PID file
+    /run/nginx.pid rw,
+    /var/run/nginx.pid rw,
+
+    # Temp files
+    /var/lib/nginx/** rw,
+    /var/cache/nginx/** rw,
+    /tmp/** rw,
+
+    # Web content (read-only)
+    /usr/share/nginx/** r,
+    /var/www/** r,
+
+    # Network
+    network inet tcp,
+    network inet udp,
+    network inet6 tcp,
+    network inet6 udp,
+
+    # Capabilities
+    capability net_bind_service,
+    capability setuid,
+    capability setgid,
+    capability dac_override,
+
+    # Deny dangerous operations
+    deny /proc/** w,
+    deny /sys/** w,
+    deny /etc/shadow r,
+    deny /etc/passwd w,
+  }
+
+---
+# Restrictive AppArmor profile for general containers
+# Save to: /etc/apparmor.d/k8s-restricted
+_apparmor_profile_restricted: |
+  #include <tunables/global>
+
+  profile k8s-restricted flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+
+    # Basic file operations
+    file,
+
+    # Network (restrict to specific protocols)
+    network inet tcp,
+    network inet udp,
+    network inet6 tcp,
+    network inet6 udp,
+
+    # Deny all capabilities by default
+    deny capability,
+
+    # Allow minimal capabilities
+    capability chown,
+    capability dac_override,
+    capability fowner,
+    capability fsetid,
+    capability setgid,
+    capability setuid,
+
+    # Deny dangerous paths
+    deny /proc/sys/** w,
+    deny /sys/** w,
+    deny /etc/shadow rw,
+    deny /etc/passwd w,
+    deny /etc/group w,
+    deny /root/** rw,
+
+    # Deny mounting
+    deny mount,
+    deny umount,
+    deny pivot_root,
+
+    # Deny ptrace
+    deny ptrace,
+
+    # Deny raw sockets
+    deny network raw,
+    deny network packet,
+  }
+
+---
+# DaemonSet to load AppArmor profiles on all nodes
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: apparmor-loader
+  namespace: kube-system
+  annotations:
+    jsa-infrasec.io/remediation: "apparmor-loader-daemonset"
+spec:
+  selector:
+    matchLabels:
+      app: apparmor-loader
+  template:
+    metadata:
+      labels:
+        app: apparmor-loader
+    spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - operator: Exists
+      hostPID: true
+      hostNetwork: true
+      initContainers:
+        - name: load-profiles
+          image: ubuntu:22.04
+          command:
+            - /bin/bash
+            - -c
+            - |
+              apt-get update && apt-get install -y apparmor-utils
+              # Load custom profiles
+              for profile in /profiles/*; do
+                apparmor_parser -r "$profile" || true
+              done
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: profiles
+              mountPath: /profiles
+            - name: sys
+              mountPath: /sys
+      containers:
+        - name: sleep
+          image: busybox:1.36
+          command: ["sleep", "infinity"]
+      volumes:
+        - name: profiles
+          configMap:
+            name: apparmor-profiles
+        - name: sys
+          hostPath:
+            path: /sys

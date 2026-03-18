@@ -1,0 +1,17 @@
+# FedRAMP Namespace — PSS Labeled
+# AC-6: Least privilege via Pod Security Standards
+# Replace {{NAMESPACE}} with client namespace name.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "{{NAMESPACE}}"
+  labels:
+    app: "{{NAMESPACE}}"
+    network-policy: "enforced"
+    # Pod Security Standards — enforce baseline, warn on restricted
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest

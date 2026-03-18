@@ -1,0 +1,386 @@
+# =============================================================================
+# after-fixes.yaml
+# =============================================================================
+# The same "legacy-webapp" Deployment fully remediated to satisfy all
+# Kyverno / OPA-Gatekeeper CKS policies.
+#
+# Fixes applied vs. before-violations.yaml:
+#   [F1]  nginx:1.25.3          (was: nginx:latest)             -> disallow-latest-tag PASS
+#   [F2]  Full securityContext  (was: missing)                  -> require-run-as-nonroot PASS
+#   [F3]  resource requests+limits (was: missing)               -> require-resource-limits PASS
+#   [F4]  privileged: false     (was: true)                     -> disallow-privileged PASS
+#   [F5]  hostNetwork: false    (was: true)                     -> disallow-host-namespaces PASS
+#   [F6]  capabilities: drop ALL (was: add NET_ADMIN/SYS_ADMIN) -> require-drop-all-capabilities PASS
+#
+# NIST 800-53 controls now satisfied:
+#   AC-6   Least Privilege (non-root, no capabilities)
+#   CM-6   Configuration Settings (resource limits, seccomp)
+#   CM-7   Least Functionality (read-only FS, no host namespaces)
+#   SC-7   Boundary Protection (NetworkPolicy default-deny)
+#   SC-28  Protection of Information at Rest (no hostPath)
+#   SI-3   Malicious Code Protection (immutable image tag + digest)
+#   SI-4   Information System Monitoring (seccomp RuntimeDefault)
+#
+# CIS Kubernetes Benchmark controls now satisfied:
+#   5.2.1  Do not admit privileged containers
+#   5.2.2  Do not admit containers wishing to share host process ID/IPC/network
+#   5.2.4  Do not admit containers that run as root user
+#   5.2.5  Do not admit containers with allowPrivilegeEscalation
+#   5.2.6  Do not admit root containers (UID 0)
+#   5.2.7  Do not admit containers with dangerous capabilities
+#   5.2.8  Do not admit containers with added NET_RAW capability
+#   5.2.9  Do not admit containers with hostPath volumes
+#   5.4.1  Prefer using secrets as files rather than environment variables
+# =============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: legacy-app
+  labels:
+    # [F5] PSA labels enforce pod-security standards at the namespace level.
+    # "restricted" is the highest level — matches the policies below.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.29
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    app.kubernetes.io/name: legacy-app
+    environment: production
+  annotations:
+    # NIST AC-6, CM-7
+    nist.gov/controls: "AC-6,CM-7,SC-7"
+    cis.kubernetes.io/benchmark-version: "1.8"
+
+---
+# [F6-BONUS] Secret for database password — no more plaintext env vars.
+# NIST SC-28 (Protection of Information at Rest)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: legacy-webapp-secrets
+  namespace: legacy-app
+  annotations:
+    nist.gov/controls: "SC-28"
+type: Opaque
+stringData:
+  database-password: "REPLACE_WITH_VAULT_INJECTED_SECRET"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-webapp
+  namespace: legacy-app
+  labels:
+    app: legacy-webapp
+    tier: frontend
+    environment: production
+    version: "2.0"
+  annotations:
+    # Control annotations — auditable proof of compliance
+    nist.gov/controls: "AC-6,CM-6,CM-7,SC-7,SC-28,SI-3,SI-4"
+    cis.kubernetes.io/controls: "5.2.1,5.2.2,5.2.4,5.2.5,5.2.6,5.2.7,5.2.8,5.2.9,5.4.1"
+    # Remediation metadata
+    remediation/ticket: "INFRA-4421"
+    remediation/date: "2026-02-25"
+    remediation/engineer: "platform-security"
+    remediation/tool: "GP-Copilot / JSA-InfraSec"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: legacy-webapp
+  template:
+    metadata:
+      labels:
+        app: legacy-webapp
+        tier: frontend
+      annotations:
+        nist.gov/controls: "AC-6,CM-6,CM-7,SI-3,SI-4"
+        # Seccomp profile annotation (pre-1.19 clusters that do not support
+        # securityContext.seccompProfile field):
+        # seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    spec:
+      # [F5] hostNetwork, hostPID, hostIPC all removed (default false).
+      # CIS 5.2.2 — Do not admit containers sharing host namespaces.
+
+      # [F2] Pod-level securityContext.
+      # runAsNonRoot forces the runtime to reject any image that defaults
+      # to UID 0. fsGroup 3000 makes the emptyDir volume group-writable
+      # by the app user without needing root.
+      # CIS 5.2.4 / NIST AC-6
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 3000
+        # [F2] Seccomp profile restricts syscalls to a safe allowlist.
+        # CIS 5.2.x / NIST SI-4
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Automounting the service account token is not needed by this app.
+      # CIS 5.1.6 — Ensure service account tokens are not auto-mounted.
+      automountServiceAccountToken: false
+
+      containers:
+        - name: webapp
+          # [F1] Pinned to a specific digest-verifiable version tag.
+          # Use a full digest in production: nginx@sha256:<digest>
+          # CIS 5.x / NIST SI-3
+          image: nginx:1.25.3
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          # [F3] Resource requests and limits defined for every container.
+          # Requests: what the scheduler allocates on the node.
+          # Limits: hard ceiling; exceeding memory causes OOM kill.
+          # NIST CM-6
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+          # [F2,F4,F6] Full container-level securityContext.
+          # CIS 5.2.1 (no privileged), 5.2.5 (no privilege escalation),
+          # 5.2.6 (non-root), 5.2.7 (drop all caps) / NIST AC-6, CM-7
+          securityContext:
+            # [F4] privileged: false — no kernel-level access.
+            privileged: false
+            # Prevents setuid binaries from gaining elevated privileges.
+            allowPrivilegeEscalation: false
+            # [F2] Redundant with pod-level setting; belt-and-suspenders.
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 3000
+            # [F2] Read-only root filesystem — container cannot write to /.
+            # Forces explicit volumeMounts for writable paths.
+            readOnlyRootFilesystem: true
+            # [F6] Drop ALL capabilities first, then add none.
+            # "ALL" is the canonical way to zero out the capability bitmask.
+            # CIS 5.2.7
+            capabilities:
+              drop:
+                - ALL
+            # [F2] Container-level seccomp (redundant if pod-level is set,
+            # but explicit for clarity and older Kyverno policy matching).
+            seccompProfile:
+              type: RuntimeDefault
+
+          env:
+            - name: APP_ENV
+              value: production
+            # [F6-BONUS] Password sourced from Secret, not plaintext.
+            # NIST SC-28 / CIS 5.4.1
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legacy-webapp-secrets
+                  key: database-password
+
+          volumeMounts:
+            - name: app-data
+              mountPath: /var/app/data
+              readOnly: false
+            # nginx requires write access to /tmp and /var/run for pid files.
+            # Explicit writable emptyDir mounts instead of root FS writes.
+            - name: tmp-dir
+              mountPath: /tmp
+            - name: run-dir
+              mountPath: /var/run
+            - name: cache-dir
+              mountPath: /var/cache/nginx
+
+        - name: log-forwarder
+          # [F1] Pinned fluent-bit version, not latest.
+          image: fluent/fluent-bit:2.2.2
+          imagePullPolicy: IfNotPresent
+
+          # [F3] Resource limits on the sidecar.
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+          # [F4,F6] Fully locked-down security context — no privileges, no caps.
+          # CIS 5.2.1, 5.2.5, 5.2.7 / NIST AC-6
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 3000
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+
+          volumeMounts:
+            # Read-only log access — cannot tamper with log files.
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: fluentbit-tmp
+              mountPath: /tmp
+
+      volumes:
+        # [F5-BONUS] hostPath volumes removed.
+        # App data uses a PVC backed by a StorageClass.
+        # CIS 5.2.9 / NIST SC-28
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: legacy-webapp-data
+        # Log forwarder reads from /var/log via a shared emptyDir
+        # (in a real cluster this would be a node DaemonSet reading hostPath,
+        #  but the DaemonSet itself would be the privileged exception,
+        #  not application workloads).
+        - name: varlog
+          emptyDir: {}
+        # Writable scratch dirs for nginx process files.
+        - name: tmp-dir
+          emptyDir: {}
+        - name: run-dir
+          emptyDir: {}
+        - name: cache-dir
+          emptyDir: {}
+        - name: fluentbit-tmp
+          emptyDir: {}
+
+---
+# PersistentVolumeClaim for app data (replaces hostPath).
+# NIST SC-28
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: legacy-webapp-data
+  namespace: legacy-app
+  annotations:
+    nist.gov/controls: "SC-28"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# [F5] NetworkPolicy: Default deny-all ingress and egress for the namespace.
+# All traffic is blocked unless explicitly permitted by an additional policy.
+# CIS 5.3.2 / NIST SC-7
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: legacy-app
+  annotations:
+    nist.gov/controls: "SC-7"
+    cis.kubernetes.io/controls: "5.3.2"
+    description: "Default deny all ingress and egress. Explicit allow policies override."
+spec:
+  podSelector: {}   # Applies to ALL pods in the namespace
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# Allow ingress to the webapp from the ingress controller namespace only.
+# Replace "ingress-nginx" with your actual ingress controller namespace.
+# NIST SC-7
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-from-controller
+  namespace: legacy-app
+  annotations:
+    nist.gov/controls: "SC-7"
+    description: "Permit HTTP traffic from ingress controller to webapp pods."
+spec:
+  podSelector:
+    matchLabels:
+      app: legacy-webapp
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+
+---
+# Allow egress from webapp to DNS (required for any DNS resolution).
+# Allow egress to a specific database namespace only.
+# NIST SC-7 — least-privilege outbound
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-webapp-egress
+  namespace: legacy-app
+  annotations:
+    nist.gov/controls: "SC-7"
+    description: "Permit DNS and database egress from webapp pods."
+spec:
+  podSelector:
+    matchLabels:
+      app: legacy-webapp
+  policyTypes:
+    - Egress
+  egress:
+    # DNS resolution (kube-dns / CoreDNS)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Database tier in the data-tier namespace
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-tier
+          podSelector:
+            matchLabels:
+              tier: database
+      ports:
+        - protocol: TCP
+          port: 5432
+
+---
+# [F5] ClusterIP service replaces NodePort — no direct node port exposure.
+# Violating: disallow-nodeport-services -> PASS (ClusterIP)
+# Traffic reaches the app only through the Ingress controller.
+# NIST SC-7
+apiVersion: v1
+kind: Service
+metadata:
+  name: legacy-webapp
+  namespace: legacy-app
+  annotations:
+    nist.gov/controls: "SC-7"
+spec:
+  type: ClusterIP
+  selector:
+    app: legacy-webapp
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP

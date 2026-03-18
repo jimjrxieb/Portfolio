@@ -1,0 +1,70 @@
+# =============================================================================
+# Ghost Protocol -- Karpenter Default NodePool
+# Cost-optimized: Spot preferred, consolidation aggressive, multi-family
+#
+# Estimated savings: 20-40% compute cost reduction vs static node groups
+# =============================================================================
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: default
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+spec:
+  template:
+    metadata:
+      labels:
+        managed-by: karpenter
+        nodepool: default
+    spec:
+      requirements:
+        # Instance families — general purpose + compute optimized
+        # More families = better Spot availability + pricing diversity
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["m5", "m6i", "m7i", "c5", "c6i", "c7i", "r5", "r6i"]
+
+        # Sizes — skip nano/micro/small (poor bin-packing, high per-node overhead)
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values: ["medium", "large", "xlarge", "2xlarge"]
+
+        # Purchase type — Spot first for 60-80% savings, on-demand fallback
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot", "on-demand"]
+
+        # Architecture
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+
+        # OS
+        - key: kubernetes.io/os
+          operator: In
+          values: ["linux"]
+
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
+
+      # Expire nodes every 7 days — forces AMI rotation for security patching
+      expireAfter: 168h
+
+  # Disruption: aggressively consolidate under-utilized nodes
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s
+
+  # Budget: never disrupt more than 20% of nodes at once
+  budgets:
+    - nodes: "20%"
+
+  # Limits: cap total cluster compute (adjust per environment)
+  limits:
+    cpu: "100"
+    memory: 400Gi
+
+  # Weight: lower weight = higher priority when multiple NodePools match
+  weight: 50

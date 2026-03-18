@@ -1,0 +1,82 @@
+# Grafana Tempo — Helm Values
+#
+# Tempo is a cost-effective trace backend that stores traces in object storage
+# (S3, GCS, Azure Blob). Cheaper than Jaeger at scale.
+#
+# Good for: production environments, large trace volumes, teams already using Grafana.
+# Tradeoff: no standalone UI — relies on Grafana for trace visualization.
+#
+# Install:
+#   helm repo add grafana https://grafana.github.io/helm-charts
+#   helm install tempo grafana/tempo -n observability -f tempo-values.yaml
+
+# Single-binary mode (simplest deployment)
+tempo:
+  image:
+    tag: "2.4.0"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    fsGroup: 10001
+
+  # Receivers
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  # Storage — local filesystem for dev, S3/GCS for production
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+
+      # === Production: S3 ===
+      # backend: s3
+      # s3:
+      #   bucket: my-tempo-traces
+      #   endpoint: s3.amazonaws.com
+      #   region: us-east-1
+      #   # Use IRSA (IAM Roles for Service Accounts) for auth
+      #   # insecure: false
+
+      # === Production: GCS ===
+      # backend: gcs
+      # gcs:
+      #   bucket_name: my-tempo-traces
+
+  # Retention — how long to keep traces
+  compactor:
+    compaction:
+      block_retention: 336h    # 14 days
+
+  # Query settings
+  query_frontend:
+    search:
+      max_duration: 0    # no limit on search time range
+
+# Persistence (for local storage mode)
+persistence:
+  enabled: true
+  size: 10Gi
+
+# Service monitor for Prometheus
+serviceMonitor:
+  enabled: true
+
+# Tempo gateway (optional — provides multi-tenant auth)
+gateway:
+  enabled: false

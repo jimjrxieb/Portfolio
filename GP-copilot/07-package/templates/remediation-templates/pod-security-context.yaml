@@ -1,0 +1,78 @@
+# Pod Security Context Templates — FedRAMP AC-6
+# Replace {{NAMESPACE}}, {{APP_NAME}}, {{APP_IMAGE}}, {{APP_PORT}} with client values.
+# Replace {{RUN_AS_USER}} and {{RUN_AS_GROUP}} with appropriate UIDs.
+
+---
+# PSS Restricted profile — most hardened, FedRAMP target
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{APP_NAME}}-restricted-example"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    app: "{{APP_NAME}}"
+    fedramp-control: AC-6
+    security-profile: restricted
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: "{{RUN_AS_USER}}"
+    runAsGroup: "{{RUN_AS_GROUP}}"
+    fsGroup: "{{RUN_AS_GROUP}}"
+    seccompProfile:
+      type: RuntimeDefault
+  automountServiceAccountToken: false
+  containers:
+    - name: "{{APP_NAME}}"
+      image: "{{APP_IMAGE}}"
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: false
+        capabilities:
+          drop:
+            - ALL
+          add:
+            - NET_BIND_SERVICE
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+      ports:
+        - containerPort: "{{APP_PORT}}"
+          protocol: TCP
+
+---
+# Deployment security patch — apply to existing deployments
+# kubectl patch deployment {{APP_NAME}} -n {{NAMESPACE}} --patch-file pod-security-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{APP_NAME}}-security-patch"
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: "{{RUN_AS_USER}}"
+        runAsGroup: "{{RUN_AS_GROUP}}"
+        fsGroup: "{{RUN_AS_GROUP}}"
+        seccompProfile:
+          type: RuntimeDefault
+      automountServiceAccountToken: false
+      containers:
+        - name: "{{APP_NAME}}"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

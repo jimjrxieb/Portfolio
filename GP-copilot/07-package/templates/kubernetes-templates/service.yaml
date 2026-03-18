@@ -1,0 +1,39 @@
+# Services — FedRAMP SC-7
+# Replace {{NAMESPACE}}, {{APP_NAME}}, {{APP_PORT}}, {{DB_NAME}}, {{DB_PORT}}.
+
+---
+# Application Service (ClusterIP — internal only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{APP_NAME}}"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    app: "{{APP_NAME}}"
+    fedramp-control: SC-7
+spec:
+  type: ClusterIP
+  selector:
+    app: "{{APP_NAME}}"
+  ports:
+    - port: "{{APP_PORT}}"
+      targetPort: "{{APP_PORT}}"
+      protocol: TCP
+---
+# Database Service (internal only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{DB_NAME}}"
+  namespace: "{{NAMESPACE}}"
+  labels:
+    app: "{{DB_NAME}}"
+    fedramp-control: SC-7
+spec:
+  type: ClusterIP
+  selector:
+    app: "{{DB_NAME}}"
+  ports:
+    - port: "{{DB_PORT}}"
+      targetPort: "{{DB_PORT}}"
+      protocol: TCP

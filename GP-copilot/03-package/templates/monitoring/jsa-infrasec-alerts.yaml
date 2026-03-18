@@ -1,0 +1,112 @@
+# jsa-infrasec PrometheusRule alerts
+# Runtime security alerts for the jsa-infrasec autonomous agent
+#
+# Apply with:
+#   kubectl apply -f jsa-infrasec-alerts.yaml
+#
+# Requires: prometheus-operator (kube-prometheus-stack) installed in cluster
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: jsa-infrasec-alerts
+  namespace: monitoring
+  labels:
+    app: jsa-infrasec
+    role: alert-rules
+    prometheus: kube-prometheus
+spec:
+  groups:
+    - name: jsa-infrasec
+      rules:
+        - alert: HighFalsePositiveRate
+          expr: rate(jsa_infrasec_findings_total[1h]) > 100
+          for: 15m
+          labels:
+            severity: warning
+            team: security
+          annotations:
+            summary: "High false positive rate detected"
+            description: "Findings rate is {{ $value | humanize }}/hr, exceeding threshold of 100/hr for 15 minutes. Review scanner rules for overly broad patterns."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/high-false-positive-rate"
+
+        - alert: AutoFixFailureRateHigh
+          expr: |
+            rate(jsa_infrasec_fixes_rolled_back_total[5m])
+            / rate(jsa_infrasec_fixes_applied_total[5m]) > 0.10
+          for: 10m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "Auto-fix rollback rate exceeds 10%"
+            description: "{{ $value | humanizePercentage }} of applied fixes are being rolled back. Auto-fix may be causing regressions. Consider disabling auto-fix and switching to audit mode."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/autofix-failure"
+
+        - alert: WatcherDown
+          expr: jsa_infrasec_watchers_active < 5
+          for: 5m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "Critical watcher is down"
+            description: "Only {{ $value }} watchers active (minimum: 5). Runtime monitoring coverage is degraded. Check jsa-infrasec pod logs."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/watcher-down"
+
+        - alert: HighFindingsRate
+          expr: rate(jsa_infrasec_findings_total{severity="critical"}[1h]) > 10
+          for: 5m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "High critical findings rate"
+            description: "{{ $value | humanize }} critical findings/hr detected. Possible active incident or attack. Escalate to B-rank for human review."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/high-findings-rate"
+
+        - alert: SnapshotStorageFull
+          expr: jsa_infrasec_snapshot_storage_bytes / jsa_infrasec_snapshot_storage_limit_bytes > 0.90
+          for: 15m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Snapshot storage above 90%"
+            description: "Snapshot storage is at {{ $value | humanizePercentage }}. Old snapshots should be pruned or storage expanded to ensure rollback capability."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/snapshot-storage-full"
+
+        - alert: ResponseLatencyHigh
+          expr: histogram_quantile(0.95, rate(jsa_infrasec_fix_latency_seconds_bucket[5m])) > 120
+          for: 10m
+          labels:
+            severity: warning
+            team: security
+          annotations:
+            summary: "Fix response latency p95 exceeds 120s"
+            description: "p95 fix latency is {{ $value | humanizeDuration }}. Fixes are taking too long to apply. Check cluster resource pressure and jsa-infrasec performance."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/response-latency-high"
+
+        - alert: JsaInfrasecDown
+          expr: up{job="jsa-infrasec"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "jsa-infrasec target is down"
+            description: "Prometheus cannot scrape jsa-infrasec metrics. The agent may have crashed or been evicted. Runtime security monitoring is offline."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/agent-down"
+
+        - alert: RollbackRateSpike
+          expr: |
+            rate(jsa_infrasec_fixes_rolled_back_total[5m])
+            / rate(jsa_infrasec_fixes_applied_total[5m]) > 0.20
+          for: 5m
+          labels:
+            severity: critical
+            team: security
+          annotations:
+            summary: "Rollback rate spiked above 20%"
+            description: "{{ $value | humanizePercentage }} of fixes are being rolled back in the last 5 minutes. This indicates systemic fix failures. Auto-fix should be paused immediately."
+            runbook_url: "https://wiki.internal/runbooks/jsa-infrasec/rollback-rate-spike"

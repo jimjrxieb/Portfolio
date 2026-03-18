@@ -1,0 +1,68 @@
+# PeerAuthentication — mTLS Enforcement
+#
+# Controls whether pods accept plaintext or require mTLS.
+# Progression: PERMISSIVE → STRICT (after verification).
+#
+# Apply mesh-wide first, then per-namespace overrides as needed.
+# See: tools/verify-mtls.sh to check readiness before going STRICT.
+
+---
+# ── Mesh-wide: PERMISSIVE (start here) ───────────────────────────────
+# Accepts both plaintext and mTLS. No breakage. Lets you verify
+# which services are already using mTLS before enforcing.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system    # mesh-wide when in istio-system
+spec:
+  mtls:
+    mode: PERMISSIVE
+
+---
+# ── Mesh-wide: STRICT (apply after verification) ─────────────────────
+# Uncomment this and delete the PERMISSIVE block above when ready.
+# ALL pod-to-pod traffic must be mTLS. Plaintext connections are rejected.
+#
+# apiVersion: security.istio.io/v1
+# kind: PeerAuthentication
+# metadata:
+#   name: default
+#   namespace: istio-system
+# spec:
+#   mtls:
+#     mode: STRICT
+
+---
+# ── Per-namespace override example ────────────────────────────────────
+# Use this to enforce STRICT on sensitive namespaces before going mesh-wide.
+# Good for: payments, PII handling, compliance-scoped namespaces.
+#
+# apiVersion: security.istio.io/v1
+# kind: PeerAuthentication
+# metadata:
+#   name: strict-mtls
+#   namespace: payments
+# spec:
+#   mtls:
+#     mode: STRICT
+
+---
+# ── Per-workload exception ────────────────────────────────────────────
+# Use this for services that can't do mTLS (legacy, health checks from LB).
+# AVOID THIS — document every exception with a justification.
+#
+# apiVersion: security.istio.io/v1
+# kind: PeerAuthentication
+# metadata:
+#   name: allow-plaintext-health
+#   namespace: legacy-app
+# spec:
+#   selector:
+#     matchLabels:
+#       app: legacy-service
+#   mtls:
+#     mode: PERMISSIVE
+#   portLevelMtls:
+#     8080:
+#       mode: DISABLE    # health check port only

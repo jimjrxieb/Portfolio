@@ -1,0 +1,94 @@
+# resource-management.yaml
+# CKA best practice: ResourceQuota + LimitRange per namespace.
+#
+# Problem: Without these, one bad deploy can OOM the entire node.
+#   - No ResourceQuota = unlimited pods/CPU/memory per namespace
+#   - No LimitRange = pods with no requests/limits get node-level defaults (usually none)
+#
+# Apply:
+#   kubectl apply -f resource-management.yaml -n <namespace>
+#
+# Or apply to all app namespaces (skip kube-system, kube-public):
+#   for ns in $(kubectl get ns -o name | grep -v "kube-\|kube-public"); do
+#     kubectl apply -f resource-management.yaml -n ${ns#namespace/}
+#   done
+
+---
+# LimitRange — sets default requests/limits for every container in the namespace.
+# Containers without explicit resources get these values automatically.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-limits
+  # namespace: <set via -n flag or add here>
+  annotations:
+    security.ghostprotocol.io/control: "CKA-resource-management"
+    security.ghostprotocol.io/why: "Prevents noisy-neighbor OOM cascades. Containers without limits get these defaults."
+spec:
+  limits:
+  - type: Container
+    # Default: applied if container has no resources block at all
+    default:
+      cpu: "500m"
+      memory: "512Mi"
+    # DefaultRequest: applied if container has no requests
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    # Max: hard ceiling per container — request cannot exceed this
+    max:
+      cpu: "2"
+      memory: "2Gi"
+    # Min: minimum per container
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+
+---
+# ResourceQuota — hard limits on total resources consumed by the namespace.
+# Prevents one namespace from starving the whole cluster.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: namespace-quota
+  annotations:
+    security.ghostprotocol.io/control: "CKA-resource-management"
+    security.ghostprotocol.io/why: "Caps total namespace consumption. Adjust multipliers based on team size."
+spec:
+  hard:
+    # Compute
+    requests.cpu: "4"
+    requests.memory: "4Gi"
+    limits.cpu: "8"
+    limits.memory: "8Gi"
+    # Object counts
+    pods: "20"
+    services: "10"
+    persistentvolumeclaims: "10"
+    secrets: "20"
+    configmaps: "20"
+    # LoadBalancer services cost money — cap them
+    services.loadbalancers: "2"
+    services.nodeports: "0"
+
+---
+# Example: Deployment with explicit resources (no longer needs LimitRange defaults).
+# This is the target state — every container should have this.
+#
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: my-app
+# spec:
+#   template:
+#     spec:
+#       containers:
+#       - name: app
+#         image: my-app:1.2.3
+#         resources:
+#           requests:
+#             cpu: "100m"
+#             memory: "128Mi"
+#           limits:
+#             cpu: "500m"
+#             memory: "512Mi"

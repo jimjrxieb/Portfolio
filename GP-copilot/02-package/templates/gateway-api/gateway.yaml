@@ -1,0 +1,51 @@
+# gateway.yaml — Namespace-scoped Gateway (platform team owns)
+# NIST 800-53: SC-7 (Boundary Protection), SC-8 (Transmission Confidentiality)
+# AC-6 (Least Privilege): allowedRoutes.namespaces.from: Same
+#
+# Platform team controls listeners, TLS, and ports.
+# App teams only create HTTPRoutes — they can't open new ports or change TLS config.
+#
+# Prerequisites:
+#   - GatewayClass deployed (gateway-class.yaml)
+#   - TLS secret created: kubectl create secret tls <TLS_SECRET> --cert=cert.pem --key=key.pem -n <NAMESPACE>
+#   - Or cert-manager: annotate with cert-manager.io/cluster-issuer
+#
+# Replace: <APP_NAME>, <NAMESPACE>, <DOMAIN>, <TLS_SECRET>, <GATEWAY_CLASS_NAME>
+# ─────────────────────────────────────────────────────────────────
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: <APP_NAME>-gateway
+  namespace: <NAMESPACE>
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+    control: SC-7
+  annotations:
+    # Uncomment for cert-manager auto-TLS:
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  gatewayClassName: <GATEWAY_CLASS_NAME>
+  listeners:
+    # SC-8: HTTPS listener (primary — all real traffic)
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "<DOMAIN>"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: <TLS_SECRET>
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Same    # AC-6: Only HTTPRoutes in this namespace can attach
+
+    # SC-8: HTTP listener (redirect only — no backends)
+    - name: http-redirect
+      protocol: HTTP
+      port: 80
+      hostname: "<DOMAIN>"
+      allowedRoutes:
+        namespaces:
+          from: Same

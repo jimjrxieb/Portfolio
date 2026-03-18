@@ -1,0 +1,70 @@
+# Jaeger — All-in-One Helm Values
+#
+# Jaeger is the trace storage + query + UI backend.
+# Good for: development, small-medium production environments.
+# For large scale: use Tempo (cheaper storage via S3/GCS).
+#
+# Install:
+#   helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
+#   helm install jaeger jaegertracing/jaeger -n observability -f jaeger-values.yaml
+
+# All-in-one mode (single pod: collector + query + UI + in-memory storage)
+# Switch to production mode for persistent storage
+provisionDataStore:
+  cassandra: false
+  elasticsearch: false
+
+allInOne:
+  enabled: true
+  image:
+    tag: "1.55.0"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # Storage — in-memory for dev, badger for persistence
+  extraArgs:
+    - "--memory.max-traces=50000"
+
+  # OTLP receiver (from OTel Collector)
+  extraEnv:
+    - name: COLLECTOR_OTLP_ENABLED
+      value: "true"
+
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+
+# Query UI
+query:
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 16686
+
+# Collector (receives spans)
+collector:
+  enabled: true
+  service:
+    otlp:
+      grpc:
+        port: 4317
+      http:
+        port: 4318
+
+# Agent (deprecated in favor of OTel Collector — disable)
+agent:
+  enabled: false
+
+# Spark dependencies job (optional — shows service dependency graph)
+spark:
+  enabled: false
+
+# Service monitor for Prometheus
+serviceMonitor:
+  enabled: true

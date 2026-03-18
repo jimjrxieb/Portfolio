@@ -1,0 +1,59 @@
+# =============================================================================
+# Ghost Protocol -- Karpenter EC2NodeClass (Default)
+# AMI, subnet, security group, and EBS configuration for Karpenter nodes
+#
+# Security:
+#   - IMDSv2 required (blocks SSRF credential theft)
+#   - Encrypted gp3 EBS (20% cheaper than gp2, FedRAMP SC-28 at rest)
+#   - deleteOnTermination prevents orphaned EBS cost
+#
+# Replace <CLUSTER_NAME> with your EKS cluster name
+# =============================================================================
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: default
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+spec:
+  # AMI — latest EKS-optimized Amazon Linux 2023
+  amiSelectorTerms:
+    - alias: al2023@latest
+
+  # Subnets — Karpenter discovers via tags set by setup-karpenter.sh
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: <CLUSTER_NAME>
+
+  # Security groups — same tag-based discovery
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: <CLUSTER_NAME>
+
+  # IAM role for nodes (created by setup-karpenter.sh)
+  role: KarpenterNodeRole-<CLUSTER_NAME>
+
+  # Block device — encrypted gp3 for cost + performance
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp3
+        encrypted: true
+        deleteOnTermination: true
+        iops: 3000
+        throughput: 125
+
+  # Metadata options — IMDSv2 REQUIRED (security)
+  # httpTokens: required blocks SSRF-based credential theft (CKS exam topic)
+  metadataOptions:
+    httpEndpoint: enabled
+    httpProtocolIPv6: disabled
+    httpPutResponseHopLimit: 2
+    httpTokens: required
+
+  # User data — optional bootstrap commands
+  # Uncomment to add custom node setup (e.g., monitoring agent)
+  # userData: |
+  #   #!/bin/bash
+  #   echo "Karpenter node bootstrap complete"

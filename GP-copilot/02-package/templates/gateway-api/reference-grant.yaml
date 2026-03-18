@@ -1,0 +1,26 @@
+# reference-grant.yaml — Cross-namespace TLS secret access
+# NIST 800-53: AC-6 (Least Privilege)
+#
+# Only needed when TLS secret lives in a different namespace than the Gateway.
+# Common pattern: cert-manager creates certs in cert-manager namespace,
+# Gateway in app namespace needs to reference them.
+#
+# Replace: <SECRET_NAMESPACE>, <GATEWAY_NAMESPACE>
+# ─────────────────────────────────────────────────────────────────
+
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-tls
+  namespace: <SECRET_NAMESPACE>    # Where the TLS secret lives
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+    control: AC-6
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      namespace: <GATEWAY_NAMESPACE>    # Where the Gateway lives
+  to:
+    - group: ""
+      kind: Secret

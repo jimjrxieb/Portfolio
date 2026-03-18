@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vendor-ingestion
+  namespace: gp-security
+  labels:
+    app: gp-copilot
+    component: vendor-integration
+spec:
+  # Every 5 minutes
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 240
+      template:
+        metadata:
+          labels:
+            app: gp-copilot
+            component: vendor-ingestion
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: gp-vendor-ingester
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+            - name: ingester
+              image: gp-copilot/vendor-ingester:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - bash
+                - -c
+                - |
+                  cd /app/08-VENDOR-INTEGRATION
+                  bash tools/ingest.sh --adapter falcon --mode backfill --since 1d
+              env:
+                - name: FALCON_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: vendor-credentials
+                      key: falcon-client-id
+                - name: FALCON_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: vendor-credentials
+                      key: falcon-client-secret
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+              volumeMounts:
+                - name: findings
+                  mountPath: /tmp/gp-vendor
+          volumes:
+            - name: findings
+              emptyDir: {}
+---
+# Secret template — fill in and apply separately
+# kubectl create secret generic vendor-credentials \
+#   --namespace gp-security \
+#   --from-literal=falcon-client-id=YOUR_ID \
+#   --from-literal=falcon-client-secret=YOUR_SECRET

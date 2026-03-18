@@ -1,0 +1,49 @@
+# VerticalPodAutoscaler — Recommend Only (Off mode)
+#
+# This VPA watches a deployment and generates resource recommendations
+# WITHOUT applying them. Use this to observe before committing to auto-resize.
+#
+# Usage:
+#   1. Replace <APP_NAME> with your deployment name
+#   2. Replace <NAMESPACE> with the deployment's namespace
+#   3. kubectl apply -f vpa-recommend.yaml
+#   4. Wait 24-48h for meaningful recommendations
+#   5. kubectl get vpa <APP_NAME>-vpa -n <NAMESPACE> -o yaml
+#
+# The recommendation section will show:
+#   - lowerBound:  minimum safe resources
+#   - target:      recommended resources (use this)
+#   - upperBound:  maximum observed need
+#   - uncappedTarget: what VPA would set without any resource policy limits
+#
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: <APP_NAME>-vpa
+  namespace: <NAMESPACE>
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+    app.kubernetes.io/part-of: <APP_NAME>
+spec:
+  # targetRef: the workload VPA will monitor
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: <APP_NAME>
+
+  # updatePolicy.updateMode: "Off" means recommend only — VPA will NOT
+  # modify pod resources. It only generates recommendations in .status.
+  # This is the safest starting point for any workload.
+  updatePolicy:
+    updateMode: "Off"
+
+  # resourcePolicy: optional constraints on what VPA can recommend.
+  # Even in Off mode, these shape the recommendations shown in .status.
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        # controlledResources: which resources VPA tracks
+        # Default is both cpu and memory
+        controlledResources:
+          - cpu
+          - memory

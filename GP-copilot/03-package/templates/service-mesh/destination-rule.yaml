@@ -1,0 +1,73 @@
+# DestinationRule — Traffic Policy + mTLS Settings
+#
+# Controls how traffic reaches a service: load balancing, connection
+# pooling, outlier detection (circuit breaking), and TLS settings.
+#
+# Use alongside PeerAuthentication for defense in depth:
+# PeerAuthentication = "require mTLS from callers"
+# DestinationRule = "use mTLS when calling this service"
+
+---
+# ── Mesh-wide: enforce mTLS for all outbound ─────────────────────────
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: mesh-wide-mtls
+  namespace: istio-system
+spec:
+  host: "*.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL    # use Istio-managed certs for mTLS
+
+---
+# ── Template: Service with circuit breaking ───────────────────────────
+# Prevents cascading failures. If a service starts failing, stop
+# sending it traffic instead of overwhelming it further.
+#
+# apiVersion: networking.istio.io/v1
+# kind: DestinationRule
+# metadata:
+#   name: api-server-circuit-breaker
+#   namespace: production
+# spec:
+#   host: api-server
+#   trafficPolicy:
+#     tls:
+#       mode: ISTIO_MUTUAL
+#     connectionPool:
+#       tcp:
+#         maxConnections: 100
+#       http:
+#         h2UpgradePolicy: DEFAULT
+#         http1MaxPendingRequests: 100
+#         http2MaxRequests: 1000
+#         maxRequestsPerConnection: 10
+#     outlierDetection:
+#       consecutive5xxErrors: 5       # 5 consecutive 5xx = eject
+#       interval: 30s                  # check every 30s
+#       baseEjectionTime: 30s          # eject for 30s
+#       maxEjectionPercent: 50         # never eject more than 50%
+
+---
+# ── Template: Canary traffic split ────────────────────────────────────
+# Route 90% to stable, 10% to canary. Use with ArgoCD Rollouts
+# or manual HTTPRoute weight adjustment.
+#
+# apiVersion: networking.istio.io/v1
+# kind: DestinationRule
+# metadata:
+#   name: api-server-canary
+#   namespace: production
+# spec:
+#   host: api-server
+#   trafficPolicy:
+#     tls:
+#       mode: ISTIO_MUTUAL
+#   subsets:
+#     - name: stable
+#       labels:
+#         version: v1
+#     - name: canary
+#       labels:
+#         version: v2

@@ -1,0 +1,152 @@
+# gateway-api.yaml — MOVED
+# ─────────────────────────────────────────────────────────────────────────────
+# Full Gateway API templates are now in templates/gateway-api/:
+#   - gateway-class.yaml        (4 controllers: Envoy, Cilium, Istio, nginx)
+#   - gateway.yaml              (HTTPS + HTTP redirect, TLS termination)
+#   - httproute.yaml            (API + UI routing)
+#   - httproute-canary.yaml     (weight-based canary + header override)
+#   - reference-grant.yaml      (cross-namespace TLS)
+#
+# Automated setup: bash tools/platform/setup-gateway-api.sh --controller envoy
+# Playbook: playbooks/09-deploy-gateway-api.md
+# Policy: templates/policies/kyverno/require-gateway-tls.yaml
+#
+# This file is kept as a single-file reference for quick copy-paste.
+# For production use, prefer the modular templates in templates/gateway-api/.
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# ── GatewayClass (cluster-scoped, one per controller) ───────────────────────
+# Apply ONCE per cluster. Infra team owns this.
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: <GATEWAY_CLASS_NAME>          # e.g. "gp-gateway"
+  labels:
+    control: SC-7
+spec:
+  controllerName: <CONTROLLER_NAME>   # e.g. "gateway.envoyproxy.io/gatewayclass-controller"
+  # Other options:
+  #   gateway.nginx.org/nginx-gateway-controller          (nginx-gateway-fabric)
+  #   io.cilium/gateway-controller                        (Cilium)
+  #   istio.io/gateway-controller                         (Istio)
+
+---
+# ── Gateway (namespace-scoped, platform team owns) ──────────────────────────
+# SC-7: Single boundary entry point. SC-8: TLS termination.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: <APP_NAME>-gateway            # e.g. "anthra-gateway"
+  namespace: <NAMESPACE>
+  labels:
+    control: SC-7
+  annotations:
+    # cert-manager integration (if using cert-manager for TLS)
+    cert-manager.io/cluster-issuer: "<CLUSTER_ISSUER>"   # e.g. "letsencrypt-prod"
+spec:
+  gatewayClassName: <GATEWAY_CLASS_NAME>
+  listeners:
+    # SC-8: HTTPS listener (primary)
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: "<DOMAIN>"            # e.g. "anthra.cloud"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: <TLS_SECRET>        # e.g. "anthra-tls"
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Same                  # AC-6: Only routes in this namespace
+    # SC-8: HTTP listener (redirect only)
+    - name: http-redirect
+      protocol: HTTP
+      port: 80
+      hostname: "<DOMAIN>"
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+---
+# ── HTTPRoute: HTTP → HTTPS redirect ────────────────────────────────────────
+# SC-8: Force encrypted transport
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: <APP_NAME>-https-redirect
+  namespace: <NAMESPACE>
+  labels:
+    control: SC-8
+spec:
+  parentRefs:
+    - name: <APP_NAME>-gateway
+      sectionName: http-redirect
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+
+---
+# ── HTTPRoute: API backend ──────────────────────────────────────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: <APP_NAME>-api-route
+  namespace: <NAMESPACE>
+  labels:
+    control: SC-7
+spec:
+  parentRefs:
+    - name: <APP_NAME>-gateway
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: <API_SERVICE>         # e.g. "novasec-api"
+          port: <API_PORT>            # e.g. 8080
+
+---
+# ── HTTPRoute: UI / frontend (catch-all) ────────────────────────────────────
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: <APP_NAME>-ui-route
+  namespace: <NAMESPACE>
+  labels:
+    control: SC-7
+spec:
+  parentRefs:
+    - name: <APP_NAME>-gateway
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: <UI_SERVICE>          # e.g. "novasec-ui"
+          port: <UI_PORT>             # e.g. 80
+
+---
+# ── ReferenceGrant (optional, for cross-namespace TLS secrets) ──────────────
+# Only needed if TLS secret lives in a different namespace than the Gateway.
+# apiVersion: gateway.networking.k8s.io/v1beta1
+# kind: ReferenceGrant
+# metadata:
+#   name: allow-gateway-tls
+#   namespace: <SECRET_NAMESPACE>
+# spec:
+#   from:
+#     - group: gateway.networking.k8s.io
+#       kind: Gateway
+#       namespace: <GATEWAY_NAMESPACE>
+#   to:
+#     - group: ""
+#       kind: Secret

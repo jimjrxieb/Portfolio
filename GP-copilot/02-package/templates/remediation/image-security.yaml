@@ -1,0 +1,197 @@
+# Image Security Templates for jsa-infrasec
+# CKS Exam: Supply Chain Security (20%)
+# Reference: https://kubernetes.io/docs/concepts/containers/images/
+
+---
+# Pod with pinned image digest (immutable reference)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pinned-image-pod
+  annotations:
+    jsa-infrasec.io/remediation: "image-pinned-digest"
+spec:
+  containers:
+    - name: app
+      # Always use digest instead of tag for production
+      image: nginx@sha256:abc123def456...
+      imagePullPolicy: IfNotPresent
+
+---
+# Pod with private registry image
+apiVersion: v1
+kind: Pod
+metadata:
+  name: private-registry-pod
+  annotations:
+    jsa-infrasec.io/remediation: "image-private-registry"
+spec:
+  imagePullSecrets:
+    - name: registry-credentials
+  containers:
+    - name: app
+      image: private.registry.io/app:v1.2.3
+      imagePullPolicy: Always
+
+---
+# ImagePullSecret for private registry
+apiVersion: v1
+kind: Secret
+metadata:
+  name: registry-credentials
+  annotations:
+    jsa-infrasec.io/remediation: "image-pull-secret"
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: BASE64_ENCODED_DOCKER_CONFIG
+
+---
+# Kyverno policy to enforce image signing (Sigstore/Cosign)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signature
+  annotations:
+    jsa-infrasec.io/remediation: "image-signature-policy"
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: verify-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      verifyImages:
+        - imageReferences:
+            - "registry.io/*"
+          attestors:
+            - entries:
+                - keyless:
+                    issuer: "https://accounts.google.com"
+                    subject: "signer@company.com"
+                    rekor:
+                      url: https://rekor.sigstore.dev
+
+---
+# Kyverno policy to require approved registries
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: allowed-registries
+  annotations:
+    jsa-infrasec.io/remediation: "image-allowed-registries"
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Images must be from approved registries"
+        pattern:
+          spec:
+            containers:
+              - image: "gcr.io/* | *.dkr.ecr.*.amazonaws.com/* | ghcr.io/company/* | registry.company.io/*"
+            initContainers:
+              - image: "gcr.io/* | *.dkr.ecr.*.amazonaws.com/* | ghcr.io/company/* | registry.company.io/*"
+
+---
+# Kyverno policy to disallow latest tag
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    jsa-infrasec.io/remediation: "image-disallow-latest"
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Images must have a tag that is not 'latest'"
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest & *:*"
+            =(initContainers):
+              - image: "!*:latest & *:*"
+
+---
+# Deployment patch: Fix latest tag
+_deployment_patch_fix_latest:
+  description: "Replace :latest with specific version"
+  spec:
+    template:
+      spec:
+        containers:
+          - name: CONTAINER_NAME
+            image: "IMAGE:VERSION"  # Replace with actual version
+
+---
+# Deployment patch: Add digest
+_deployment_patch_add_digest:
+  description: "Pin image to specific digest"
+  spec:
+    template:
+      spec:
+        containers:
+          - name: CONTAINER_NAME
+            image: "IMAGE@sha256:DIGEST"
+
+---
+# Image scanning integration notes
+_scanning_notes:
+  trivy: |
+    # Scan image for vulnerabilities
+    trivy image IMAGE:TAG --severity HIGH,CRITICAL
+
+    # Scan and output SARIF
+    trivy image IMAGE:TAG --format sarif --output results.sarif
+
+    # Scan with Trivy operator in cluster
+    kubectl apply -f https://raw.githubusercontent.com/aquasecurity/trivy-operator/main/deploy/static/trivy-operator.yaml
+
+  cosign: |
+    # Sign image
+    cosign sign --key cosign.key IMAGE:TAG
+
+    # Verify signature
+    cosign verify --key cosign.pub IMAGE:TAG
+
+    # Keyless signing (Sigstore)
+    cosign sign IMAGE:TAG
+    cosign verify --certificate-identity signer@company.com --certificate-oidc-issuer https://accounts.google.com IMAGE:TAG
+
+  sbom: |
+    # Generate SBOM with Syft
+    syft IMAGE:TAG -o spdx-json > sbom.json
+
+    # Attach SBOM to image with Cosign
+    cosign attach sbom --sbom sbom.json IMAGE:TAG
+
+    # Verify SBOM
+    cosign verify-attestation --type spdxjson IMAGE:TAG
+
+---
+# Admission controller for image scanning
+_admission_webhook:
+  description: "Deploy image scanning admission controller"
+  options:
+    - name: "Trivy Operator"
+      url: "https://aquasecurity.github.io/trivy-operator/"
+    - name: "Kyverno with Cosign"
+      url: "https://kyverno.io/docs/writing-policies/verify-images/"
+    - name: "OPA Gatekeeper with external data"
+      url: "https://open-policy-agent.github.io/gatekeeper/website/docs/externaldata/"

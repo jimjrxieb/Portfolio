@@ -1,0 +1,93 @@
+# ============================================================================
+# OPA GATEKEEPER CONSTRAINT TEMPLATES - SecureBank
+# ============================================================================
+# Reusable templates for Kubernetes admission control policies
+# PCI-DSS compliance enforcement at runtime
+# ============================================================================
+
+---
+# Constraint Template: Require Non-Root Containers
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequirenonroot
+  namespace: gatekeeper-system
+  annotations:
+    description: "Enforces runAsNonRoot in pod security context"
+    pci-dss: "2.2.4"
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequireNonRoot
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequirenonroot
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.securityContext.runAsNonRoot
+          msg := sprintf("Container %v must set runAsNonRoot to true (PCI-DSS 2.2.4)", [container.name])
+        }
+
+---
+# Constraint Template: Block Privileged Containers
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8sblockprivileged
+  namespace: gatekeeper-system
+  annotations:
+    description: "Blocks privileged containers"
+    pci-dss: "2.2.1"
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sBlockPrivileged
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sblockprivileged
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.privileged == true
+          msg := sprintf("Privileged container %v not allowed (PCI-DSS 2.2.1)", [container.name])
+        }
+
+---
+# Constraint Template: Block CVV/PIN in ConfigMaps
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8sblockcvvpin
+  namespace: gatekeeper-system
+  annotations:
+    description: "Detects CVV/PIN in ConfigMaps and Secrets"
+    pci-dss: "3.2.2, 3.2.3"
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sBlockCVVPIN
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8sblockcvvpin
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "ConfigMap"
+          data_value := input.review.object.data[_]
+          regex.match(`(?i)(cvv|pin|card.*number)`, data_value)
+          msg := "PCI-DSS 3.2.2/3.2.3 CRITICAL: CVV/PIN detected in ConfigMap!"
+        }
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Secret"
+          data_value := input.review.object.data[_]
+          decoded := base64.decode(data_value)
+          regex.match(`(?i)(cvv|pin|card.*number)`, decoded)
+          msg := "PCI-DSS 3.2.2/3.2.3 CRITICAL: CVV/PIN detected in Secret!"
+        }

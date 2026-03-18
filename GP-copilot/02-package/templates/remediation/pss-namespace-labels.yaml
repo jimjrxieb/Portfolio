@@ -1,0 +1,162 @@
+# Pod Security Standards (PSS) Namespace Labels
+# CKS Exam: Cluster Hardening (15%)
+# Reference: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+
+---
+# PSS Levels:
+# - privileged: Unrestricted (no validation)
+# - baseline: Minimally restrictive (prevents known privilege escalations)
+# - restricted: Heavily restricted (current best practices)
+
+# Modes:
+# - enforce: Reject pods that violate the policy
+# - audit: Log violations but allow pods
+# - warn: Warn users but allow pods
+
+---
+# Restricted namespace (production workloads)
+# Enforces the most restrictive PSS level
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    jsa-infrasec.io/pss-level: restricted
+  annotations:
+    jsa-infrasec.io/remediation: "pss-restricted"
+
+---
+# Baseline namespace (standard workloads)
+# Prevents most privilege escalations
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    jsa-infrasec.io/pss-level: baseline
+  annotations:
+    jsa-infrasec.io/remediation: "pss-baseline"
+
+---
+# Development namespace (permissive with warnings)
+# Allows most operations but warns about violations
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    jsa-infrasec.io/pss-level: baseline-with-warnings
+  annotations:
+    jsa-infrasec.io/remediation: "pss-development"
+
+---
+# Untrusted namespace (sandboxed workloads)
+# For workloads from external/untrusted sources
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: untrusted
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    # Custom label for RuntimeClass enforcement
+    security.kubernetes.io/trust-level: untrusted
+    jsa-infrasec.io/pss-level: restricted-sandboxed
+  annotations:
+    jsa-infrasec.io/remediation: "pss-untrusted"
+    jsa-infrasec.io/requires-sandbox: "true"
+
+---
+# System namespace exemption
+# kube-system needs privileged access
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-system
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest
+    jsa-infrasec.io/pss-level: privileged-system
+  annotations:
+    jsa-infrasec.io/exemption-reason: "System namespace requires privileged access"
+
+---
+# Progressive rollout strategy for existing namespaces
+# Step 1: Add warn labels (doesn't affect workloads)
+_pss_rollout_step1:
+  metadata:
+    labels:
+      pod-security.kubernetes.io/warn: baseline
+      pod-security.kubernetes.io/warn-version: latest
+
+# Step 2: Add audit labels (logs violations)
+_pss_rollout_step2:
+  metadata:
+    labels:
+      pod-security.kubernetes.io/warn: baseline
+      pod-security.kubernetes.io/warn-version: latest
+      pod-security.kubernetes.io/audit: baseline
+      pod-security.kubernetes.io/audit-version: latest
+
+# Step 3: Enable enforcement (blocks violations)
+_pss_rollout_step3:
+  metadata:
+    labels:
+      pod-security.kubernetes.io/enforce: baseline
+      pod-security.kubernetes.io/enforce-version: latest
+      pod-security.kubernetes.io/audit: restricted
+      pod-security.kubernetes.io/audit-version: latest
+      pod-security.kubernetes.io/warn: restricted
+      pod-security.kubernetes.io/warn-version: latest
+
+---
+# kubectl commands for PSS rollout
+_kubectl_commands:
+  # Check current PSS labels
+  check: |
+    kubectl get ns --show-labels | grep pod-security
+
+  # Add warn labels to namespace
+  add_warn: |
+    kubectl label ns $NAMESPACE \
+      pod-security.kubernetes.io/warn=baseline \
+      pod-security.kubernetes.io/warn-version=latest
+
+  # Add audit labels to namespace
+  add_audit: |
+    kubectl label ns $NAMESPACE \
+      pod-security.kubernetes.io/audit=baseline \
+      pod-security.kubernetes.io/audit-version=latest
+
+  # Enable enforcement
+  enable_enforce: |
+    kubectl label ns $NAMESPACE \
+      pod-security.kubernetes.io/enforce=baseline \
+      pod-security.kubernetes.io/enforce-version=latest
+
+  # Dry-run check for violations
+  dry_run: |
+    kubectl label --dry-run=server --overwrite ns $NAMESPACE \
+      pod-security.kubernetes.io/enforce=restricted

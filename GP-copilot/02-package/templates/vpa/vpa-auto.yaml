@@ -1,0 +1,70 @@
+# VerticalPodAutoscaler — Auto Mode (with safety bounds)
+#
+# WARNING: Auto mode EVICTS pods to apply new resource requests.
+# Only use when:
+#   - You have observed recommendations in Off mode for 24-48h
+#   - The workload has multiple replicas (VPA won't evict the last pod)
+#   - PodDisruptionBudgets are in place
+#   - The workload handles graceful restarts
+#
+# NEVER use Auto mode on CPU if HPA is also scaling on CPU for the same
+# deployment. Safe combinations:
+#   - HPA on CPU + VPA Auto on memory only
+#   - HPA on custom metrics + VPA Auto on cpu and memory
+#   - No HPA + VPA Auto on both cpu and memory
+#
+# Usage:
+#   1. Replace <APP_NAME> with your deployment name
+#   2. Replace <NAMESPACE> with the deployment's namespace
+#   3. Adjust minAllowed/maxAllowed to match your workload's known bounds
+#   4. kubectl apply -f vpa-auto.yaml
+#
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: <APP_NAME>-vpa
+  namespace: <NAMESPACE>
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+    app.kubernetes.io/part-of: <APP_NAME>
+spec:
+  # targetRef: the workload VPA will manage
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: <APP_NAME>
+
+  # updatePolicy.updateMode: "Auto" means VPA will evict pods and
+  # recreate them with updated resource requests. The admission controller
+  # mutates the pod spec on creation with VPA's recommended values.
+  updatePolicy:
+    updateMode: "Auto"
+
+  # resourcePolicy: CRITICAL for Auto mode — set min/max bounds to prevent
+  # VPA from setting dangerously low or high values.
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        # controlledResources: which resources VPA manages
+        controlledResources:
+          - cpu
+          - memory
+
+        # minAllowed: floor — VPA will never set requests below this.
+        # Prevents under-provisioning that causes crashes or throttling.
+        # Set based on your workload's minimum viable resources.
+        minAllowed:
+          cpu: 50m
+          memory: 64Mi
+
+        # maxAllowed: ceiling — VPA will never set requests above this.
+        # Prevents a single pod from consuming an entire node.
+        # Set based on your namespace quota or node capacity.
+        maxAllowed:
+          cpu: 2
+          memory: 4Gi
+
+        # controlledValues: "RequestsAndLimits" makes VPA manage both.
+        # "RequestsOnly" manages requests and keeps limits proportional.
+        # RequestsOnly is safer — limits stay as you defined them.
+        controlledValues: "RequestsOnly"

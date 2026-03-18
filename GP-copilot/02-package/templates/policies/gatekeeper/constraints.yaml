@@ -1,0 +1,61 @@
+# ============================================================================
+# OPA GATEKEEPER CONSTRAINTS — Cluster-wide
+# ============================================================================
+# Constraint instances that enforce policies across all application namespaces.
+# System namespaces (kube-system, gatekeeper-system) are excluded.
+# Enforcement Action: deny (deploy-policies.sh converts to dryrun in audit mode)
+# ============================================================================
+
+---
+# Constraint: Require Non-Root Containers
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequireNonRoot
+metadata:
+  name: require-non-root
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+
+---
+# Constraint: Block Privileged Containers
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sBlockPrivileged
+metadata:
+  name: block-privileged-containers
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system
+
+---
+# Constraint: Block CVV/PIN in ConfigMaps/Secrets
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sBlockCVVPIN
+metadata:
+  name: block-cvv-pin-in-configmaps
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["ConfigMap", "Secret"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+      - gatekeeper-system

@@ -1,0 +1,41 @@
+# Quick Reference: RBAC Least Privilege Pattern
+# CKS Domains: Cluster Hardening
+# CKA Domains: Cluster Architecture
+---
+# ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-sa
+  namespace: CHANGE_ME
+automountServiceAccountToken: false
+---
+# Role (namespaced — prefer over ClusterRole)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: app-role
+  namespace: CHANGE_ME
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]
+# Never use: verbs: ["*"], resources: ["*"], apiGroups: ["*"]
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-rolebinding
+  namespace: CHANGE_ME
+subjects:
+- kind: ServiceAccount
+  name: app-sa
+  namespace: CHANGE_ME
+roleRef:
+  kind: Role
+  name: app-role
+  apiGroup: rbac.authorization.k8s.io

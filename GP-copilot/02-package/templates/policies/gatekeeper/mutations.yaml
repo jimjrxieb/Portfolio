@@ -1,0 +1,44 @@
+# ============================================================================
+# OPA GATEKEEPER MUTATIONS - SecureBank
+# ============================================================================
+# Automatic security context injection for pods
+# Adds runAsNonRoot, runAsUser, fsGroup automatically
+# ============================================================================
+
+---
+# Mutation: Add Pod Security Context
+apiVersion: mutations.gatekeeper.sh/v1alpha1
+kind: Assign
+metadata:
+  name: add-pod-security-context
+spec:
+  applyTo:
+    - groups: ["apps"]
+      kinds: ["Deployment"]
+      versions: ["v1"]
+  location: "spec.template.spec.securityContext"
+  parameters:
+    assign:
+      value:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+---
+# Mutation: Add Container Security Context
+apiVersion: mutations.gatekeeper.sh/v1alpha1
+kind: Assign
+metadata:
+  name: add-container-security-context
+spec:
+  applyTo:
+    - groups: ["apps"]
+      kinds: ["Deployment"]
+      versions: ["v1"]
+  location: "spec.template.spec.securityContext"
+  parameters:
+    assign:
+      value:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000

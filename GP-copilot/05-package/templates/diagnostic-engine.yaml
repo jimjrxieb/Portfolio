@@ -1,0 +1,505 @@
+# ============================================================================
+# jsa-kubester Diagnostic Engine
+# ============================================================================
+# k8s-gpt on steroids. Given ANY symptom, walk through diagnosis to root
+# cause, fix it, explain why, and prevent it from recurring.
+#
+# Structure per symptom:
+#   signal      = what you see (error message, kubectl output, metric)
+#   diagnosis   = ordered steps to find root cause
+#   fixes       = ranked solutions (E/D/C/B with commands)
+#   explain     = CKS/CKA/CKAD context (exam domain, why it matters)
+#   prevent     = what should exist upstream so this never happens
+#   verify      = prove the fix worked
+# ============================================================================
+
+engine: jsa-kubester
+version: "1.0"
+
+# ============================================================================
+# POD FAILURES — The daily bread
+# ============================================================================
+
+pod_failures:
+
+  crashloopbackoff:
+    signal: "Pod status: CrashLoopBackOff"
+    diagnosis:
+      - step: "Get restart count and last state"
+        command: "kubectl describe pod ${POD} -n ${NS} | grep -A5 'Last State\\|Restart Count'"
+      - step: "Read previous logs (the crash)"
+        command: "kubectl logs ${POD} -n ${NS} --previous --tail=100"
+      - step: "Check events for hints"
+        command: "kubectl get events -n ${NS} --sort-by='.lastTimestamp' | grep ${POD}"
+      - step: "Branch by root cause"
+        branches:
+          oom_killed:
+            pattern: "OOMKilled in last state"
+            goto: "oom_killed"
+          readonly_fs:
+            pattern: "Read-only file system|EROFS|chmod: Operation not permitted"
+            goto: "readonly_fs"
+          config_missing:
+            pattern: "configmap.*not found|secret.*not found"
+            goto: "config_missing"
+          permission_denied:
+            pattern: "Permission denied|EACCES"
+            goto: "permission_denied"
+          port_conflict:
+            pattern: "bind: address already in use"
+            goto: "port_conflict"
+          dependency_down:
+            pattern: "Connection refused|ECONNREFUSED|no such host"
+            goto: "dependency_down"
+          probe_failure:
+            pattern: "Liveness probe failed|Readiness probe failed"
+            goto: "probe_failure"
+          unknown:
+            pattern: "none of the above"
+            goto: "unknown_crash"
+    exam: "CKA Domain 5 (Troubleshooting), CKS Domain 6 (Runtime)"
+
+  oom_killed:
+    signal: "Container terminated: OOMKilled"
+    diagnosis:
+      - step: "Check current memory limit"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.containers[0].resources.limits.memory}'"
+      - step: "Check actual usage before kill"
+        command: "kubectl top pod ${POD} -n ${NS} 2>/dev/null || echo 'metrics-server needed'"
+      - step: "Check LimitRange defaults"
+        command: "kubectl get limitrange -n ${NS} -o yaml"
+    fixes:
+      e_rank:
+        action: "Scale memory: current × 1.5 (capped at 4Gi)"
+        command: "kubectl set resources deployment/${DEPLOY} -n ${NS} --limits=memory=${NEW_LIMIT}"
+      d_rank:
+        action: "Profile with kubectl top over time, set to p95 × 1.5 headroom"
+        command: "02-CLUSTER-HARDENING/tools/hardening/profile-and-set-limits.sh --namespace ${NS}"
+      b_rank:
+        action: "App has a memory leak — dev team must investigate"
+        escalate: "If memory grows unbounded regardless of limit"
+    explain:
+      domain: "CKA Domain 2 (Workloads), CKS Domain 4 (Microservice Vulnerabilities)"
+      why: |
+        Every container MUST have memory limits. Without limits, a single pod
+        can consume all node memory and evict neighbors. LimitRange provides
+        defaults, but explicit limits in manifests are the source of truth.
+      exam_tip: "CKA exam: know 'kubectl set resources' imperative command"
+    prevent:
+      devsec: "Set correct memory limits in Helm values / manifest"
+      infrasec: "LimitRange defaults as backstop + ResourceQuota per namespace"
+      monitor: "OOM alert in Prometheus + auto-scale response"
+    verify: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.status.containerStatuses[0].restartCount}' returns 0 after 10 min"
+
+  readonly_fs:
+    signal: "Read-only file system / EROFS / chmod: Operation not permitted"
+    diagnosis:
+      - step: "Confirm readOnlyRootFilesystem is set"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.containers[0].securityContext.readOnlyRootFilesystem}'"
+      - step: "Find which path is blocked"
+        command: "kubectl logs ${POD} -n ${NS} --previous | grep -i 'read-only\\|EROFS\\|permission denied'"
+      - step: "Check existing emptyDir mounts"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.volumes[*].name}'"
+    fixes:
+      d_rank:
+        action: "Add emptyDir volume for blocked path (keep readOnlyRootFilesystem=true)"
+        known_paths:
+          postgres: ["/var/lib/postgresql/data", "/var/run/postgresql"]
+          mysql: ["/var/lib/mysql", "/var/run/mysqld"]
+          nginx: ["/var/cache/nginx", "/var/run", "/tmp"]
+          redis: ["/data"]
+          mongo: ["/data/db"]
+          elasticsearch: ["/usr/share/elasticsearch/data"]
+          vault: ["/vault/data"]
+          tomcat: ["/usr/local/tomcat/work", "/tmp"]
+          generic: ["/tmp", "/var/tmp"]
+        command: |
+          kubectl patch deployment ${DEPLOY} -n ${NS} --type=json -p '[
+            {"op":"add","path":"/spec/template/spec/volumes/-","value":{"name":"writable-tmp","emptyDir":{}}},
+            {"op":"add","path":"/spec/template/spec/containers/0/volumeMounts/-","value":{"name":"writable-tmp","mountPath":"/tmp"}}
+          ]'
+    explain:
+      domain: "CKS Domain 4 (Microservice Vulnerabilities), CKS Domain 6 (Runtime)"
+      why: |
+        readOnlyRootFilesystem prevents attackers from writing binaries,
+        scripts, or persistence mechanisms to the container filesystem.
+        It's a CKS exam requirement. The fix is NOT to disable it —
+        the fix is to provide emptyDir for legitimate write paths.
+      exam_tip: "CKS exam: always use readOnlyRootFilesystem + emptyDir pattern"
+    prevent:
+      devsec: "Helm chart must include emptyDir mounts for the image's write paths"
+      infrasec: "Golden path template includes common emptyDir patterns per image type"
+    verify: "Pod running + readOnlyRootFilesystem still true + no EROFS in logs"
+
+  imagepullbackoff:
+    signal: "Pod status: ImagePullBackOff / ErrImagePull"
+    diagnosis:
+      - step: "Get image name"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.containers[0].image}'"
+      - step: "Check events for auth error vs not found"
+        command: "kubectl describe pod ${POD} -n ${NS} | grep -A3 'Events'"
+      - step: "Check imagePullSecrets"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.imagePullSecrets}'"
+      - step: "Branch by cause"
+        branches:
+          auth_failed: { pattern: "unauthorized|401|403", goto: "imagepull_auth" }
+          not_found: { pattern: "not found|manifest unknown", goto: "imagepull_notfound" }
+          rate_limit: { pattern: "429|rate limit|Too Many Requests", goto: "imagepull_ratelimit" }
+    fixes:
+      d_rank_auth:
+        action: "Create or fix imagePullSecret"
+        command: "kubectl create secret docker-registry regcred -n ${NS} --docker-server=${REGISTRY} --docker-username=${USER} --docker-password=${PASS}"
+      d_rank_notfound:
+        action: "Rollback to last working image"
+        command: "kubectl rollout undo deployment/${DEPLOY} -n ${NS}"
+      d_rank_ratelimit:
+        action: "Mirror image to private registry"
+    explain:
+      domain: "CKS Domain 5 (Supply Chain), CKA Domain 2 (Workloads)"
+      why: |
+        Every private registry needs imagePullSecrets. Public registries
+        rate-limit anonymous pulls. Production should mirror images to a
+        private registry to avoid both problems.
+      exam_tip: "CKA exam: know 'kubectl create secret docker-registry' by heart"
+    prevent:
+      devsec: "CI must verify image exists + is pullable before deploy"
+      infrasec: "imagePullSecrets in namespace template / service account"
+
+  config_missing:
+    signal: "CreateContainerConfigError / configmap or secret not found"
+    diagnosis:
+      - step: "Find which ConfigMap or Secret is missing"
+        command: "kubectl describe pod ${POD} -n ${NS} | grep -E 'Warning.*configmap|Warning.*secret'"
+      - step: "List expected vs existing"
+        command: "kubectl get configmap,secret -n ${NS}"
+    fixes:
+      d_rank:
+        action: "Report missing resource with clear path to fix (don't fabricate)"
+      b_rank:
+        action: "Missing config is a deployment error — human must provide correct values"
+    explain:
+      domain: "CKAD Domain 3 (Application Environment)"
+      why: |
+        ConfigMaps and Secrets are runtime dependencies. If they don't exist
+        when the pod starts, the container can't be created. CI should validate
+        all referenced resources exist in the target namespace.
+    prevent:
+      devsec: "Conftest rule: deny deploy if referenced ConfigMap/Secret not in manifest"
+      infrasec: "Admission: warn if pod references non-existent ConfigMap/Secret"
+
+  permission_denied:
+    signal: "Permission denied / EACCES (non-root user can't access file)"
+    diagnosis:
+      - step: "Check runAsUser and fsGroup"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.securityContext}'"
+      - step: "Check volume mount permissions"
+        command: "kubectl exec ${POD} -n ${NS} -- ls -la ${BLOCKED_PATH} 2>/dev/null || echo 'exec not available'"
+    fixes:
+      d_rank:
+        action: "Set correct fsGroup in pod securityContext"
+        command: "kubectl patch deployment ${DEPLOY} -n ${NS} --type=json -p '[{\"op\":\"add\",\"path\":\"/spec/template/spec/securityContext/fsGroup\",\"value\":1000}]'"
+    explain:
+      domain: "CKS Domain 4 (Microservice Vulnerabilities)"
+      why: |
+        When running as non-root (which you MUST), file permissions matter.
+        fsGroup ensures mounted volumes are accessible to the pod's group.
+        Don't fix by running as root — fix the permissions.
+    prevent:
+      devsec: "Manifest must set fsGroup matching the image's user"
+
+  probe_failure:
+    signal: "Liveness probe failed / Readiness probe failed"
+    diagnosis:
+      - step: "Get probe definition"
+        command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.containers[0].livenessProbe}'"
+      - step: "Check if app is slow to start"
+        command: "kubectl describe pod ${POD} -n ${NS} | grep -E 'initialDelay|period|failure'"
+      - step: "Test endpoint manually"
+        command: "kubectl exec ${POD} -n ${NS} -- wget -qO- http://localhost:${PORT}${PATH} 2>/dev/null || echo 'endpoint not responding'"
+    fixes:
+      d_rank_slow_start:
+        action: "Increase initialDelaySeconds"
+        command: "kubectl patch deployment ${DEPLOY} -n ${NS} --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/livenessProbe/initialDelaySeconds\",\"value\":60}]'"
+      d_rank_wrong_path:
+        action: "Fix probe path/port to match application"
+      c_rank:
+        action: "JADE: inspect app code for correct health endpoint"
+    explain:
+      domain: "CKAD Domain 5 (Observability), CKA Domain 2 (Workloads)"
+      why: |
+        Probes tell Kubernetes when a container is alive (liveness) and
+        ready to serve traffic (readiness). Wrong probe config = K8s kills
+        healthy pods or routes traffic to unready ones.
+      exam_tip: |
+        CKA/CKAD exam: know all three probe types by heart:
+        - httpGet: {path: /healthz, port: 8080}
+        - tcpSocket: {port: 3306}
+        - exec: {command: ["/bin/sh", "-c", "pg_isready"]}
+    prevent:
+      devsec: "Correct probe config in Helm chart"
+      infrasec: "Admission: require probes on all Deployments"
+
+  dependency_down:
+    signal: "Connection refused / ECONNREFUSED / no such host"
+    diagnosis:
+      - step: "Identify which dependency"
+        command: "kubectl logs ${POD} -n ${NS} --tail=50 | grep -i 'refused\\|ECONNREFUSED\\|no such host'"
+      - step: "Check if dependency service exists"
+        command: "kubectl get svc -n ${NS} && kubectl get endpoints -n ${NS}"
+      - step: "Check DNS resolution"
+        command: "kubectl exec ${POD} -n ${NS} -- nslookup ${SERVICE_NAME} 2>/dev/null || echo 'DNS check unavailable'"
+      - step: "Check NetworkPolicy blocking"
+        command: "kubectl get networkpolicy -n ${NS} -o yaml"
+    fixes:
+      d_rank_dns:
+        action: "Fix service name or deploy missing service"
+      d_rank_networkpolicy:
+        action: "Add NetworkPolicy allowing egress to dependency"
+      b_rank:
+        action: "External dependency is down — human must investigate"
+    explain:
+      domain: "CKA Domain 3 (Services & Networking), CKS Domain 1 (Cluster Setup)"
+      why: |
+        In K8s, services discover each other via DNS (CoreDNS).
+        If DNS fails or NetworkPolicy blocks egress, services can't communicate.
+        Default-deny NetworkPolicy must explicitly allow required flows.
+    prevent:
+      infrasec: "NetworkPolicy must be service-aware (discover before deny)"
+
+# ============================================================================
+# SECURITY FINDINGS — CKS specialist territory
+# ============================================================================
+
+security_findings:
+
+  privileged_container:
+    signal: "Container running as privileged / SYS_ADMIN capability"
+    diagnosis:
+      - command: "kubectl get pods -A -o json | jq '[.items[] | select(.spec.containers[].securityContext.privileged==true) | {name:.metadata.name, ns:.metadata.namespace}]'"
+    fixes:
+      d_rank:
+        action: "Remove privileged flag, add only needed capabilities"
+        exceptions: ["CNI DaemonSets (Cilium, Calico)", "CSI drivers", "monitoring node agents"]
+    explain:
+      domain: "CKS Domain 4 (Microservice Vulnerabilities)"
+      why: "Privileged = root on the host. Container escape is trivial."
+      exam_tip: "CKS: the answer is ALWAYS 'remove privileged, use specific capabilities'"
+
+  no_network_policy:
+    signal: "Namespace has no NetworkPolicy"
+    diagnosis:
+      - command: "kubectl get networkpolicy -n ${NS}"
+      - command: "kubectl get pods -n ${NS} -o wide"
+    fixes:
+      d_rank:
+        action: "Apply default-deny + DNS allow + service-specific allow"
+        template: "04-KUBESTER/templates/quick-ref/networkpolicy-default-deny.yaml"
+    explain:
+      domain: "CKS Domain 1 (Cluster Setup), CKA Domain 3 (Services & Networking)"
+      why: |
+        Without NetworkPolicy, every pod can talk to every other pod.
+        Default-deny is the single most impactful security control in K8s.
+      exam_tip: "CKS exam: default-deny is ALWAYS the first step in network questions"
+
+  wildcard_rbac:
+    signal: "ClusterRole with verbs: ['*'] or resources: ['*']"
+    diagnosis:
+      - command: "kubectl get clusterroles -o json | jq '[.items[] | select(.rules[]? | (.verbs[]? == \"*\") or (.resources[]? == \"*\")) | .metadata.name]'"
+    fixes:
+      c_rank:
+        action: "JADE: propose scoped replacement role"
+      s_rank:
+        action: "cluster-admin binding → HUMAN ONLY. Never auto-modify."
+    explain:
+      domain: "CKS Domain 2 (Cluster Hardening)"
+      why: "Wildcard RBAC = any action on any resource. Compromise this SA = own the cluster."
+      exam_tip: "CKS: always create least-privilege roles. Never use '*'."
+
+  no_seccomp:
+    signal: "Pod without seccomp profile"
+    diagnosis:
+      - command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.spec.securityContext.seccompProfile}'"
+    fixes:
+      d_rank:
+        action: "Add seccomp RuntimeDefault"
+        command: "kubectl patch deployment ${DEPLOY} -n ${NS} --type=json -p '[{\"op\":\"add\",\"path\":\"/spec/template/spec/securityContext/seccompProfile\",\"value\":{\"type\":\"RuntimeDefault\"}}]'"
+    explain:
+      domain: "CKS Domain 3 (System Hardening)"
+      why: "Seccomp restricts which syscalls a container can make. RuntimeDefault blocks 50+ dangerous syscalls."
+      exam_tip: "CKS: always apply seccompProfile.type=RuntimeDefault"
+
+  no_apparmor:
+    signal: "Pod without AppArmor profile"
+    diagnosis:
+      - command: "kubectl get pod ${POD} -n ${NS} -o jsonpath='{.metadata.annotations.container\\.apparmor\\.security\\.beta\\.kubernetes\\.io}'"
+    fixes:
+      d_rank:
+        action: "Add AppArmor runtime/default annotation"
+        note: "Only if AppArmor is available on nodes (check /sys/kernel/security/apparmor/)"
+    explain:
+      domain: "CKS Domain 3 (System Hardening)"
+      why: "AppArmor provides mandatory access control at the kernel level. Even if a process escapes the container, AppArmor restricts its host access."
+
+  etcd_unencrypted:
+    signal: "etcd secrets not encrypted at rest"
+    diagnosis:
+      - command: "kubectl get pod kube-apiserver-* -n kube-system -o yaml | grep encryption-provider"
+      - command: "kubectl create secret generic test-enc -n default --from-literal=key=value && ETCDCTL_API=3 etcdctl get /registry/secrets/default/test-enc --print-value-only"
+    fixes:
+      b_rank:
+        action: "Configure EncryptionConfiguration and restart API server"
+        note: "This is a control plane change — requires human approval"
+    explain:
+      domain: "CKS Domain 4 (Microservice Vulnerabilities), CKA Domain 1 (Cluster Architecture)"
+      why: "Without encryption at rest, anyone with etcd access can read all secrets in plaintext."
+      exam_tip: "CKS/CKA: know EncryptionConfiguration YAML by heart, and how to verify with etcdctl"
+
+  audit_logging_disabled:
+    signal: "K8s audit logging not configured"
+    diagnosis:
+      - command: "kubectl get pod kube-apiserver-* -n kube-system -o yaml | grep audit-log-path"
+    fixes:
+      b_rank:
+        action: "Deploy audit policy + configure API server flags"
+        template: "04-KUBESTER/templates/quick-ref/audit-policy.yaml"
+    explain:
+      domain: "CKS Domain 6 (Monitoring, Logging & Runtime)"
+      why: "Audit logs are your forensic evidence. Without them, you can't investigate incidents."
+      exam_tip: "CKS: know the 4 audit levels (None, Metadata, Request, RequestResponse)"
+
+  nodeport_exposed:
+    signal: "Service type NodePort in production"
+    diagnosis:
+      - command: "kubectl get svc -A --field-selector spec.type=NodePort"
+    fixes:
+      d_rank:
+        action: "Convert to ClusterIP + Ingress/Gateway"
+    explain:
+      domain: "CKS Domain 1 (Cluster Setup), CKA Domain 3 (Services & Networking)"
+      why: "NodePort exposes services directly on every node IP. Use Ingress/Gateway for TLS, auth, rate limiting."
+      exam_tip: "CKS: NodePort in production is always wrong. The answer is Ingress."
+
+# ============================================================================
+# CLUSTER HEALTH — CKA specialist territory
+# ============================================================================
+
+cluster_health:
+
+  node_not_ready:
+    signal: "Node status: NotReady"
+    diagnosis:
+      - command: "kubectl describe node ${NODE} | grep -A10 Conditions"
+      - command: "kubectl get events --field-selector involvedObject.name=${NODE}"
+      - step: "Check kubelet"
+        command: "ssh ${NODE} 'systemctl status kubelet'"
+      - step: "Check disk pressure, memory pressure, PID pressure"
+    fixes:
+      d_rank_kubelet:
+        action: "Restart kubelet"
+        command: "ssh ${NODE} 'systemctl restart kubelet'"
+      b_rank:
+        action: "Node hardware failure / disk full — human must investigate"
+    explain:
+      domain: "CKA Domain 5 (Troubleshooting)"
+      exam_tip: "CKA: always check kubelet status first, then conditions"
+
+  etcd_unhealthy:
+    signal: "etcd health check failing"
+    diagnosis:
+      - command: "ETCDCTL_API=3 etcdctl endpoint health --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/server.crt --key /etc/kubernetes/pki/etcd/server.key"
+    fixes:
+      s_rank:
+        action: "etcd failure = cluster-wide impact. HUMAN ONLY."
+        backup: "04-KUBESTER/templates/quick-ref/etcd-backup-restore.sh backup"
+    explain:
+      domain: "CKA Domain 1 (Cluster Architecture)"
+      why: "etcd is the brain of K8s. All state is here. Lose etcd = lose the cluster."
+      exam_tip: "CKA: etcd backup/restore is a guaranteed exam question"
+
+  dns_resolution_failure:
+    signal: "Services can't resolve each other by name"
+    diagnosis:
+      - command: "kubectl get pods -n kube-system -l k8s-app=kube-dns"
+      - command: "kubectl run dnstest --image=busybox --rm -i --restart=Never -- nslookup kubernetes.default"
+    fixes:
+      d_rank:
+        action: "Restart CoreDNS if pods are healthy but DNS fails"
+        command: "kubectl rollout restart deployment/coredns -n kube-system"
+      b_rank:
+        action: "CoreDNS pods not running — investigate scheduling/resources"
+    explain:
+      domain: "CKA Domain 3 (Services & Networking)"
+      exam_tip: "CKA: always test DNS with 'nslookup kubernetes.default' from a busybox pod"
+
+  pv_stuck_terminating:
+    signal: "PV or PVC stuck in Terminating state"
+    diagnosis:
+      - command: "kubectl get pv ${PV} -o jsonpath='{.metadata.finalizers}'"
+      - command: "kubectl get pvc ${PVC} -n ${NS} -o jsonpath='{.metadata.finalizers}'"
+    fixes:
+      d_rank:
+        action: "Remove finalizer if no pods are using the volume"
+        command: "kubectl patch pv ${PV} -p '{\"metadata\":{\"finalizers\":null}}'"
+      b_rank:
+        action: "PV still in use — find and terminate the pod first"
+    explain:
+      domain: "CKA Domain 4 (Storage)"
+      exam_tip: "CKA: stuck PV/PVC is always a finalizer issue"
+
+# ============================================================================
+# IMPERATIVE COMMAND REFERENCE — Exam speed
+# ============================================================================
+
+imperative_commands:
+  note: "Every command kubester teaches should work in <10 seconds on the exam"
+
+  pods:
+    run: "kubectl run ${NAME} --image=${IMAGE} --restart=Never"
+    run_with_labels: "kubectl run ${NAME} --image=${IMAGE} --labels=app=${APP}"
+    run_dry: "kubectl run ${NAME} --image=${IMAGE} --dry-run=client -o yaml > pod.yaml"
+    exec: "kubectl exec -it ${POD} -n ${NS} -- /bin/sh"
+    logs: "kubectl logs ${POD} -n ${NS} --previous --tail=100"
+    delete_force: "kubectl delete pod ${POD} -n ${NS} --grace-period=0 --force"
+
+  deployments:
+    create: "kubectl create deployment ${NAME} --image=${IMAGE} --replicas=3"
+    scale: "kubectl scale deployment ${NAME} --replicas=${N}"
+    set_image: "kubectl set image deployment/${NAME} ${CONTAINER}=${IMAGE}"
+    rollout_status: "kubectl rollout status deployment/${NAME}"
+    rollback: "kubectl rollout undo deployment/${NAME}"
+    set_resources: "kubectl set resources deployment/${NAME} --limits=cpu=500m,memory=256Mi"
+
+  services:
+    expose: "kubectl expose deployment ${NAME} --port=80 --target-port=8080 --type=ClusterIP"
+    nodeport: "kubectl expose deployment ${NAME} --port=80 --type=NodePort"
+
+  rbac:
+    create_role: "kubectl create role ${NAME} --verb=get,list,watch --resource=pods -n ${NS}"
+    create_rolebinding: "kubectl create rolebinding ${NAME} --role=${ROLE} --serviceaccount=${NS}:${SA} -n ${NS}"
+    create_clusterrole: "kubectl create clusterrole ${NAME} --verb=get,list,watch --resource=nodes"
+    auth_can_i: "kubectl auth can-i get pods --as=system:serviceaccount:${NS}:${SA}"
+
+  secrets:
+    create: "kubectl create secret generic ${NAME} --from-literal=key=value -n ${NS}"
+    create_docker: "kubectl create secret docker-registry ${NAME} --docker-server=${REG} --docker-username=${USER} --docker-password=${PASS} -n ${NS}"
+
+  configmaps:
+    create: "kubectl create configmap ${NAME} --from-literal=key=value -n ${NS}"
+    create_from_file: "kubectl create configmap ${NAME} --from-file=${FILE} -n ${NS}"
+
+  namespace:
+    create: "kubectl create namespace ${NAME}"
+    pss_label: "kubectl label namespace ${NAME} pod-security.kubernetes.io/enforce=restricted"
+
+  debug:
+    describe: "kubectl describe pod ${POD} -n ${NS}"
+    events: "kubectl get events -n ${NS} --sort-by='.lastTimestamp'"
+    top: "kubectl top pods -n ${NS} --sort-by=memory"
+    api_resources: "kubectl api-resources --verbs=list --namespaced -o name"
+
+  security:
+    networkpolicy: "kubectl get networkpolicy -n ${NS} -o yaml"
+    pss: "kubectl get ns --show-labels | grep pod-security"
+    seccomp: "kubectl get pods -A -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.securityContext.seccompProfile.type}{\"\\n\"}{end}'"
+    privileged: "kubectl get pods -A -o json | jq '[.items[] | select(.spec.containers[].securityContext.privileged==true)]'"
+    cluster_admin: "kubectl get clusterrolebindings -o json | jq '[.items[] | select(.roleRef.name==\"cluster-admin\")]'"

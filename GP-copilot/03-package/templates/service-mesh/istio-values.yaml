@@ -1,0 +1,72 @@
+# Istio Ambient Mode — Helm Values
+#
+# Ambient mode = no sidecar injection. Uses ztunnel (L4) + waypoint proxies (L7).
+# Simpler than sidecar mode: fewer pods, less CPU overhead, easier debugging.
+#
+# Install:
+#   helm install istio-base istio/base -n istio-system --create-namespace
+#   helm install istiod istio/istiod -n istio-system -f istio-values.yaml
+#   helm install ztunnel istio/ztunnel -n istio-system
+#
+# Enroll a namespace:
+#   kubectl label namespace <ns> istio.io/dataplane-mode=ambient
+
+# ── istiod values ─────────────────────────────────────────────────────
+global:
+  # Ambient mode — no sidecar injection by default
+  proxy:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+
+  # Log level for troubleshooting
+  logging:
+    level: "default:info"
+
+pilot:
+  # istiod resource limits
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Enable ambient mode
+  env:
+    PILOT_ENABLE_AMBIENT: "true"
+
+  # Auto-discover CRDs
+  enableProtocolSniffingForOutbound: true
+
+meshConfig:
+  # Default mTLS mode — start PERMISSIVE, move to STRICT after verification
+  # See: tools/deploy-service-mesh.sh for the PERMISSIVE → STRICT progression
+  defaultConfig:
+    holdApplicationUntilProxyStarts: true
+
+  # Access logging for audit trail
+  accessLogFile: /dev/stdout
+  accessLogFormat: |
+    [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%"
+    %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT%
+    %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%
+    "%REQ(X-FORWARDED-FOR)%" "%REQ(USER-AGENT)%"
+    "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%"
+    "%UPSTREAM_HOST%" %UPSTREAM_CLUSTER%
+
+  # Enable tracing (works with Jaeger/Tempo)
+  enableTracing: true
+  defaultConfig:
+    tracing:
+      sampling: 10.0  # 10% sampling in production — increase for debugging
+
+  # Outbound traffic policy — REGISTRY_ONLY blocks unknown external calls
+  # Start with ALLOW_ANY, switch to REGISTRY_ONLY after cataloging all egress
+  outboundTrafficPolicy:
+    mode: ALLOW_ANY

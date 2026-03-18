@@ -1,0 +1,163 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Distributed Tracing Pipeline — OTel Collector + Jaeger/Tempo",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "Trace Ingestion Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(otelcol_receiver_accepted_spans_total[5m])",
+          "legendFormat": "Accepted spans/s"
+        },
+        {
+          "expr": "rate(otelcol_receiver_refused_spans_total[5m])",
+          "legendFormat": "Refused spans/s"
+        }
+      ]
+    },
+    {
+      "title": "Exporter Success/Failure",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(otelcol_exporter_sent_spans_total[5m])",
+          "legendFormat": "Sent to {{ exporter }}"
+        },
+        {
+          "expr": "rate(otelcol_exporter_send_failed_spans_total[5m])",
+          "legendFormat": "Failed to {{ exporter }}"
+        }
+      ]
+    },
+    {
+      "title": "Collector Memory Usage",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "container_memory_usage_bytes{namespace='observability', container='collector'} / container_spec_memory_limit_bytes{namespace='observability', container='collector'} * 100",
+          "legendFormat": "Memory %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          },
+          "unit": "percent",
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "Collector CPU Usage",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{namespace='observability', container='collector'}[5m]) / container_spec_cpu_quota{namespace='observability', container='collector'} * 100000",
+          "legendFormat": "CPU %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "unit": "percent",
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "Top Services by Span Count",
+      "type": "table",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (service_name) (rate(otelcol_receiver_accepted_spans_total[5m])))",
+          "legendFormat": "{{ service_name }}",
+          "format": "table",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "title": "Trace Pipeline Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 14 },
+      "targets": [
+        {
+          "expr": "up{job='otel-collector'}",
+          "legendFormat": "OTel Collector"
+        },
+        {
+          "expr": "up{job='jaeger-query'} or up{job='tempo'}",
+          "legendFormat": "Trace Backend"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "1": { "text": "UP", "color": "green" } } },
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" } } }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Batch Processor Queue",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 18 },
+      "targets": [
+        {
+          "expr": "otelcol_processor_batch_batch_size_trigger_send_total",
+          "legendFormat": "Batch sends"
+        },
+        {
+          "expr": "otelcol_processor_batch_timeout_trigger_send_total",
+          "legendFormat": "Timeout sends"
+        }
+      ]
+    },
+    {
+      "title": "Sampling Rate",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 18 },
+      "targets": [
+        {
+          "expr": "rate(otelcol_processor_probabilistic_sampler_count_traces_sampled[5m]) / rate(otelcol_receiver_accepted_spans_total[5m]) * 100",
+          "legendFormat": "Sampled %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["observability", "tracing", "otel", "ghost-protocol"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Distributed Tracing Pipeline",
+  "uid": "gp-tracing-pipeline"
+}

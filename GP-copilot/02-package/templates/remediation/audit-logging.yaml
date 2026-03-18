@@ -1,0 +1,251 @@
+# Audit Logging Templates for jsa-infrasec
+# CKS Exam: Monitoring, Logging and Runtime Security (20%)
+# Reference: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
+
+---
+# Comprehensive audit policy
+# Save to: /etc/kubernetes/audit-policy.yaml on control plane nodes
+apiVersion: audit.k8s.io/v1
+kind: Policy
+metadata:
+  annotations:
+    jsa-infrasec.io/remediation: "audit-policy-comprehensive"
+rules:
+  # Don't log read-only endpoints
+  - level: None
+    nonResourceURLs:
+      - /healthz*
+      - /version
+      - /readyz
+      - /livez
+
+  # Don't log kube-proxy watch requests
+  - level: None
+    users: ["system:kube-proxy"]
+    verbs: ["watch"]
+    resources:
+      - group: ""
+        resources: ["endpoints", "services", "services/status"]
+
+  # Don't log node status updates
+  - level: None
+    users: ["kubelet"]
+    verbs: ["patch"]
+    resources:
+      - group: ""
+        resources: ["nodes/status"]
+
+  # Log secrets access at Metadata level (no request/response body)
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["secrets", "configmaps"]
+
+  # Log authentication events
+  - level: RequestResponse
+    resources:
+      - group: "authentication.k8s.io"
+        resources: ["tokenreviews"]
+      - group: "authorization.k8s.io"
+        resources: ["subjectaccessreviews"]
+
+  # Log RBAC changes
+  - level: RequestResponse
+    resources:
+      - group: "rbac.authorization.k8s.io"
+        resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+
+  # Log pod exec/attach (security critical)
+  - level: RequestResponse
+    resources:
+      - group: ""
+        resources: ["pods/exec", "pods/attach", "pods/portforward"]
+
+  # Log all changes (create/update/patch/delete)
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: ""
+        resources: ["pods", "deployments", "services", "namespaces"]
+      - group: "apps"
+        resources: ["deployments", "daemonsets", "statefulsets"]
+      - group: "networking.k8s.io"
+        resources: ["networkpolicies", "ingresses"]
+
+  # Log all other requests at Metadata level
+  - level: Metadata
+    omitStages:
+      - RequestReceived
+
+---
+# Minimal audit policy (for high-volume clusters)
+apiVersion: audit.k8s.io/v1
+kind: Policy
+metadata:
+  annotations:
+    jsa-infrasec.io/remediation: "audit-policy-minimal"
+rules:
+  # Only log security-critical events
+  - level: None
+    nonResourceURLs:
+      - /healthz*
+      - /version
+      - /readyz
+      - /livez
+
+  # Log secrets access
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["secrets"]
+
+  # Log pod exec/attach
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["pods/exec", "pods/attach"]
+
+  # Log RBAC changes
+  - level: Metadata
+    resources:
+      - group: "rbac.authorization.k8s.io"
+        resources: ["*"]
+
+  # Log everything else at None
+  - level: None
+
+---
+# API server configuration for audit logging
+# Add to kube-apiserver manifest or flags
+_apiserver_audit_config:
+  flags:
+    - --audit-policy-file=/etc/kubernetes/audit-policy.yaml
+    - --audit-log-path=/var/log/kubernetes/audit/audit.log
+    - --audit-log-maxage=30
+    - --audit-log-maxbackup=10
+    - --audit-log-maxsize=100
+
+  volumes:
+    - name: audit-policy
+      hostPath:
+        path: /etc/kubernetes/audit-policy.yaml
+        type: File
+    - name: audit-logs
+      hostPath:
+        path: /var/log/kubernetes/audit
+        type: DirectoryOrCreate
+
+  volumeMounts:
+    - name: audit-policy
+      mountPath: /etc/kubernetes/audit-policy.yaml
+      readOnly: true
+    - name: audit-logs
+      mountPath: /var/log/kubernetes/audit
+
+---
+# Audit log forwarding with Fluentd
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-audit-config
+  namespace: kube-system
+  annotations:
+    jsa-infrasec.io/remediation: "audit-log-forwarding"
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      path /var/log/kubernetes/audit/audit.log
+      pos_file /var/log/fluentd-audit.pos
+      tag kubernetes.audit
+      <parse>
+        @type json
+        time_key requestReceivedTimestamp
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </parse>
+    </source>
+
+    <filter kubernetes.audit>
+      @type record_transformer
+      <record>
+        cluster ${ENV["CLUSTER_NAME"]}
+      </record>
+    </filter>
+
+    <match kubernetes.audit>
+      @type elasticsearch
+      host elasticsearch.logging.svc
+      port 9200
+      index_name kubernetes-audit
+      type_name _doc
+    </match>
+
+---
+# Falco rules for audit log analysis
+_falco_audit_rules:
+  description: "Falco rules that complement K8s audit logs"
+  rules:
+    - name: "Detect kubectl exec"
+      rule: |
+        - rule: Detect kubectl exec
+          desc: Detect exec into a pod
+          condition: >
+            ka.verb=create and
+            ka.target.resource=pods and
+            ka.target.subresource=exec
+          output: >
+            Exec into pod (user=%ka.user.name pod=%ka.target.name
+            ns=%ka.target.namespace command=%ka.req.container.command)
+          priority: WARNING
+
+    - name: "Detect secrets access"
+      rule: |
+        - rule: Detect secrets access
+          desc: Detect when secrets are accessed
+          condition: >
+            ka.verb in (get, list) and
+            ka.target.resource=secrets and
+            not ka.user.name in (system:serviceaccount:kube-system:*)
+          output: >
+            Secret accessed (user=%ka.user.name secret=%ka.target.name
+            ns=%ka.target.namespace)
+          priority: NOTICE
+
+    - name: "Detect RBAC changes"
+      rule: |
+        - rule: Detect RBAC changes
+          desc: Detect changes to RBAC roles or bindings
+          condition: >
+            ka.verb in (create, update, patch, delete) and
+            ka.target.resource in (roles, rolebindings, clusterroles, clusterrolebindings)
+          output: >
+            RBAC change (user=%ka.user.name verb=%ka.verb
+            resource=%ka.target.resource name=%ka.target.name)
+          priority: WARNING
+
+---
+# Useful kubectl commands for audit analysis
+_kubectl_audit_commands:
+  # Tail audit logs
+  tail_audit: |
+    kubectl logs -n kube-system -l component=kube-apiserver --tail=100 | jq .
+
+  # Find all secret accesses
+  find_secret_access: |
+    cat /var/log/kubernetes/audit/audit.log | \
+      jq 'select(.objectRef.resource=="secrets") | {user: .user.username, verb: .verb, secret: .objectRef.name, ns: .objectRef.namespace}'
+
+  # Find all exec commands
+  find_exec: |
+    cat /var/log/kubernetes/audit/audit.log | \
+      jq 'select(.objectRef.subresource=="exec") | {user: .user.username, pod: .objectRef.name, ns: .objectRef.namespace}'
+
+  # Find RBAC changes
+  find_rbac_changes: |
+    cat /var/log/kubernetes/audit/audit.log | \
+      jq 'select(.objectRef.apiGroup=="rbac.authorization.k8s.io" and .verb!="get" and .verb!="list" and .verb!="watch")'
+
+  # Find failed requests
+  find_failures: |
+    cat /var/log/kubernetes/audit/audit.log | \
+      jq 'select(.responseStatus.code >= 400) | {user: .user.username, verb: .verb, resource: .objectRef.resource, code: .responseStatus.code}'

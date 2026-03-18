@@ -1,0 +1,154 @@
+# RuntimeClass Templates for Container Sandboxing
+# CKS Exam: Minimize Microservice Vulnerabilities (20%)
+# Reference: https://kubernetes.io/docs/concepts/containers/runtime-class/
+
+---
+# gVisor RuntimeClass
+# gVisor provides application kernel isolation
+# Requires gVisor installed on nodes
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+  annotations:
+    jsa-infrasec.io/remediation: "runtimeclass-gvisor"
+    jsa-infrasec.io/sandbox-type: "application-kernel"
+handler: runsc
+scheduling:
+  nodeSelector:
+    sandbox.gvisor.dev/enabled: "true"
+  tolerations:
+    - key: sandbox.gvisor.dev/enabled
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+overhead:
+  podFixed:
+    cpu: "250m"
+    memory: "64Mi"
+
+---
+# Kata Containers RuntimeClass (QEMU)
+# Kata provides VM-based isolation
+# Requires Kata installed on nodes
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata-qemu
+  annotations:
+    jsa-infrasec.io/remediation: "runtimeclass-kata-qemu"
+    jsa-infrasec.io/sandbox-type: "micro-vm"
+handler: kata-qemu
+scheduling:
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"
+overhead:
+  podFixed:
+    cpu: "250m"
+    memory: "160Mi"
+
+---
+# Kata Containers RuntimeClass (Firecracker)
+# Firecracker provides lightweight micro-VMs
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: kata-fc
+  annotations:
+    jsa-infrasec.io/remediation: "runtimeclass-kata-firecracker"
+    jsa-infrasec.io/sandbox-type: "micro-vm-lightweight"
+handler: kata-fc
+scheduling:
+  nodeSelector:
+    katacontainers.io/kata-runtime: "true"
+overhead:
+  podFixed:
+    cpu: "200m"
+    memory: "128Mi"
+
+---
+# Generic sandbox RuntimeClass (alias)
+# Use this as default for untrusted workloads
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: sandbox
+  annotations:
+    jsa-infrasec.io/remediation: "runtimeclass-sandbox"
+    jsa-infrasec.io/sandbox-type: "generic"
+handler: runsc  # Default to gVisor, change as needed
+
+---
+# Example pod using gVisor
+apiVersion: v1
+kind: Pod
+metadata:
+  name: untrusted-workload
+  annotations:
+    jsa-infrasec.io/remediation: "pod-with-gvisor"
+spec:
+  runtimeClassName: gvisor
+  containers:
+    - name: untrusted
+      image: untrusted-registry.io/app:v1
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+
+---
+# Deployment patch for adding RuntimeClass
+_deployment_patch_runtimeclass:
+  spec:
+    template:
+      spec:
+        runtimeClassName: gvisor
+
+---
+# Node labels for sandbox support
+_node_labels:
+  gvisor:
+    sandbox.gvisor.dev/enabled: "true"
+  kata:
+    katacontainers.io/kata-runtime: "true"
+
+---
+# Installation notes
+_installation_notes:
+  gvisor: |
+    # Install gVisor on nodes (Ubuntu/Debian)
+    curl -fsSL https://gvisor.dev/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/gvisor-archive-keyring.gpg
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/gvisor-archive-keyring.gpg] https://storage.googleapis.com/gvisor/releases release main" | sudo tee /etc/apt/sources.list.d/gvisor.list
+    sudo apt-get update && sudo apt-get install -y runsc
+
+    # Configure containerd
+    cat <<EOF | sudo tee -a /etc/containerd/config.toml
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]
+      runtime_type = "io.containerd.runsc.v1"
+    EOF
+    sudo systemctl restart containerd
+
+    # Label nodes
+    kubectl label nodes <node-name> sandbox.gvisor.dev/enabled=true
+
+  kata: |
+    # Install Kata Containers (Ubuntu)
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/kata-containers/kata-containers/main/utils/kata-manager.sh)"
+
+    # Configure containerd
+    cat <<EOF | sudo tee -a /etc/containerd/config.toml
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.kata-qemu]
+      runtime_type = "io.containerd.kata-qemu.v2"
+    EOF
+    sudo systemctl restart containerd
+
+    # Label nodes
+    kubectl label nodes <node-name> katacontainers.io/kata-runtime=true
+
+---
+# Kyverno policy to require RuntimeClass for untrusted namespaces
+# See: templates/policies/kyverno/require-runtime-class-untrusted.yaml

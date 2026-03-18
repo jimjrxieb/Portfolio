@@ -1,0 +1,174 @@
+# =============================================================================
+# before-violations.yaml
+# =============================================================================
+# A realistic "legacy application" Deployment that violates 6 common CKS
+# policies. Used as the BEFORE state in remediation demonstrations.
+#
+# DO NOT deploy this to a production cluster. It is intentionally insecure
+# and is provided solely for policy testing and training purposes.
+#
+# Violations present in this manifest:
+#   [V1]  image: nginx:latest         -> disallow-latest-tag
+#   [V2]  securityContext: (missing)  -> require-run-as-nonroot, require-seccomp
+#   [V3]  resources: (missing)        -> require-resource-limits
+#   [V4]  privileged: true            -> disallow-privileged
+#   [V5]  hostNetwork: true           -> disallow-host-namespaces
+#   [V6]  capabilities: [NET_ADMIN, SYS_ADMIN]  -> require-drop-all-capabilities
+#
+# Framework mapping (what these violations expose):
+#   CIS  5.2.1  Privileged containers
+#   CIS  5.2.2  hostPID / hostIPC / hostNetwork
+#   CIS  5.2.4  Containers not running as root
+#   CIS  5.2.7  Capabilities
+#   NIST CM-7   Least functionality
+#   NIST SI-3   Malicious code protection
+# =============================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: legacy-app
+  labels:
+    # No PSA labels — pods are not restricted
+    # Violation: missing pod-security.kubernetes.io/enforce: restricted
+    app.kubernetes.io/name: legacy-app
+    environment: production
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-webapp
+  namespace: legacy-app
+  labels:
+    app: legacy-webapp
+    tier: frontend
+    environment: production
+    version: "1.0"
+  annotations:
+    # Ticket tracking these known issues (backlog since 2022)
+    tech-debt/ticket: "INFRA-4421"
+    tech-debt/created: "2022-03-15"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: legacy-webapp
+  template:
+    metadata:
+      labels:
+        app: legacy-webapp
+        tier: frontend
+    spec:
+      # [V5] hostNetwork: true — pods share the node's network namespace.
+      # Violates: disallow-host-namespaces (Kyverno), disallow-host-namespaces (OPA)
+      # Risk: pods can sniff all node-level traffic, bypass network policies.
+      hostNetwork: true
+
+      # [V5] hostPID + hostIPC are also set — seen in legacy monitoring sidecars
+      # Violates: disallow-host-namespaces
+      # Risk: process inspection and inter-process communication on host.
+      hostPID: true
+      hostIPC: true
+
+      containers:
+        - name: webapp
+
+          # [V1] Mutable "latest" tag — image digest unknown at deploy time.
+          # Violates: disallow-latest-tag (Kyverno), require-image-digest (Kyverno)
+          # Risk: silent image replacement between pod restarts, no reproducibility.
+          image: nginx:latest
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 80
+              name: http
+            - containerPort: 443
+              name: https
+
+          # [V3] No resource requests or limits defined.
+          # Violates: require-resource-limits (Kyverno), LimitRange enforcement
+          # Risk: noisy-neighbor CPU starvation, unbounded memory leading to OOM kills.
+          # resources: {}   <-- intentionally omitted
+
+          # [V2] No securityContext at all — container runs as root by default.
+          # Violates: require-run-as-nonroot, require-seccomp, require-read-only-root
+          # Risk: any exploit immediately has root UID (0) inside the container.
+          # securityContext: {}   <-- intentionally omitted
+
+          env:
+            - name: APP_ENV
+              value: production
+            - name: DATABASE_PASSWORD
+              # [BONUS BAD PRACTICE] Plaintext secret in env var, not a SecretRef.
+              # Not a Kyverno policy by default but caught by devsec scanners.
+              value: "SuperSecret123!"
+
+          volumeMounts:
+            - name: app-data
+              mountPath: /var/app/data
+
+        - name: log-forwarder
+          # [V1] Also uses latest — two violations in the same pod.
+          image: fluent/fluent-bit:latest
+
+          # [V4] Privileged container — full host kernel access.
+          # Violates: disallow-privileged (Kyverno PSP replacement policy)
+          # Risk: complete container escape, kernel module loading, host filesystem access.
+          securityContext:
+            privileged: true
+
+            # [V6] Dangerous capabilities added.
+            # Violates: require-drop-all-capabilities, disallow-capabilities-strict
+            # NET_ADMIN: manipulate network interfaces, routing tables, firewall rules
+            # SYS_ADMIN: mount filesystems, set hostname, many other privileged ops
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_ADMIN
+
+          # [V3] No resource limits on the sidecar either.
+          # resources: {}  <-- intentionally omitted
+
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+              readOnly: false   # writable — can tamper with logs
+
+      # [V2] No pod-level securityContext either.
+      # No runAsNonRoot, no seccompProfile, no fsGroup.
+      # securityContext: {}   <-- intentionally omitted
+
+      volumes:
+        - name: app-data
+          # [BONUS BAD PRACTICE] HostPath volume — accesses node filesystem directly.
+          # Violates: disallow-host-path (CIS 5.2.10)
+          hostPath:
+            path: /var/legacy-app/data
+            type: DirectoryOrCreate
+        - name: varlog
+          hostPath:
+            path: /var/log
+
+---
+# [BONUS] Service with NodePort — unnecessarily broad exposure.
+# Kyverno can enforce service type restrictions.
+apiVersion: v1
+kind: Service
+metadata:
+  name: legacy-webapp
+  namespace: legacy-app
+spec:
+  # Violates: disallow-nodeport-services (if policy is applied)
+  type: NodePort
+  selector:
+    app: legacy-webapp
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+    - name: https
+      port: 443
+      targetPort: 443
+      nodePort: 30443

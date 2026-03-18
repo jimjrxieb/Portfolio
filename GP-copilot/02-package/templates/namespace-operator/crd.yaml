@@ -1,0 +1,94 @@
+# crd.yaml — TeamNamespace Custom Resource Definition
+# CNPA Domain 4: Platform APIs & Provisioning Infrastructure
+#
+# Dev applies a TeamNamespace CR → operator provisions:
+#   - Namespace with PSS labels
+#   - NetworkPolicy (default-deny + DNS)
+#   - LimitRange (per-pod limits)
+#   - ResourceQuota (tier-based)
+#   - RoleBinding (team gets edit, platform gets admin)
+#   - Optional: SecretStore for ESO
+#
+# Usage:
+#   kubectl apply -f crd.yaml                     # Platform team: one-time
+#   kubectl apply -f example-teamnamespace.yaml    # Dev team: self-service
+# ─────────────────────────────────────────────────────────────────
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: teamnamespaces.platform.gp-copilot.io
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+spec:
+  group: platform.gp-copilot.io
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["teamName", "environment"]
+              properties:
+                teamName:
+                  type: string
+                  description: "Team name (used for RBAC and labeling)"
+                environment:
+                  type: string
+                  enum: ["dev", "staging", "prod"]
+                  description: "Environment tier"
+                resourceTier:
+                  type: string
+                  enum: ["small", "medium", "large"]
+                  default: "small"
+                  description: "Resource quota tier"
+                enableExternalSecrets:
+                  type: boolean
+                  default: false
+                  description: "Create a SecretStore for ESO"
+                additionalAdmins:
+                  type: array
+                  items:
+                    type: string
+                  description: "Additional users/groups with admin access"
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+                resources:
+                  type: array
+                  items:
+                    type: string
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Team
+          type: string
+          jsonPath: .spec.teamName
+        - name: Env
+          type: string
+          jsonPath: .spec.environment
+        - name: Tier
+          type: string
+          jsonPath: .spec.resourceTier
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+  scope: Cluster
+  names:
+    plural: teamnamespaces
+    singular: teamnamespace
+    kind: TeamNamespace
+    shortNames:
+      - tns

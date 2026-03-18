@@ -1,0 +1,73 @@
+# Cilium Service Mesh — Helm Values
+#
+# Cilium provides mTLS via WireGuard (transparent encryption, no sidecars).
+# Alternative to Istio — simpler but less L7 control.
+#
+# Best for: EKS clusters already using Cilium as CNI, teams that want
+# encryption without the operational overhead of Istio.
+#
+# Install:
+#   helm install cilium cilium/cilium -n kube-system -f cilium-values.yaml
+#
+# Or upgrade existing Cilium CNI:
+#   helm upgrade cilium cilium/cilium -n kube-system -f cilium-values.yaml
+
+# ── Encryption ────────────────────────────────────────────────────────
+encryption:
+  # WireGuard = kernel-level, ~3% overhead vs Istio's ~10-15%
+  enabled: true
+  type: wireguard
+
+  # Node-to-node encryption (all pod traffic encrypted in transit)
+  nodeEncryption: true
+
+# ── Hubble (observability) ────────────────────────────────────────────
+hubble:
+  enabled: true
+
+  relay:
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  ui:
+    enabled: true
+
+  metrics:
+    enabled:
+      - dns
+      - drop
+      - tcp
+      - flow
+      - icmp
+      - http
+    serviceMonitor:
+      enabled: true  # for Prometheus
+
+# ── Network Policy ────────────────────────────────────────────────────
+# Cilium replaces kube-proxy and provides enhanced NetworkPolicy
+policyEnforcementMode: "default"  # enforce policies
+
+# ── Resources ─────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# ── Operator ──────────────────────────────────────────────────────────
+operator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

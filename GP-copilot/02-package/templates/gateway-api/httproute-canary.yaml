@@ -1,0 +1,54 @@
+# httproute-canary.yaml — Weight-based canary deployment via Gateway API
+# CNPA Domain 3: Progressive delivery / traffic splitting
+#
+# Two routing strategies:
+#   1. Weight-based: 90% stable, 10% canary (adjust weights to shift traffic)
+#   2. Header-based: x-canary: true routes to canary (for internal testing)
+#
+# Workflow:
+#   1. Deploy canary version as a separate Service (e.g. myapp-canary)
+#   2. Apply this HTTPRoute with 90/10 split
+#   3. Monitor error rate + latency on canary
+#   4. If healthy: shift to 50/50, then 0/100 (full rollout)
+#   5. If unhealthy: shift to 100/0 (instant rollback)
+#
+# Replace: <APP_NAME>, <NAMESPACE>, <STABLE_SERVICE>, <CANARY_SERVICE>, <PORT>
+# ─────────────────────────────────────────────────────────────────
+
+---
+# Weight-based canary (90% stable / 10% canary)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: <APP_NAME>-canary
+  namespace: <NAMESPACE>
+  labels:
+    app.kubernetes.io/managed-by: gp-copilot
+    deployment-strategy: canary
+spec:
+  parentRefs:
+    - name: <APP_NAME>-gateway
+      sectionName: https
+  rules:
+    # Header-based override: x-canary: true → always hits canary
+    - matches:
+        - headers:
+            - name: x-canary
+              value: "true"
+      backendRefs:
+        - name: <CANARY_SERVICE>
+          port: <PORT>
+          weight: 1
+
+    # Weight-based split for all other traffic
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: <STABLE_SERVICE>
+          port: <PORT>
+          weight: 90
+        - name: <CANARY_SERVICE>
+          port: <PORT>
+          weight: 10

@@ -1,0 +1,196 @@
+# RBAC Templates for jsa-infrasec
+# CKS Exam: Cluster Hardening (15%)
+# Reference: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+
+---
+# Dedicated ServiceAccount (don't use default)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-service-account
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-dedicated-sa"
+automountServiceAccountToken: false
+
+---
+# Minimal read-only Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-only
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-read-only"
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+
+---
+# Application deployment Role (no secrets access)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: app-deployer
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-app-deployer"
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # No secrets access - use external secrets operator instead
+
+---
+# Secrets read-only Role (separate from deployment)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secrets-reader
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-secrets-reader"
+    jsa-infrasec.io/sensitivity: "high"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+    # Consider using resourceNames to limit to specific secrets
+
+---
+# RoleBinding for ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-read-only
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-binding"
+subjects:
+  - kind: ServiceAccount
+    name: app-service-account
+    namespace: default
+roleRef:
+  kind: Role
+  name: read-only
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ClusterRole for cross-namespace read access
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: namespace-reader
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-cluster-reader"
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+---
+# Fix: Remove wildcard permissions
+# BEFORE (bad):
+#   rules:
+#     - apiGroups: ["*"]
+#       resources: ["*"]
+#       verbs: ["*"]
+# AFTER (good):
+_rbac_fix_wildcard:
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "services", "configmaps"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["deployments"]
+      verbs: ["get", "list", "watch", "update", "patch"]
+
+---
+# Fix: Remove cluster-admin from users
+# Instead, use scoped ClusterRoles
+_rbac_fix_cluster_admin:
+  description: "Replace cluster-admin with scoped roles"
+  steps:
+    - "Identify what permissions are actually needed"
+    - "Create scoped ClusterRole with minimal permissions"
+    - "Update ClusterRoleBinding to use new role"
+    - "Remove cluster-admin binding"
+
+---
+# Audit Role for security team
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: security-auditor
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-security-auditor"
+rules:
+  # Read all resources for auditing
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  # Cannot modify anything
+  # This is safe because it's read-only
+
+---
+# Incident response Role (can isolate pods)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: incident-responder
+  annotations:
+    jsa-infrasec.io/remediation: "rbac-incident-responder"
+    jsa-infrasec.io/sensitivity: "high"
+rules:
+  # Read all for investigation
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  # Patch pods for isolation
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["patch", "delete"]
+  # Create network policies for quarantine
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["create", "update", "patch"]
+
+---
+# Pod template with dedicated SA and no token mount
+_pod_with_dedicated_sa:
+  spec:
+    serviceAccountName: app-service-account
+    automountServiceAccountToken: false
+    containers:
+      - name: app
+        # If API access needed, mount token explicitly:
+        # volumeMounts:
+        #   - name: token
+        #     mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        #     readOnly: true
+
+---
+# kubectl commands for RBAC audit
+_kubectl_commands:
+  # Find all cluster-admin bindings
+  find_cluster_admin: |
+    kubectl get clusterrolebindings -o json | \
+      jq '.items[] | select(.roleRef.name=="cluster-admin") | .metadata.name'
+
+  # Find roles with wildcard permissions
+  find_wildcards: |
+    kubectl get roles,clusterroles -A -o json | \
+      jq '.items[] | select(.rules[]?.resources[]? == "*" or .rules[]?.verbs[]? == "*") | .metadata.name'
+
+  # Check what a ServiceAccount can do
+  check_sa_permissions: |
+    kubectl auth can-i --list --as=system:serviceaccount:$NAMESPACE:$SA_NAME
+
+  # Audit who can access secrets
+  audit_secrets_access: |
+    kubectl auth can-i get secrets --all-namespaces --list

@@ -1,0 +1,41 @@
+# Quick Reference: Kubernetes Audit Policy
+# CKS Domains: Monitoring, Logging & Runtime
+# Place at: /etc/kubernetes/audit/audit-policy.yaml
+# API server flags:
+#   --audit-policy-file=/etc/kubernetes/audit/audit-policy.yaml
+#   --audit-log-path=/var/log/kubernetes/audit.log
+#   --audit-log-maxage=30
+#   --audit-log-maxbackup=10
+#   --audit-log-maxsize=100
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+# Don't log requests to certain non-resource URL paths
+- level: None
+  nonResourceURLs:
+  - "/healthz*"
+  - "/readyz*"
+  - "/livez*"
+
+# Don't log watch requests (too noisy)
+- level: None
+  verbs: ["watch"]
+
+# Don't log events
+- level: None
+  resources:
+  - group: ""
+    resources: ["events"]
+
+# Log secret access at Metadata level (no body — secrets are sensitive)
+- level: Metadata
+  resources:
+  - group: ""
+    resources: ["secrets", "configmaps"]
+
+# Log all changes at RequestResponse level
+- level: RequestResponse
+  verbs: ["create", "update", "patch", "delete"]
+
+# Log everything else at Request level
+- level: Request
