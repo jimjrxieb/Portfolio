@@ -27,6 +27,9 @@ spec:
       serviceAccountName: {{ include "portfolio.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.securityContext.automountServiceAccountToken | default false }}
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 0
         fsGroup: 0
         seccompProfile:
           type: {{ .Values.securityContext.pod.seccompProfile.type }}
@@ -35,6 +38,9 @@ spec:
           image: "{{ .Values.chroma.image.repository }}:{{ .Values.chroma.image.tag }}"
           imagePullPolicy: {{ .Values.chroma.image.pullPolicy }}
           securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 0
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: {{ .Values.securityContext.container.readOnlyRootFilesystem }}
             capabilities:

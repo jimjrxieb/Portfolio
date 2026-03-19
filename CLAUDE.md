@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A production RAG-powered portfolio platform with an AI assistant (Sheyla/Gojo avatars). The system combines a FastAPI backend, React/Vite frontend, and ChromaDB vector database to deliver semantic search over a personal knowledge base with LLM-generated responses.
+A production RAG-powered portfolio platform with an AI assistant (Sheyla). The system combines a FastAPI backend, React/Vite frontend, and ChromaDB vector database to deliver semantic search over a personal knowledge base with LLM-generated responses.
 
 Live at: https://linksmlm.com
 
@@ -70,12 +70,12 @@ UI (:3000/nginx, :5173/dev) → API (:8000/FastAPI) → ChromaDB (:8001)
 ### Two Backend Directories
 
 - **`api/`** — FastAPI app entry point (`main.py`), routes, Dockerfile, security middleware. This is the containerized service.
-- **`backend/`** — Shared engines and configuration imported by `api/`. Contains `settings.py` (centralized config), `engines/` (rag_engine, llm_interface, speech_engine), and `personality/` (avatar persona loader).
+- **`backend/`** — Shared engines and configuration imported by `api/`. Contains `settings.py` (centralized config), `engines/` (rag_engine, llm_interface), and `personality/` (avatar persona loader).
 
 The API imports from backend: `from backend.settings import settings`, `from backend.engines.rag_engine import RAGEngine`.
 
 ### Request Flow
-User query → `api/routes/chat.py` → 5-layer security check (`api/sheyla_security/`) → RAG retrieval (ChromaDB top-5) → LLM prompt construction → Claude API → response validation → client
+User query → `api/routes/chat.py` → 7-layer security check (`api/sheyla_security/`) → RAG retrieval (ChromaDB top-3) → LLM prompt construction → Claude API → response validation → client
 
 ### LLM Provider Chain
 Primary: Claude (AsyncAnthropic, streaming) → Fallback: Local HuggingFace (Qwen2.5-1.5B). Configured in `backend/engines/llm_interface.py`.
@@ -97,7 +97,7 @@ Embeddings: Ollama nomic-embed-text (768-dim). Knowledge source docs live in `da
 ### Security Layers
 - **API middleware**: Rate limiting (30 req/min), CORS, security headers (CSP, HSTS), gzip
 - **Prompt security**: 15+ injection pattern regexes in `api/sheyla_security/llm_security.py`
-- **CI/CD**: 8 parallel security scanners (Semgrep, Bandit, Safety, detect-secrets, Checkov, Trivy, SonarCloud, npm audit)
+- **CI/CD**: 9 parallel security scanners (Semgrep, Bandit, Safety, detect-secrets, Checkov, Trivy, SonarCloud, npm audit, OPA/Conftest)
 - **K8s policies**: OPA/Conftest CI validation (13 policies) + Gatekeeper runtime admission
 - **Pre-commit**: detect-secrets baseline audit, large file checks (5MB limit)
 
@@ -203,7 +203,7 @@ Traefik `strip-api` middleware removes `/api` prefix before forwarding to FastAP
 
 ### Common Troubleshooting
 
-- **502 from linksmlm.com**: Check `sudo systemctl status cloudflared` — restart if QUIC errors in logs. Verify `httpHostHeader: linksmlm.com` is set in Zero Trust dashboard.
+- **502 from linksmlm.com/api/**: API pod is likely down. Check `kubectl get pods -n portfolio` and `kubectl logs -n portfolio -l app=api`. If UI loads but API returns 502, it's the API service not Cloudflare. For tunnel-level 502s, check `sudo systemctl status cloudflared` — restart if QUIC errors in logs. Verify `httpHostHeader: linksmlm.com` is set in Zero Trust dashboard.
 - **Tunnel not proxying**: Confirm protocol is http2 (`journalctl -u cloudflared | grep protocol`). QUIC does not work on this network.
 - **Pods healthy but site down**: Tunnel issue, not K8s. Test locally: `curl -H 'Host: linksmlm.com' http://192.168.1.110:80`
 - **Chat not working**: Verify fetch URLs use `/api/chat` prefix (not `/chat`). Test: `curl https://linksmlm.com/api/chat/health`
