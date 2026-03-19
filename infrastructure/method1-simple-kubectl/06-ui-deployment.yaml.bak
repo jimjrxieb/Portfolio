@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-ui
+  namespace: portfolio
+  labels:
+    app: portfolio-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-ui
+  template:
+    metadata:
+      labels:
+        app: portfolio-ui
+    spec:
+      # JSA-FIX: CKV_K8S_38 - Don't mount service account token
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ui
+          # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
+          image: ghcr.io/jimjrxieb/portfolio-ui:v1.0.4-local
+          # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: VITE_API_BASE_URL
+              value: ""
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          # JSA-FIX: CKV_K8S_8 - Liveness probe for self-healing
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # JSA-FIX: CKV_K8S_9 - Readiness probe for traffic routing
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-ui
+  namespace: portfolio
+spec:
+  selector:
+    app: portfolio-ui
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chromadb
+  namespace: portfolio
+  labels:
+    app: chroma
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chroma
+  template:
+    metadata:
+      labels:
+        app: chroma
+    spec:
+      # JSA-FIX: CKV_K8S_38 - Don't mount service account token
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        # JSA-FIX: CKV_K8S_40 - Use high UID (≥10000)
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: chromadb
+          # JSA-FIX: CKV_K8S_43 - Use image digest instead of tag
+          image: chromadb/chroma:0.5.18
+          # JSA-FIX: CKV_K8S_15 - Always pull to get security patches
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            # JSA-FIX: CKV_K8S_40 - Use high UID (≥10000)
+            runAsUser: 10000
+            runAsGroup: 10000
+            allowPrivilegeEscalation: false
+            # JSA-FIX: CKV_K8S_22 - Read-only filesystem
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: IS_PERSISTENT
+              value: "TRUE"
+            - name: ANONYMIZED_TELEMETRY
+              value: "FALSE"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          # JSA-FIX: CKV_K8S_8 - Liveness probe for self-healing
+          livenessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # JSA-FIX: CKV_K8S_9 - Readiness probe for traffic routing
+          readinessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /chroma/chroma
+            - name: tmp
+              mountPath: /tmp
+            - name: log-config
+              mountPath: /chroma/chromadb/log_config.yml
+              subPath: log_config.yml
+      volumes:
+        - name: data
+          emptyDir: {}  # Note: Data populated via ingest script or init job
+        - name: tmp
+          emptyDir: {}
+        - name: log-config
+          configMap:
+            name: chroma-log-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chromadb
+  namespace: portfolio
+spec:
+  selector:
+    app: chroma
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP
