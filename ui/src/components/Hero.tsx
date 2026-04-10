@@ -2,7 +2,7 @@ import React from 'react';
 
 const GITHUB_URL = 'https://github.com/jimjrxieb';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/jimmie-coleman-jr-564a8a199/';
-const RESUME_URL = '/My%20ResumeDSO.pdf';
+
 
 interface Certification {
   name: string;
@@ -14,6 +14,7 @@ const certifications: Certification[] = [
   { name: 'CKA', full: 'Certified Kubernetes Administrator', status: 'complete' },
   { name: 'Security+', full: 'CompTIA Security+', status: 'complete' },
   { name: 'AWS SAA', full: 'AWS Certified Solutions Architect – Associate', status: 'complete' },
+  { name: 'CySA+', full: 'CompTIA Cybersecurity Analyst', status: 'in_progress' },
 ];
 
 export default function Hero() {
@@ -27,7 +28,7 @@ export default function Hero() {
 
         {/* Title */}
         <p className="text-lg md:text-xl text-crystal-400 font-light mb-6">
-          Platform Engineer
+          Cybersecurity | DevSecOps | Machine Learning
         </p>
 
         {/* Links Row */}
@@ -56,16 +57,6 @@ export default function Hero() {
             <span>GitHub</span>
           </a>
 
-          <a
-            href={RESUME_URL}
-            download
-            className="flex items-center gap-2 px-4 py-2 bg-crystal-500 hover:bg-crystal-600 text-white rounded-lg transition-colors font-medium"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span>Download Resume</span>
-          </a>
         </div>
 
         {/* Certifications */}

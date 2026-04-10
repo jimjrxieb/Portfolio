@@ -1,24 +1,125 @@
 import React, { useState } from 'react';
 
-const GP_COPILOT_URL = 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot';
+const OSS_COPILOT_URL = 'https://github.com/jimjrxieb/OSS-copilot';
+const SECLAB_URL = 'https://github.com/jimjrxieb/Anthra-SecLAB';
 const PORTFOLIO_URL = 'https://github.com/jimjrxieb/Portfolio';
-const ANTHRA_URL = 'https://github.com/jimjrxieb/Anthra-FedRAMP';
+const PORTFOLIO_LIVE_URL = 'https://linksmlm.com';
+
 
 
 export default function CurrentVenture() {
-  const [fedrampExpanded, setFedrampExpanded] = useState(false);
+  const [packagesExpanded, setPackagesExpanded] = useState(false);
+  const [seclabExpanded, setSecLabExpanded] = useState(false);
+  const [portfolioExpanded, setPortfolioExpanded] = useState(false);
 
   return (
     <div className="space-y-6">
-      {/* Column Header */}
-      <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🏗️</span>
-          <h2 className="text-xl font-bold text-white">Platform Engineering</h2>
+      {/* Anthra-SecLAB Card */}
+      <div className="bg-gradient-to-br from-red-500/10 to-crystal-500/10 backdrop-blur-sm rounded-2xl border border-red-500/30 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">Security Lab</h2>
+          <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full border border-red-500/30">
+            Cybersecurity Analyst
+          </span>
         </div>
+
+        <div className="mb-4">
+          <h3 className="text-2xl font-bold text-red-400 mb-1">ANTHRA-SECLAB</h3>
+          <p className="text-text-secondary text-sm">Hands-on security lab for NIST 800-53 control validation across all 7 OSI layers</p>
+        </div>
+
+        <p className="text-text-secondary text-sm mb-6 leading-relaxed">
+          This is the lab I use to test target applications from a{' '}
+          <span className="text-white font-medium">cybersecurity analyst</span> perspective. The setup provisions a
+          local k3s cluster with a baseline SOC stack — Falco, Prometheus, Grafana, Kyverno, Fluent Bit, and Splunk.
+          Scenarios are where Claude Code deliberately breaks something in the environment and I work to detect,
+          diagnose, and remediate it using the detective controls I've deployed.
+        </p>
+
+        {/* SecLAB Packages */}
+        <div className="mb-6">
+          <button
+            onClick={() => setSecLabExpanded(!seclabExpanded)}
+            className="w-full flex items-center justify-between mb-4 group"
+          >
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wide">
+              OSI-Model Security Layers
+            </h4>
+            <div className="flex items-center gap-2">
+              <span className="text-text-muted text-xs">{seclabExpanded ? 'Hide' : '7 layers'}</span>
+              <svg
+                className={`w-4 h-4 text-text-muted transition-transform duration-200 ${seclabExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          {seclabExpanded && <>
+          <div className="space-y-2 mb-3">
+            {[
+              { num: 'L1', name: 'PHYSICAL', controls: 'PE-1, PE-2, PE-3, PE-6', desc: 'Physical access controls, environmental monitoring, asset inventory via Snipe-IT', color: 'red' },
+              { num: 'L2', name: 'DATA LINK', controls: 'SC-7, AC-3, SI-4', desc: 'MAC security, ARP protection, VLAN segmentation, 802.1X — Wireshark, arpwatch', color: 'red' },
+              { num: 'L3', name: 'NETWORK', controls: 'SC-7, AC-4, SI-3', desc: 'Firewalls, routing, IDS/IPS, network segmentation — Suricata, Nmap, pfSense', color: 'gold' },
+              { num: 'L4', name: 'TRANSPORT', controls: 'SC-8, SC-23, IA-5', desc: 'TLS configuration, port security, certificate management — OpenSSL, testssl.sh', color: 'gold' },
+              { num: 'L5', name: 'SESSION', controls: 'AC-12, SC-23, IA-2', desc: 'Session management, token handling, session termination — Burp Suite, OWASP ZAP', color: 'crystal' },
+              { num: 'L6', name: 'PRESENTATION', controls: 'SC-28, SI-10, SC-13', desc: 'Encryption at rest, I/O validation, encoding analysis — BitLocker, CyberChef', color: 'crystal' },
+              { num: 'L7', name: 'APPLICATION', controls: 'SA-11, RA-5, AC-6, AU-2', desc: 'SAST/DAST, input validation, audit logging — Semgrep, OWASP ZAP, Splunk, Sentinel', color: 'jade' },
+            ].map((layer) => (
+              <div key={layer.num} className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className={`text-${layer.color}-400 text-xs font-mono font-bold`}>{layer.num}</span>
+                  <strong className="text-white text-xs">{layer.name}</strong>
+                  <span className="text-text-muted text-[10px] ml-auto font-mono">{layer.controls}</span>
+                </div>
+                <p className="text-text-secondary text-xs leading-relaxed">{layer.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-2 mb-3">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wide">Lab Environment</h4>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="text-white text-xs font-medium mb-0.5">SOC Stack</div>
+                <p className="text-text-secondary text-[10px]">Falco, Prometheus, Grafana, Kyverno, Fluent Bit, Splunk</p>
+              </div>
+              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+                <div className="text-white text-xs font-medium mb-0.5">Break/Fix Scenarios</div>
+                <p className="text-text-secondary text-[10px]">14 OSI scenarios + 3 top-level (SC-7, AC-6, CM-7)</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <p className="text-text-secondary/60 text-xs font-mono">
+                break → detect → fix → evidence
+              </p>
+              <span className="text-red-400/60 text-[10px]">29 playbooks · 62 scripts · 30+ tools</span>
+            </div>
+          </div>
+          </>}
+        </div>
+
+        {/* CTA */}
+        <a
+          href={SECLAB_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
+        >
+          View Anthra-SecLAB
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
       </div>
 
-      {/* GP-Copilot Featured Card */}
+      {/* OSS-copilot Featured Card */}
       <div className="bg-gradient-to-br from-crystal-500/10 to-jade-500/10 backdrop-blur-sm rounded-2xl border border-crystal-500/30 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">Featured Project</h2>
@@ -28,120 +129,121 @@ export default function CurrentVenture() {
         </div>
 
         <div className="mb-4">
-          <h3 className="text-2xl font-bold text-crystal-400 mb-1">GP-COPILOT</h3>
-          <p className="text-text-secondary text-sm">Reduces attack surface and cloud spend in the same engagement</p>
+          <h3 className="text-2xl font-bold text-crystal-400 mb-1">OSS-COPILOT</h3>
+          <p className="text-text-secondary text-sm">Open-source security guide — 49 playbooks, 54 scripts, 20+ tools across the full DevOps pipeline</p>
         </div>
 
         <p className="text-text-secondary text-sm mb-6 leading-relaxed">
-          A platform that gives platform engineers{' '}
-          <span className="text-jade-400 font-medium">end-to-end security coverage</span> using
-          playbooks and engagement guides. AI agents read the playbooks and execute autonomously —
-          you provide oversight for the hard decisions.
+          Everything a DevOps engineer needs to harden an application from source code through cloud deployment
+          using{' '}
+          <span className="text-jade-400 font-medium">free, open-source tools</span>. Five MSSP engagement
+          packages covering the 4 C's plus compliance — each with step-by-step playbooks, automation scripts,
+          and tool configs ready to run.
         </p>
 
-        {/* Consulting Packages */}
+        {/* MSSP Packages */}
         <div className="mb-6">
-          <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">
-            Engagement Packages
-          </h4>
+          <button
+            onClick={() => setPackagesExpanded(!packagesExpanded)}
+            className="w-full flex items-center justify-between mb-4 group"
+          >
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wide">
+              MSSP <span className="text-text-muted font-normal normal-case">(Managed Security Service Provider)</span> Engagement Packages
+            </h4>
+            <div className="flex items-center gap-2">
+              <span className="text-text-muted text-xs">{packagesExpanded ? 'Hide' : '5 packages'}</span>
+              <svg
+                className={`w-4 h-4 text-text-muted transition-transform duration-200 ${packagesExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
 
-          {/* Phase 1: Secure */}
+          {packagesExpanded && <>
+          {/* Code */}
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-              <span className="text-red-400 text-[10px] font-semibold uppercase tracking-wider">Secure</span>
+              <span className="text-red-400 text-[10px] font-semibold uppercase tracking-wider">Code</span>
             </div>
             <div className="space-y-2 ml-3 border-l border-red-400/20 pl-3">
               <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-crystal-400 text-xs">01</span>
-                  <strong className="text-white text-xs">APP-SEC</strong>
+                  <strong className="text-white text-xs">APPLICATION HARDENING</strong>
                 </div>
                 <p className="text-text-secondary text-xs leading-relaxed">
-                  16 parallel scanners. Auto-triage by severity rank. Fixer scripts for every finding. Issues caught here cost nothing.
+                  11 playbooks, 9 scripts. Semgrep, Bandit, Gitleaks, Trivy, Hadolint, Checkov, Conftest. Source code scan → auto-fix → policy gates → CI pipeline.
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Container + Cluster */}
+          <div className="mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
+              <span className="text-gold-400 text-[10px] font-semibold uppercase tracking-wider">Container + Cluster</span>
+            </div>
+            <div className="space-y-2 ml-3 border-l border-gold-400/20 pl-3">
               <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-crystal-400 text-xs">02</span>
-                  <strong className="text-white text-xs">CLUSTER-HARDENING</strong>
+                  <strong className="text-white text-xs">PLATFORM HARDENING</strong>
                 </div>
                 <p className="text-text-secondary text-xs leading-relaxed">
-                  50+ policies across CI, admission, and runtime. Kyverno/OPA/Gatekeeper. Audit first, enforce after validation. Portfolio: 34% → 71.5%.
+                  10 playbooks, 20 scripts. Kubescape, kube-bench, Kyverno, Polaris, ESO. Cluster audit → admission control → RBAC → NetworkPolicy → secrets.
                 </p>
               </div>
               <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-crystal-400 text-xs">03</span>
-                  <strong className="text-white text-xs">DEPLOY-RUNTIME</strong>
+                  <strong className="text-white text-xs">RUNTIME SECURITY</strong>
                 </div>
                 <p className="text-text-secondary text-xs leading-relaxed">
-                  Falco + 20 watchers + 15 responders. 21-second MTTR. Cryptomining, privilege escalation, and drift detected and killed autonomously.
+                  10 playbooks, 13 scripts. Falco, Prometheus, Grafana, Fluent Bit, Loki. Deploy detection before the app → monitor → incident response.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Phase 2: Understand */}
+          {/* Cloud */}
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-              <span className="text-gold-400 text-[10px] font-semibold uppercase tracking-wider">Understand</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-crystal-400" />
+              <span className="text-crystal-400 text-[10px] font-semibold uppercase tracking-wider">Cloud</span>
             </div>
-            <div className="space-y-2 ml-3 border-l border-gold-400/20 pl-3">
+            <div className="space-y-2 ml-3 border-l border-crystal-400/20 pl-3">
               <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-crystal-400 text-xs">04</span>
-                  <strong className="text-white text-xs">KUBESTER</strong>
+                  <strong className="text-white text-xs">CLOUD SECURITY</strong>
                 </div>
                 <p className="text-text-secondary text-xs leading-relaxed">
-                  13-playbook specialist pass. Perfects what 01-03 built — RBAC, seccomp, mTLS, CIS benchmarks. Takes compliance from 71% to 95%+.
-                </p>
-              </div>
-              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-crystal-400 text-xs">05</span>
-                  <strong className="text-white text-xs">JSA-AUTONOMOUS</strong>
-                </div>
-                <p className="text-text-secondary text-xs leading-relaxed">
-                  4 agents running 24/7. E/D rank findings fixed without humans. Every runtime finding generates prevention rules that flow back to CI — issues never recur.
+                  9 playbooks, 8 scripts. Checkov, Prowler, CloudTrail, GuardDuty. IaC scan → VPC → IAM → EKS → detection → production deploy.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Phase 3: Optimize */}
+          {/* Compliance */}
           <div className="mb-3">
             <div className="flex items-center gap-2 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-jade-400" />
-              <span className="text-jade-400 text-[10px] font-semibold uppercase tracking-wider">Optimize</span>
+              <span className="text-jade-400 text-[10px] font-semibold uppercase tracking-wider">Compliance</span>
             </div>
             <div className="space-y-2 ml-3 border-l border-jade-400/20 pl-3">
               <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-crystal-400 text-xs">06</span>
-                  <strong className="text-white text-xs">CLOUD-SECURITY</strong>
+                  <span className="text-crystal-400 text-xs">05</span>
+                  <strong className="text-white text-xs">COMPLIANCE READY</strong>
                 </div>
                 <p className="text-text-secondary text-xs leading-relaxed">
-                  Secure AWS migration with Terraform. VPC isolation, IAM hardening, Karpenter right-sizing. 45% infrastructure cost reduction.
-                </p>
-              </div>
-              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-crystal-400 text-xs">07</span>
-                  <strong className="text-white text-xs">FEDRAMP-READY</strong>
-                </div>
-                <p className="text-text-secondary text-xs leading-relaxed">
-                  NIST 800-53 compliance in weeks, not months. Automated gap analysis, machine-verifiable evidence, SSP generation. Unlocks federal revenue.
-                </p>
-              </div>
-              <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-crystal-400 text-xs">08</span>
-                  <strong className="text-white text-xs">VENDOR-INTEGRATION</strong>
-                </div>
-                <p className="text-text-secondary text-xs leading-relaxed">
-                  CrowdStrike, Wiz, Prisma findings normalized, deduplicated, and auto-remediated. Makes $200K vendor spend actually pay for itself.
+                  9 playbooks, 4 scripts. NIST 800-53 control mapping, gap analysis, evidence packaging. Maps all security work to auditor-ready artifacts.
                 </p>
               </div>
             </div>
@@ -150,171 +252,144 @@ export default function CurrentVenture() {
           <div className="mt-3 pt-3 border-t border-white/5">
             <div className="flex items-center justify-between">
               <p className="text-text-secondary/60 text-xs font-mono">
-                secure → understand → optimize → outcome
+                code → container → cluster → cloud → compliance
               </p>
-              <span className="text-jade-400/60 text-[10px]">28k+ lines</span>
+              <span className="text-jade-400/60 text-[10px]">49 playbooks · 54 scripts</span>
             </div>
           </div>
+          </>}
         </div>
 
         {/* CTA */}
         <a
-          href={GP_COPILOT_URL}
+          href={OSS_COPILOT_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-crystal-400 hover:text-crystal-300 transition-colors text-sm font-medium"
         >
-          View GP-Copilot
+          View OSS-Copilot
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </a>
       </div>
 
-      {/* Projects */}
-      <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span>🚀</span>
-          <span>Projects</span>
-        </h2>
+      {/* Portfolio Production Card */}
+      <div className="bg-gradient-to-br from-jade-500/10 to-crystal-500/10 backdrop-blur-sm rounded-2xl border border-jade-500/30 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">Production App</h2>
+          <span className="px-2 py-1 bg-jade-500/20 text-jade-400 text-xs rounded-full border border-jade-500/30">
+            Live
+          </span>
+        </div>
 
-        <div className="space-y-3">
-          {/* Portfolio */}
-          <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">Portfolio</h3>
-              <span className="px-2 py-0.5 bg-jade-500/20 text-jade-400 text-xs rounded-full">
-                Live
-              </span>
-            </div>
-            <p className="text-text-secondary text-xs mb-2">
-              This platform. Full-stack React + FastAPI with RAG-powered AI assistant, 8-scanner CI pipeline, ArgoCD GitOps on k3s.
-            </p>
-            <a
-              href={PORTFOLIO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-crystal-400 hover:text-crystal-300 transition-colors text-xs inline-flex items-center gap-1"
-            >
-              View Source
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
+        <div className="mb-4">
+          <h3 className="text-2xl font-bold text-jade-400 mb-1">PORTFOLIO</h3>
+          <p className="text-text-secondary text-sm">
+            <a href={PORTFOLIO_LIVE_URL} target="_blank" rel="noopener noreferrer" className="text-crystal-400 hover:text-crystal-300 transition-colors">
+              linksmlm.com
             </a>
-          </div>
+            {' '}— full-stack RAG app deployed with security and GitOps best practices
+          </p>
+        </div>
 
-          {/* Anthra-Cloud */}
-          <div className="bg-snow/5 rounded-lg p-4 border border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium">Anthra-Cloud</h3>
-              <span className="px-2 py-0.5 bg-crystal-500/20 text-crystal-400 text-xs rounded-full">
-                Active
-              </span>
+        <p className="text-text-secondary text-sm mb-4 leading-relaxed">
+          A production React + FastAPI application serving as proof that the playbooks and controls I build actually
+          work in a live environment. Code pushes flow through an{' '}
+          <span className="text-white font-medium">8-scanner CI pipeline</span> in GitHub Actions, images deploy
+          to a <span className="text-white font-medium">k3s cluster</span> via Helm and ArgoCD with automated
+          sync and self-heal, traffic routes through a Cloudflare Tunnel, and admission control is enforced
+          by OPA/Gatekeeper.
+        </p>
+
+        {/* RAG + Sheyla details */}
+        <div className="mb-6">
+          <button
+            onClick={() => setPortfolioExpanded(!portfolioExpanded)}
+            className="w-full flex items-center justify-between mb-4 group"
+          >
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wide">
+              RAG Pipeline + Sheyla AI
+            </h4>
+            <div className="flex items-center gap-2">
+              <span className="text-text-muted text-xs">{portfolioExpanded ? 'Hide' : 'Details'}</span>
+              <svg
+                className={`w-4 h-4 text-text-muted transition-transform duration-200 ${portfolioExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
-            <p className="text-text-secondary text-xs">
-              Multi-tenant SaaS security monitoring platform. EKS, Terraform, OPA policies, and full CI/CD hardening pipeline.
-            </p>
-          </div>
+          </button>
 
-          {/* Anthra-FedRAMP (expandable) */}
-          <div className="bg-snow/5 rounded-lg border border-white/5 overflow-hidden">
-            <button
-              onClick={() => setFedrampExpanded(!fedrampExpanded)}
-              className="w-full text-left p-4 hover:bg-snow/10 transition-colors"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-white font-medium">Anthra-FedRAMP</h3>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-gold-500/20 text-gold-400 text-xs rounded-full">
-                    In Progress
-                  </span>
-                  <span className="text-text-secondary text-xs">{fedrampExpanded ? '▼' : '▶'}</span>
-                </div>
-              </div>
-              <p className="text-text-secondary text-xs">
-                FedRAMP Moderate compliance project. 323 NIST 800-53 controls mapped to infrastructure evidence with automated gap analysis.
+          {portfolioExpanded && <>
+          <div className="space-y-2 mb-3">
+            <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+              <div className="text-white text-xs font-medium mb-1">RAG Pipeline</div>
+              <p className="text-text-secondary text-xs leading-relaxed">
+                A 2-stage pipeline — raw documents are sanitized, semantically chunked (512 tokens via LangChain),
+                deduplicated, then embedded using Ollama's nomic-embed-text (768-dim) and stored in ChromaDB.
+                40+ knowledge documents covering my experience, projects, security implementations, and architecture
+                patterns feed Sheyla's responses.
               </p>
-            </button>
-
-            {fedrampExpanded && (
-              <div className="border-t border-white/5 p-4 space-y-4">
-                {/* Screenshots */}
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { src: '/projects/anthra-compliance.jpeg', alt: 'Compliance Dashboard' },
-                    { src: '/projects/anthra-findings.jpeg', alt: 'Security Findings' },
-                    { src: '/projects/anthra-ssp.jpeg', alt: 'System Security Plan' },
-                    { src: '/projects/anthra-poam.jpeg', alt: 'POA&M Tracking' },
-                  ].map((img, i) => (
-                    <a key={i} href={img.src} target="_blank" rel="noopener noreferrer">
-                      <img src={img.src} alt={img.alt} className="rounded border border-white/10 hover:border-crystal-500/50 transition-colors w-full" loading="lazy" />
-                      <span className="text-text-secondary text-[10px] mt-0.5 block">{img.alt}</span>
-                    </a>
-                  ))}
-                </div>
-
-                {/* Industry Standard vs GP-Copilot */}
-                <div className="space-y-3">
-                  <div className="bg-snow/5 rounded-lg p-3 border border-white/5">
-                    <h4 className="text-xs font-semibold text-white mb-2">Industry Standard (best practice)</h4>
-                    <div className="space-y-1 text-xs text-text-secondary">
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>Checkov, Trivy, Kubescape — IaC + CVE + K8s scanning</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>NIST 800-53 control mapping (manual spreadsheets)</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>SSP written in Word, POA&M in Excel</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-jade-500 shrink-0" /><span>Evidence screenshots collected by hand</span></div>
-                    </div>
-                  </div>
-
-                  <div className="bg-crystal-500/5 rounded-lg p-3 border border-crystal-500/20">
-                    <h4 className="text-xs font-semibold text-crystal-400 mb-2">GP-Copilot Value-Add (what I built)</h4>
-                    <div className="space-y-1 text-xs text-text-secondary">
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">scan-and-map.py</span> — auto-maps findings to NIST control IDs</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">gap-analysis.py</span> — generates control matrix + POA&M + remediation plan in one run</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">Golden path</span> — stamps hardened Kustomize deployments with ArgoCD GitOps (dev/staging/prod)</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">11 FedRAMP playbooks</span> — Access Control through Continuous Compliance (CA-7)</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">Rank engine</span> — E/D auto-fix, C needs JADE approval, B/S needs human</span></div>
-                      <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-crystal-500 shrink-0" /><span><span className="text-white">Evidence as code</span> — JSON scans with timestamps, not Word docs and screenshots</span></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Scan Results */}
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div className="bg-snow/5 rounded-lg p-2">
-                    <div className="text-lg font-bold text-crystal-400">53</div>
-                    <div className="text-text-secondary text-[10px]">Controls Tracked</div>
-                  </div>
-                  <div className="bg-snow/5 rounded-lg p-2">
-                    <div className="text-lg font-bold text-gold-400">36%</div>
-                    <div className="text-text-secondary text-[10px]">Compliance</div>
-                  </div>
-                  <div className="bg-snow/5 rounded-lg p-2">
-                    <div className="text-lg font-bold text-jade-400">785</div>
-                    <div className="text-text-secondary text-[10px]">Checkov Pass</div>
-                  </div>
-                  <div className="bg-snow/5 rounded-lg p-2">
-                    <div className="text-lg font-bold text-red-400">21</div>
-                    <div className="text-text-secondary text-[10px]">POA&M Items</div>
-                  </div>
-                </div>
-
-                {/* CTA */}
-                <a
-                  href={ANTHRA_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-crystal-400 hover:text-crystal-300 transition-colors text-xs font-medium"
-                >
-                  View Repository on GitHub
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            )}
+            </div>
+            <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+              <div className="text-white text-xs font-medium mb-1">Sheyla — AI Portfolio Assistant</div>
+              <p className="text-text-secondary text-xs leading-relaxed">
+                Sheyla answers questions about my experience grounded in RAG context, not hallucination. She runs
+                through a 5-layer security stack following NIST AI 600-1: prompt injection detection (14 regex
+                patterns), input sanitization, output filtering (PII/path redaction), rate limiting (10 req/min),
+                and JSONL audit logging with hashed IPs. Primary LLM is Claude with a local HuggingFace fallback.
+              </p>
+            </div>
+            <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">
+              <div className="text-white text-xs font-medium mb-1">Pipeline Flow</div>
+              <p className="text-text-secondary text-xs leading-relaxed font-mono text-[10px]">
+                docs → prepare (chunk + dedup) → embed (Ollama) → ChromaDB → Sheyla query → top-3 retrieval → Claude → 5-layer security → response
+              </p>
+            </div>
           </div>
+
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <p className="text-text-secondary/60 text-xs font-mono">
+                react · fastapi · chromadb · ollama · claude
+              </p>
+              <span className="text-jade-400/60 text-[10px]">40+ docs · 768-dim vectors</span>
+            </div>
+          </div>
+          </>}
+        </div>
+
+        {/* CTAs */}
+        <div className="flex items-center gap-4">
+          <a
+            href={PORTFOLIO_LIVE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-jade-400 hover:text-jade-300 transition-colors text-sm font-medium"
+          >
+            Visit linksmlm.com
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+          <a
+            href={PORTFOLIO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-crystal-400 hover:text-crystal-300 transition-colors text-sm font-medium"
+          >
+            View Source
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
         </div>
       </div>
+
 
       {/* Platform Metrics */}
       <div className="bg-snow/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
