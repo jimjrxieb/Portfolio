@@ -1,0 +1,30 @@
+# Evidence API — runs on the target host with native kubectl access.
+#
+# Usage:
+#   cd evidence-api
+#   docker compose up -d
+#
+# Then from n8n:
+#   POST http://100.116.11.56:8090/evidence/all
+#   Header: X-API-Key: <your key>
+#
+# Set API_KEY in a .env file (never commit it):
+#   echo "API_KEY=your-secret-key" > .env
+
+services:
+  evidence-api:
+    build: .
+    container_name: evidence-api
+    ports:
+      - "8090:8090"
+    environment:
+      API_KEY: ${API_KEY:-changeme}
+    # Mount kubeconfig and tool binaries from the host
+    volumes:
+      - /root/.kube:/root/.kube:ro
+      - /home/jimmie/.kube:/home/jimmie/.kube:ro
+      - /usr/local/bin/kubectl:/usr/local/bin/kubectl:ro
+      - /usr/local/bin/kube-bench:/usr/local/bin/kube-bench:ro
+      - /usr/local/bin/kubescape:/usr/local/bin/kubescape:ro
+      - /tmp:/tmp
+    restart: unless-stopped
