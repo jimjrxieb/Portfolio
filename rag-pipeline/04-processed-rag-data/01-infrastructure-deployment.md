@@ -186,7 +186,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /home/jimmie/linkops-industries/Portfolio/data/chroma
+    path: <repo-root>/data/chroma
     type: DirectoryOrCreate
   persistentVolumeReclaimPolicy: Retain
 ```
@@ -2376,7 +2376,7 @@ VITE_LOG_LEVEL: "info"
 ### Storage Configuration
 
 **Local Development (Method 1):**
-- PV using hostPath: `/home/jimmie/linkops-industries/Portfolio/data/chroma`
+- PV using hostPath: `<repo-root>/data/chroma`
 - Size: 5Gi
 - ReclaimPolicy: Retain
 

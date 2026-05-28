@@ -20,7 +20,7 @@ kubectl apply -f 01-namespace.yaml
 python3 00-create-secrets.py
 
 # Step 5: Deploy everything!
-kubectl apply -f /home/jimmie/linkops-industries/Portfolio/infrastructure/method1-simple-kubectl
+kubectl apply -f <repo-root>/infrastructure/method1-simple-kubectl
 
 # Step 6: Install Cloudflare (optional)
 python3 99-deploy-cloudflare.py
@@ -50,7 +50,7 @@ kubectl create secret generic portfolio-api-secrets \
   -n portfolio
 
 # 3. Deploy app
-kubectl apply -f /home/jimmie/linkops-industries/Portfolio/infrastructure/method1-simple-kubectl
+kubectl apply -f <repo-root>/infrastructure/method1-simple-kubectl
 ```
 
 ## What kubectl apply Deploys
@@ -94,6 +94,6 @@ When you run `kubectl apply -f .`, it applies:
 ## Required .env File
 
 ```bash
-CLAUDE_API_KEY=sk-ant-your-key-here
+CLAUDE_API_KEY=replace-with-claude-api-key
 CLOUDFLARED_TUNNEL_TOKEN=your-token  # Optional
 ```

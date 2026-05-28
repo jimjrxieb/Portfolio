@@ -15,10 +15,10 @@ linksmlm.com → Cloudflare Edge → cloudflared → localhost:8090 → port-for
 3. **nginx ingress**: Routes based on Host header to services
 
 ## Config Files
-**~/.cloudflared/config.yml:**
+**<cloudflared-config-dir>/config.yml:**
 ```yaml
 tunnel: <tunnel-id>
-credentials-file: ~/.cloudflared/credentials.json
+credentials-file: <cloudflared-config-dir>/credentials.json
 ingress:
   - hostname: linksmlm.com
     service: http://localhost:8090

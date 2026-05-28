@@ -487,7 +487,7 @@ violation[{"msg": msg}] {
 ### Prerequisites
 
 ```bash
-cd /home/jimmie/linkops-industries/Portfolio/infrastructure/method1-simple-kubectl
+cd <repo-root>/infrastructure/method1-simple-kubectl
 
 # 1. Install OPA Gatekeeper
 python3 00-install-gatekeeper.py
@@ -503,7 +503,7 @@ python3 00-create-secrets.py
 
 ```bash
 # 4. Apply all manifests
-kubectl apply -f /home/jimmie/linkops-industries/Portfolio/infrastructure/method1-simple-kubectl
+kubectl apply -f <repo-root>/infrastructure/method1-simple-kubectl
 
 # Verify deployment
 kubectl get pods -n portfolio
@@ -617,7 +617,7 @@ kubectl describe secret portfolio-api-secrets -n portfolio
 ## Future Improvements
 
 ### Persistent ChromaDB Storage
-1. Fix host directory permissions: `sudo chown -R 1000:1000 /home/jimmie/linkops-industries/Portfolio/data/chroma`
+1. Fix host directory permissions: `sudo chown -R 1000:1000 <repo-root>/data/chroma`
 2. Update deployment to use PVC instead of emptyDir
 3. Test data persistence across pod restarts
 

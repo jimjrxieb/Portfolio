@@ -5,7 +5,7 @@
 #   docker compose up -d
 #
 # Then from n8n:
-#   POST http://100.116.11.56:8090/evidence/all
+#   POST http://localhost:8090/evidence/all
 #   Header: X-API-Key: <your key>
 #
 # Set API_KEY in a .env file (never commit it):
@@ -18,11 +18,11 @@ services:
     ports:
       - "8090:8090"
     environment:
-      API_KEY: ${API_KEY:-changeme}
+      API_KEY: ${API_KEY:?Set API_KEY before starting the evidence API}
     # Mount kubeconfig and tool binaries from the host
     volumes:
       - /root/.kube:/root/.kube:ro
-      - /home/jimmie/.kube:/home/jimmie/.kube:ro
+      - ${HOST_KUBECONFIG_DIR:?Set HOST_KUBECONFIG_DIR to your kubeconfig directory}:/home/evidence/.kube:ro
       - /usr/local/bin/kubectl:/usr/local/bin/kubectl:ro
       - /usr/local/bin/kube-bench:/usr/local/bin/kube-bench:ro
       - /usr/local/bin/kubescape:/usr/local/bin/kubescape:ro

@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 from routes.chat import router as chat_router
 # from routes.actions import router as actions_router  # UNUSED - No actions.py locally
 from routes.health import router as health_router
-# from routes.uploads import router as uploads_router  # UNUSED - Not called by frontend
-# from routes.rag import router as rag_router  # UNUSED - Not called by frontend
+# Deprecated upload/RAG/debug routes are archived under api/routes/archive/.
+# They are intentionally not imported or mounted in production.
 # from routes.validation import router as validation_router  # UNUSED - Not called by frontend
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", os.getenv("APP_ENV", "development")).lower()
@@ -133,8 +133,7 @@ def health_check():
 app.include_router(health_router, tags=["health"])
 app.include_router(chat_router, tags=["chat"])
 # app.include_router(actions_router, tags=["avatar"])  # UNUSED - Avatar endpoints not called
-# app.include_router(uploads_router, prefix="/api", tags=["uploads"])  # UNUSED
-# app.include_router(rag_router, prefix="/api/rag", tags=["rag"])  # UNUSED
+# Archived routes remain unmounted to keep the production API surface small.
 # app.include_router(validation_router, prefix="/api/validation", tags=["validation"])  # UNUSED
 
 

@@ -97,7 +97,12 @@ export default function Landing() {
                 NIST AI 600-1
               </span>{' '}
               with prompt injection detection, input sanitization, output
-              filtering, rate limiting, and a full audit trail.
+              filtering, rate limiting, and a full audit trail — mapped to{' '}
+              <span className="text-crystal-400 font-medium">
+                OWASP LLM Top 10
+              </span>{' '}
+              and governed by{' '}
+              <span className="text-crystal-400 font-medium">NIST AI RMF</span>.
             </p>
 
             {/* Tool → NIST Control Family mapping */}
@@ -179,7 +184,7 @@ export default function Landing() {
             {/* Sheyla AI → NIST Control Family mapping */}
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3 text-center">
-                Sheyla AI Security → NIST 800-53 + AI 600-1
+                Sheyla AI Security → NIST 800-53 + OWASP LLM Top 10
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-ink/40 border border-crystal-500/10">
@@ -225,11 +230,11 @@ export default function Landing() {
                 </div>
                 <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-ink/40 border border-crystal-500/10">
                   <span className="text-crystal-400 font-mono font-bold shrink-0">
-                    AI 600-1
+                    OWASP LLM
                   </span>
                   <span className="text-text-secondary">
-                    NIST AI RMF — Governance, Mapping, Measurement, Management
-                    of AI Risk
+                    LLM01 Prompt Injection · LLM02 Output Handling · LLM06
+                    Sensitive Info — NIST AI RMF Governance
                   </span>
                 </div>
               </div>

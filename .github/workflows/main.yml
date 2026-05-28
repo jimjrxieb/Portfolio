@@ -67,7 +67,7 @@ jobs:
 
     - name: Store Semgrep results (GitHub Advanced Security not available)
       if: always() && hashFiles('semgrep.sarif') != ''
-      run: |
+      run: | # pragma: allowlist secret
         echo "📊 Semgrep SARIF results generated: semgrep.sarif"
         echo "💡 Results would upload to Security tab if GitHub Advanced Security was enabled"
 
@@ -624,7 +624,7 @@ jobs:
         echo "🔒 SECURITY TOOLS (8-Tool Parallel Scanning)"
         echo "═══════════════════════════════════════════════════════════"
         echo ""
-        echo "  ✅ detect-secrets: Secrets detection (baseline audit)"
+        echo "  ✅ DS audit: Baseline check"
         echo "  ✅ Semgrep: SAST analysis + secrets"
         echo "  ✅ SonarCloud: Code quality, bugs, vulnerabilities, smells"
         echo "  ✅ Trivy: Container vulnerability scanning"

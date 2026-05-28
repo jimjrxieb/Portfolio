@@ -7,7 +7,7 @@ RAG pipeline was ingesting to local ChromaDB, but K8s-deployed Sheyla connected 
 ## Key Discovery
 - Local ChromaDB: `/Portfolio/data/chroma/` - 35 docs
 - K8s ChromaDB: emptyDir volume - 0 docs (empty!)
-- hostPath PV pointing to `/home/jimmie/...` doesn't work in Docker Desktop K8s
+- hostPath PV pointing to `<host-path>` doesn't work in Docker Desktop K8s
 
 ## Solution: HTTP-based Sync
 Added `k8s` command to pipeline that:
@@ -18,7 +18,7 @@ Added `k8s` command to pipeline that:
 
 ## Usage
 ```bash
-cd ~/linkops-industries/Portfolio/rag-pipeline
+cd <repo-root>/rag-pipeline
 python run_pipeline.py k8s  # Sync to K8s ChromaDB
 ```
 

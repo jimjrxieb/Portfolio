@@ -485,11 +485,12 @@ export default function CurrentVenture() {
                   <p className="text-text-secondary text-xs leading-relaxed">
                     Sheyla answers questions about my experience grounded in RAG
                     context, not hallucination. She runs through a 5-layer
-                    security stack following NIST AI 600-1: prompt injection
-                    detection (14 regex patterns), input sanitization, output
-                    filtering (PII/path redaction), rate limiting (10 req/min),
-                    and JSONL audit logging with hashed IPs. Primary LLM is
-                    Claude with a local HuggingFace fallback.
+                    security stack mapped to OWASP LLM Top 10 + NIST AI RMF:
+                    prompt injection detection (14 regex patterns), input
+                    sanitization, output filtering (PII/path redaction), rate
+                    limiting (10 req/min), and JSONL audit logging with hashed
+                    IPs. Primary LLM is Claude with a local HuggingFace
+                    fallback.
                   </p>
                 </div>
                 <div className="bg-snow/5 rounded-lg p-2.5 border border-white/5">

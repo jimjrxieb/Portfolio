@@ -62,7 +62,7 @@ This system is a public-facing personal portfolio with no PII, PHI, financial da
 
 | Role | Name | Contact |
 |------|------|---------|
-| **System Owner / AO** | Jimmie Coleman | jimmie012506@gmail.com |
+| **System Owner / AO** | Jimmie Coleman | linkedin.com/in/jimmiecolemanjr |
 | **Developer / Security Engineer** | Jimmie Coleman | — |
 | **Security Assessor** | GP-Copilot Platform | GP-CONSULTING / 01-APP-SEC |
 
@@ -108,10 +108,10 @@ There is no user registration, login, or account system exposed to the public.
 
 | Item | Detail |
 |------|--------|
-| **Host** | Ubuntu server, WiFi interface `wlp2s0` |
-| **Tailscale Name** | portfolioserver |
-| **LAN IP** | 192.168.1.110 |
-| **Tailnet IP** | 100.116.11.56 |
+| **Host** | Private Linux host |
+| **Tailscale Name** | Redacted from public documentation |
+| **LAN IP** | Redacted from public documentation |
+| **Private management address** | Redacted from public documentation |
 | **Access** | SSH via Tailscale VPN only — no public SSH exposure |
 
 ### 5.2 Kubernetes Environment

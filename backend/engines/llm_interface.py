@@ -57,11 +57,11 @@ class LLMEngine:
             logger.info(f"Loading local model: {self.model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name,
-                revision="c6e32e2e8e1b2c7d3a4b5c6d7e8f9a0b1c2d3e4f"
+                revision="c6e32e2e8e1b2c7d3a4b5c6d7e8f9a0b1c2d3e4f"  # pragma: allowlist secret
             )
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
-                revision="c6e32e2e8e1b2c7d3a4b5c6d7e8f9a0b1c2d3e4f",
+                revision="c6e32e2e8e1b2c7d3a4b5c6d7e8f9a0b1c2d3e4f",  # pragma: allowlist secret
                 torch_dtype=(
                     torch.float16 if torch.cuda.is_available() else torch.float32
                 ),

@@ -1,6 +1,6 @@
 {
-  "created_at": "2026-03-18T13:08:24.602671",
-  "output_file": "prepared_20260318_130824.jsonl",
+  "created_at": "2026-05-28T15:39:54.505055",
+  "output_file": "prepared_20260528_153954.jsonl",
   "config": {
     "chunk_size": 512,
     "chunk_overlap": 50,
@@ -10,16 +10,45 @@
     "target_embedding_model": "nomic-embed-text"
   },
   "stats": {
-    "files_processed": 1,
+    "files_processed": 30,
     "files_failed": 0,
-    "total_chunks": 6,
+    "total_chunks": 251,
     "duplicate_chunks_removed": 0,
-    "total_tokens": 1988,
-    "avg_chunk_size": 331.3333333333333,
-    "processing_time_seconds": 0.006474
+    "total_tokens": 86350,
+    "avg_chunk_size": 344.0239043824701,
+    "processing_time_seconds": 0.22675
   },
   "source_files": [
-    "2026-03-18-secure-optimize-outcome.md"
+    "01-career-background.md",
+    "01-infrastructure-deployment.md",
+    "02-cbbp-methodology.md",
+    "02-ui-architecture.md",
+    "03-security-policies.md",
+    "03-tools-and-stack.md",
+    "04-ai-models.md",
+    "04-api-backend-architecture.md",
+    "05-claude-code-workflow.md",
+    "06-platform-overview.md",
+    "06-portfolio-deployment-session.md",
+    "07-sheyla-personality-easter-eggs.md",
+    "2025-12-04-cloudflare-tunnel-pattern.md",
+    "2025-12-04-docker-image-deployment-pattern.md",
+    "2025-12-04-k8s-chromadb-sync-pattern.md",
+    "2025-12-04-k8s-deployment-triple-failure-pattern.md",
+    "2025-12-04-terraform-localstack-deployment-pattern.md",
+    "2025-12-05-chromadb-embedding-timeout-pattern.md",
+    "2025-12-05-cicd-pipeline-method2-deployment-pattern.md",
+    "2026-01-05-aws-cloud-experience.md",
+    "2026-01-05-easter-eggs-and-people.md",
+    "2026-01-07-sheyla-security.md",
+    "2026-01-22-practice-makes-perfect.md",
+    "CONFTEST-POLICY-REVIEW.md",
+    "DEPLOYMENT-SUMMARY.md",
+    "GATEKEEPER-POLICY-REVIEW.md",
+    "METHOD2-DEPLOYMENT-RESULTS.md",
+    "POLICY-IMPROVEMENTS-SUMMARY.md",
+    "method1-deployment-troubleshooting.md",
+    "rag-grounding-fix-tldr.md"
   ],
   "dependencies": {
     "langchain": true,

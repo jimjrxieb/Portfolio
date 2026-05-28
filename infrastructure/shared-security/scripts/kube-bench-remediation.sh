@@ -89,7 +89,7 @@ sudo systemctl restart kubelet 2>/dev/null || echo "  ⚠️  Could not restart 
 
 # Additional security manifests application
 echo "🛡️  Applying additional security manifests..."
-SECURITY_DIR="/home/jimmie/linkops-industries/James-OS/james-copilots/GP-copilot/GP-Projects/Portfolio/k8s-security-fixes"
+SECURITY_DIR="${SECURITY_DIR:-./k8s-security-fixes}"
 
 if [ -d "$SECURITY_DIR" ]; then
     echo "  ✅ Applying NetworkPolicies and RBAC configurations"

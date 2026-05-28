@@ -1,594 +1,312 @@
-# Production AI Portfolio Platform
+# Portfolio-Prod — Production AI Portfolio Platform
 
-> Full-stack RAG system demonstrating enterprise DevSecOps practices and production-grade AI/ML engineering
+> RAG-powered portfolio with an AI assistant (Sheyla), assessed end-to-end using the CBBP security methodology
 
-**Live Demo**: [https://linksmlm.com](https://linksmlm.com)
+**Live**: [https://linksmlm.com](https://linksmlm.com)
 
-[![Production Ready](https://img.shields.io/badge/status-production-green)](https://linksmlm.com)
-[![Security](https://img.shields.io/badge/security-hardened-blue)](./GP-copilot/GP-COPILOT-ASSESSMENT-REPORT.md)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5)](./infrastructure/)
+[![CI](https://github.com/jimjrxieb/Portfolio/actions/workflows/main.yml/badge.svg)](https://github.com/jimjrxieb/Portfolio/actions/workflows/main.yml)
+[![Status](https://img.shields.io/badge/status-production-green)](https://linksmlm.com)
+[![k3s](https://img.shields.io/badge/kubernetes-k3s-326CE5)](./infrastructure/)
+[![ArgoCD](https://img.shields.io/badge/gitops-argocd-orange)](./infrastructure/charts/)
 
 ---
 
-## Overview
+## What This Is
 
-**DevSecOps Implementation**: This project demonstrates production-ready DevSecOps workflows with comprehensive security automation throughout the development lifecycle. The CI/CD pipeline leverages GitHub Actions with parallel security scanning (detect-secrets for secrets detection, Semgrep for SAST analysis, Trivy for container vulnerability scanning, Bandit for Python security, and Safety for dependency vulnerabilities). Policy-as-Code is enforced through OPA/Conftest in CI (13 policies with 11 automated tests validating Kubernetes manifests) and Gatekeeper for runtime admission control. Infrastructure is deployed using three progressive methods—simple kubectl manifests, Terraform with LocalStack for AWS service simulation, and production-grade Helm charts with ArgoCD GitOps—showcasing the evolution from beginner to enterprise approaches. Security is hardened with Kubernetes Network Policies, RBAC, Pod Security Standards, non-root Docker containers with multi-stage builds, and pre-commit hooks preventing secret commits. Public access is secured through Cloudflare Tunnel, eliminating exposed ports while maintaining TLS encryption.
+A production RAG (Retrieval-Augmented Generation) platform that combines a FastAPI backend, React/Vite frontend, and ChromaDB vector database to deliver semantic search over a personal knowledge base with Claude-generated responses.
 
-**AI/ML Architecture**: The system implements a production RAG (Retrieval-Augmented Generation) pipeline using ChromaDB as the vector database with 2,656+ embeddings generated from comprehensive technical documentation. Ollama (nomic-embed-text model) handles local embedding generation for 768-dimensional vectors, while Claude API (Anthropic's claude-3-haiku-20240307) serves as the production LLM for natural language responses. The FastAPI backend provides async endpoints with semantic search completing in <100ms, processing user queries through ChromaDB similarity search, context retrieval, and LLM response generation with source citations. The ingestion pipeline processes markdown documents through sanitization, intelligent chunking (1000 words with 200-word overlap), embedding generation, and storage in versioned ChromaDB collections supporting atomic swaps for zero-downtime updates. The React/Vite frontend delivers real-time chat with a professional AI assistant (Sheyla) trained on DevSecOps expertise, project portfolios, and technical knowledge, demonstrating practical applications of modern AI/ML technologies in production environments.
+**Sheyla** is the AI assistant — she answers questions about experience, projects, and certifications grounded in RAG context, not hallucination. Her security stack is mapped to **OWASP LLM Top 10** and governed by **NIST AI RMF**.
 
-### Key Features
-
-- **Semantic Search**: ChromaDB vector database with 2,656+ embeddings, <100ms query response time
-- **Production LLM**: Claude API (Anthropic) with Haiku model for cost-optimized inference
-- **Local Embeddings**: Ollama nomic-embed-text for 768-dimensional vector generation
-- **Policy Enforcement**: OPA/Conftest CI validation + Gatekeeper runtime admission control
-- **Security Automation**: 6-tool security pipeline (detect-secrets, Semgrep, Trivy, Bandit, Safety, npm audit)
-- **GitOps Deployment**: Three deployment methods showing kubectl → Terraform → Helm+ArgoCD progression
-- **Zero-Downtime Updates**: Versioned ChromaDB collections with atomic swaps
-- **Secrets Management**: Automated sync from .env to Kubernetes secrets with pre-commit validation
+This repo is also a live target for the **CBBP methodology** (Comply → Build → Break → Prove). The `CBBP/` directory contains the public security assessment artifacts produced by running that methodology against this system.
 
 ---
 
 ## Architecture
 
-### Technology Stack
+```
+Browser → Cloudflare Tunnel → Traefik (k3s) → UI (nginx) / API (FastAPI)
+                                                      ↓
+                                             ChromaDB (embeddings)
+                                                      ↑
+                                          Ollama (nomic-embed-text)
+                                                      
+                                    API → Claude API (streaming)
+                                        → HuggingFace Qwen2.5-1.5B (fallback)
+```
 
-#### Backend (Python 3.11)
+### Service Topology
 
-- FastAPI + Uvicorn (async web framework)
-- ChromaDB 0.5.18+ (vector database, persistent SQLite storage)
-- Anthropic Claude API (claude-3-haiku-20240307 for production LLM)
-- Ollama (nomic-embed-text for 768-dim local embeddings)
-- Pydantic (request/response validation)
+| Service | Image | Port |
+|---------|-------|------|
+| UI | `ghcr.io/jimjrxieb/portfolio-ui` | 80 (nginx) |
+| API | `ghcr.io/jimjrxieb/portfolio-api` | 8000 (FastAPI) |
+| ChromaDB | `chromadb/chroma:1.0.0` | 8000 (internal) |
 
-#### Frontend (TypeScript/React)
-
-- React 18.2.0 + TypeScript
-- Vite 6.4.1 (build tool, esbuild 0.27.0)
-- Material-UI 7.3.2 + Tailwind CSS 4.1.12
-- Nginx (production static file serving)
-
-#### Infrastructure & Security
-
-- Docker (multi-stage builds, non-root containers, distroless base images)
-- Kubernetes (Docker Desktop, 3-pod architecture: UI, API, ChromaDB)
-- GitHub Actions (parallel security scanning: detect-secrets, Semgrep, Trivy, Bandit, Safety)
-- OPA/Conftest (CI policy validation, 13 policies with 11 automated tests)
-- Gatekeeper (runtime admission control)
-- Cloudflare Tunnel (TLS-encrypted public access)
-- Pre-commit hooks (secrets detection, linting)
-
-#### Deployment Methods (Progressive Complexity)
-
-1. Method 1: Simple kubectl manifests (beginner-friendly)
-2. Method 2: Terraform + LocalStack (AWS service simulation)
-3. Method 3: Helm + ArgoCD (production GitOps)
-
-### System Components
+### Request Flow
 
 ```
-Portfolio/
-├── api/                      # FastAPI backend
-│   ├── routes/              # API endpoints (chat, RAG, health, uploads)
-│   ├── engines/             # Core logic (LLM, RAG, conversation, avatar)
-│   ├── jade_config/         # AI personality and configuration
-│   └── Dockerfile           # Production container
-├── ui/                       # React frontend
-│   ├── src/components/      # UI components + 3D avatar
-│   └── Dockerfile           # Production container
-├── infrastructure/          # 3 deployment methods (beginner → advanced)
-│   ├── method1-simple-kubectl/      # Quick kubectl deployment
-│   ├── method2-terraform-localstack/ # Terraform + LocalStack
-│   ├── method3-helm-argocd/         # Production GitOps
-│   ├── shared-gk-policies/          # Gatekeeper runtime policies
-│   └── shared-security/             # Network policies & RBAC
-├── conftest-policies/       # CI/CD policy validation (OPA)
-├── rag-pipeline/            # Data ingestion & ChromaDB management
-├── data/
-│   ├── knowledge/           # 20+ markdown source documents
-│   └── chroma/              # Persistent vector database
-└── docs/                    # Development documentation
+User query → api/routes/chat.py → 7-layer security check (sheyla_security/)
+           → RAG retrieval (ChromaDB top-3) → Claude API → validated response → client
 ```
 
 ---
 
-## AI Assistant System
-
-### Conversation Flow
-
-```
-User Question
-    ↓
-Semantic Search (ChromaDB)
-    ↓
-Context Retrieval (top 5 matches)
-    ↓
-LLM Prompt Construction (GPT-4o mini)
-    ↓
-Response Validation (anti-hallucination)
-    ↓
-Citation Formatting
-    ↓
-Avatar Animation + TTS
-```
-
-### Response Validation
-
-The system includes sophisticated anti-hallucination detection:
-- 8 different hallucination trap patterns
-- Confidence scoring (0-1)
-- Source document grounding validation
-- Detects fabricated facts, fake companies, wrong identities
-
-### Avatar System
-
-**Gojo (Primary Avatar)**
-- 3D animated male avatar (white hair, crystal blue eyes)
-- Real-time Three.js/VRM rendering
-- Lip-sync with ElevenLabs TTS
-- Personality: Professional, technical, helpful
-
-**Sheyla (Secondary)**
-- Interview/interaction avatar
-- Warm, professional Indian heritage
-- Status: Conversation engine implemented
-
-### Knowledge Base
-
-**Data Sources** (`/data/knowledge/`)
-- Biography and professional mission
-- DevOps/DevSecOps expertise (Kubernetes, CI/CD, Infrastructure as Code)
-- AI/ML expertise (RAG, LLMs, vector databases)
-- Project descriptions (LinkOps AI-BOX, Afterlife, etc.)
-- Testing partnerships (ZRS Management property reporting)
-- FAQ and comprehensive portfolio documentation
-
-**Ingestion Pipeline**
-- Markdown → Sanitize → Chunk (1000 tokens) → Embed → ChromaDB
-- Versioned collections with atomic swaps
-- Zero-downtime updates
-
----
-
-## API Endpoints
-
-### Chat Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/chat` | Main conversation (RAG + LLM) |
-| GET | `/api/chat/sessions/{id}` | Retrieve chat history |
-| DELETE | `/api/chat/sessions/{id}` | Clear session |
-| GET | `/api/chat/health` | Chat service status |
-| GET | `/api/chat/prompts` | Conversation starters |
-
-### RAG Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/rag/versions` | Create new index version |
-| GET | `/api/rag/versions` | List all versions |
-| POST | `/api/rag/ingest` | Ingest documents |
-| POST | `/api/rag/swap` | Atomic collection swap |
-| DELETE | `/api/rag/versions/{id}` | Delete old version |
-
-### Health & Status
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Basic health check |
-| GET | `/api/health/llm` | LLM provider test |
-| GET | `/api/health/rag` | RAG availability |
-| GET | `/api/debug/state` | Full configuration |
-
-### Avatar/Media
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/actions/avatar/create` | Avatar creation |
-| POST | `/api/actions/avatar/talk` | TTS generation |
-| POST | `/api/upload/image` | Image upload |
-
----
-
-## Configuration
-
-### Environment Variables
-
-**Required**
-```bash
-# LLM Configuration
-LLM_PROVIDER=openai
-LLM_API_KEY=sk-...
-LLM_MODEL=gpt-4o-mini
-
-# Vector Database
-CHROMA_URL=http://chromadb:8000
-RAG_NAMESPACE=portfolio
-
-# Public URL
-PUBLIC_BASE_URL=https://linksmlm.com
-CORS_ORIGINS=http://localhost:5173,https://linksmlm.com
-```
-
-**Optional**
-```bash
-# Voice Services
-ELEVENLABS_API_KEY=sk-...
-DID_API_KEY=...
-
-# Debug
-DEBUG_MODE=true
-```
-
-See [`.env.example`](.env.example) for complete configuration template.
-
----
-
-## Quick Start
-
-### Local Development
-
-**Prerequisites**
-- Docker + Docker Compose
-- Node.js 18+ (for UI development)
-- Python 3.11+ (for API development)
-
-**Start all services**
-```bash
-# Clone repository
-git clone https://github.com/jimjrxieb/Portfolio.git
-cd Portfolio
-
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your API keys
-nano .env
-
-# Start services
-docker-compose up --build -d
-
-# Check status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-```
-
-**Access services**
-- Frontend: http://localhost:5173
-- API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-- ChromaDB: http://localhost:8001
-
-### Production Deployment
-
-**3 Deployment Methods** (choose based on your experience level):
-
-#### Method 1: Simple Kubernetes (⭐ Beginner - 5 minutes)
-```bash
-cd infrastructure/method1-simple-kubectl
-kubectl apply -f .
-```
-
-#### Method 2: Terraform + LocalStack (⭐⭐ Intermediate - 15 minutes)
-
-**What You'll Get:**
-- Full AWS service simulation (Secrets Manager, Lambda, CloudWatch, S3, DynamoDB, SQS)
-- Production-grade infrastructure patterns running locally
-- Kubernetes application deployment (UI + API + ChromaDB)
-- IAM roles and policies for Lambda functions
-- Infrastructure as Code with Terraform modules
-
-```bash
-cd infrastructure/method2-terraform-localstack
-
-# Start LocalStack (AWS service emulator)
-docker run -d --name localstack -p 4566:4566 \
-  -e SERVICES=s3,dynamodb,sqs,secretsmanager,lambda,logs,cloudwatch,events,iam \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  localstack/localstack:latest
-
-# Set API keys as Terraform variables
-export TF_VAR_claude_api_key="$CLAUDE_API_KEY"
-export TF_VAR_openai_api_key="${OPENAI_API_KEY:-}"
-export TF_VAR_elevenlabs_api_key="${ELEVENLABS_API_KEY:-}"
-export TF_VAR_did_api_key="${DID_API_KEY:-}"
-
-# Deploy infrastructure
-terraform init
-terraform apply
-
-# Verify Lambda function
-aws --endpoint-url=http://localhost:4566 lambda list-functions
-
-# Check Secrets Manager
-aws --endpoint-url=http://localhost:4566 secretsmanager list-secrets
-
-# View CloudWatch logs
-aws --endpoint-url=http://localhost:4566 logs tail /aws/lambda/portfolio-chat-handler
-```
-
-**Architecture Deployed:**
-- **AWS Resources**: 5 secrets, 1 Lambda function, S3 bucket, DynamoDB table, SQS queue
-- **Kubernetes**: portfolio namespace with UI/API/ChromaDB deployments
-- **Networking**: Ingress controller for HTTP routing
-- **Security**: IAM policies, Secrets Manager integration, non-root containers
-
-#### Method 3: Helm + ArgoCD (⭐⭐⭐ Advanced - 30+ minutes)
-```bash
-# Build and push containers
-docker build -t ghcr.io/jimjrxieb/portfolio-api:latest ./api
-docker build -t ghcr.io/jimjrxieb/portfolio-ui:latest ./ui
-docker push ghcr.io/jimjrxieb/portfolio-api:latest
-docker push ghcr.io/jimjrxieb/portfolio-ui:latest
-
-# Deploy with Helm
-helm upgrade --install portfolio ./infrastructure/method3-helm-argocd/helm-chart/portfolio \
-  --namespace portfolio \
-  --create-namespace \
-  --values ./infrastructure/method3-helm-argocd/helm-chart/portfolio/values.prod.yaml
-
-# Or use ArgoCD (GitOps)
-kubectl apply -f ./infrastructure/method3-helm-argocd/argocd/portfolio-application.yaml
-```
-
-**📚 Full Documentation**: See [infrastructure/README.md](./infrastructure/README.md) for detailed deployment guides, comparison table, and security best practices.
-
----
-
-## Infrastructure & Deployment
-
-### 3-Method Approach
-
-This project offers **3 deployment methods** for different skill levels and use cases:
-
-| Method | Difficulty | Time | Tools | Use Case | AWS Services |
-|--------|-----------|------|-------|----------|--------------|
-| **[Method 1](./infrastructure/method1-simple-kubectl/)** | ⭐ Beginner | 5 min | kubectl | Learning K8s basics | None |
-| **[Method 2](./infrastructure/method2-terraform-localstack/)** | ⭐⭐ Intermediate | 15 min | Terraform + LocalStack | Testing AWS services locally | Lambda, Secrets Manager, CloudWatch, S3, DynamoDB, SQS |
-| **[Method 3](./infrastructure/method3-helm-argocd/)** | ⭐⭐⭐ Advanced | 30+ min | Helm + ArgoCD | Production GitOps | Optional (cloud-agnostic) |
-
-### Security & Policy Enforcement
-
-**Two-Layer Defense (Industry Best Practice)**:
-
-1. **CI/CD Policies** ([conftest-policies/](./conftest-policies/))
-   - Validates manifests during CI/CD (shift-left security)
-   - 150+ policy tests covering container security, image security, resource limits
-   - Blocks deployments before they reach production
-
-2. **Runtime Policies** ([shared-gk-policies/](./infrastructure/shared-gk-policies/))
-   - Gatekeeper admission controller blocks non-compliant pods
-   - ConstraintTemplates for security, governance, and compliance
-   - Last line of defense at cluster level
-
-**Additional Security** ([shared-security/](./infrastructure/shared-security/)):
-- Network policies (default-deny, DNS allow)
-- RBAC roles and bindings
-- Pod Security Standards
-- CIS Kubernetes Benchmark compliance
-
-### Learning Path
-
-**New to Kubernetes?** → Start with [Method 1](./infrastructure/method1-simple-kubectl/)
-**Ready for Infrastructure as Code?** → Move to [Method 2](./infrastructure/method2-terraform-localstack/)
-**Ready for Production?** → Graduate to [Method 3](./infrastructure/method3-helm-argocd/)
-
----
-
-## Development
-
-### Project Structure
-
-**Backend Routes** (`api/routes/`)
-- `chat.py` - Conversation endpoints
-- `rag.py` - RAG management
-- `health.py` - Health checks
-- `uploads.py` - File uploads
-- `validation.py` - Input validation
-
-**Backend Engines** (`api/engines/`)
-- `jade_engine.py` - Conversation logic (Gojo personality)
-- `rag_engine.py` - RAG operations
-- `llm_engine.py` - Multi-provider LLM client
-- `response_generator.py` - Response validation
-- `avatar_engine.py` - Avatar integration
-- `speech_engine.py` - TTS integration
-
-**Frontend Components** (`ui/src/components/`)
-- `GojoAvatar3D.tsx` - 3D avatar rendering
-- `Chat.tsx` - Chat interface
-- `Projects.tsx` - Project showcase
-- `About.tsx` - About section
-
-### Running Tests
-
-```bash
-# Backend tests
-cd api
-pytest
-
-# Frontend tests
-cd ui
-npm test
-
-# Integration tests
-docker-compose up -d
-pytest integration/
-```
-
-### Updating Knowledge Base
-
-```bash
-# Add/edit documents in data/knowledge/
-
-# Rebuild RAG index
-cd rag-pipeline
-python ingestion_engine.py
-
-# Or use API
-curl -X POST http://localhost:8000/api/rag/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"documents_path": "/data/knowledge"}'
-```
+## Tech Stack
+
+### Backend (Python 3.11)
+- **FastAPI** + Uvicorn — async API, streaming responses
+- **ChromaDB ≥1.0.0** — vector store, persistent SQLite
+- **Anthropic Claude API** — primary LLM (streaming)
+- **HuggingFace Qwen2.5-1.5B** — local fallback LLM
+- **Ollama nomic-embed-text** — 768-dim local embeddings
+
+### Frontend (TypeScript)
+- **React 18** + Vite — UI framework and build tool
+- **Tailwind CSS** — styling
+- **Nginx** — production static serving (non-root, port 8080)
+
+### Infrastructure
+- **k3s** — single-node Kubernetes (production)
+- **ArgoCD** — GitOps continuous deployment (auto-sync, self-heal, prune)
+- **Helm** — Kubernetes packaging (`infrastructure/charts/portfolio/`)
+- **Traefik** — Ingress (Gateway API HTTPRoutes)
+- **Cloudflare Tunnel** — zero-trust public access, http2 protocol
+- **cert-manager** — automatic TLS (Let's Encrypt)
+- **External Secrets** + **Vault** — secrets management
 
 ---
 
 ## Security
 
-### Security Features Implemented
+### CI/CD Pipeline (9 parallel scanners)
 
-- No hardcoded secrets (environment variables)
-- Input validation on all endpoints
-- CORS properly configured
-- Security headers (CSP, HSTS, X-Frame-Options)
-- Rate limiting (30 req/min per IP)
-- Non-root container execution
-- Path traversal protection
-- SSRF prevention
-- Response validation
+| Scanner | Domain |
+|---------|--------|
+| Semgrep | SAST — code vulnerabilities |
+| Bandit | Python security linting |
+| Safety | Python dependency CVEs |
+| detect-secrets | Secret scanning (pre-commit baseline) |
+| Checkov | IaC / Terraform misconfiguration |
+| Trivy | Container image CVEs + SBOM |
+| SonarCloud | Code quality + security |
+| npm audit | Node.js dependency CVEs |
+| OPA/Conftest | Kubernetes manifest policy validation |
 
-### Security Assessment
+### AI Security (OWASP LLM Top 10)
 
-See [GP-Copilot Security Assessment](./GP-copilot/GP-COPILOT-ASSESSMENT-REPORT.md) for detailed security analysis.
+Sheyla's security stack is implemented in `api/sheyla_security/` and mapped to the OWASP LLM Top 10:
 
-**Status**: Production-ready with zero security findings
+| Control | Implementation | OWASP |
+|---------|---------------|-------|
+| Prompt injection detection | 15+ regex patterns | LLM01 |
+| Input sanitization | Boundary validation, encoding fixes | LLM06 |
+| Output filtering | PII redaction, path sanitization | LLM02 |
+| Rate limiting | 30 req/min per IP | DoS protection |
+| Audit trail | JSONL with hashed IPs | NIST AI RMF — MEASURE |
 
----
+### Runtime (K8s)
 
-## Performance
-
-### Metrics
-
-- **Response Time**: <2s average (including RAG + LLM)
-- **RAG Search**: <100ms for semantic search
-- **Concurrent Users**: Tested up to 50 simultaneous chats
-- **Knowledge Base**: 20+ documents, 384-dim embeddings
-- **Rate Limiting**: 30 requests/min per IP
-
-### Optimization
-
-- Gzip compression for API responses
-- Lazy-loaded 3D assets
-- Chunked knowledge base (1000 tokens/chunk)
-- Top-5 retrieval for context (configurable)
-- Local LLM fallback for cost optimization
+- **OPA/Gatekeeper** — admission control (runtime policy enforcement)
+- **Conftest** — CI manifest validation (13 policies)
+- **NetworkPolicy** — default-deny with explicit allow rules
+- **Pod Security**: `runAsNonRoot`, `readOnlyRootFilesystem`, drop ALL capabilities
+- **Non-root containers**: `appuser` UID 1000 on all images
 
 ---
 
-## External Services
+## CBBP Security Assessment
 
-### Active Integrations
-- **OpenAI**: GPT-4o mini LLM (https://api.openai.com)
-- **ChromaDB**: Vector database (self-hosted)
-- **ElevenLabs**: Text-to-speech (optional)
-- **HuggingFace**: Embedding models + local LLM
-- **Cloudflare**: Tunnel for public exposure
+This repo is assessed using the **CBBP methodology** (Comply → Build → Break → Prove), which maps to the NIST Risk Management Framework:
 
-### Configured but Inactive
-- **D-ID**: Avatar video generation (in config, not actively used)
+| Phase | NIST RMF | What It Produces |
+|-------|----------|-----------------|
+| **COMPLY** | Categorize + Select | SSP, control gap analysis, NIST 800-53 mappings |
+| **BUILD** | Implement | Hardened IaC, CI/CD pipeline, policy-as-code |
+| **BREAK** | Assess | Scanner outputs, adversarial validation, POA&M findings |
+| **PROVE** | Authorize + Monitor | SAR, POA&M, evidence package, audit trail |
+
+Public assessment artifacts live in `CBBP/`:
+
+```
+CBBP/
+  COMPLY/   scope, NIST 800-53 map, NIST AI RMF map, assessment sheets, SSP
+  BUILD/    DevSecOps implementation summary, CKS-style tool map
+  BREAK/    method, guardrails, evidence-routing model, findings
+  PROVE/    SAR, POA&M, CISO summary, audit trail
+```
+
+The BREAK material shows how controls are routed to `greatsuccess` (validated, audit-ready) versus `patchworkneeded` (open findings, not yet provable). Open POA&M items are tracked with unique IDs, owners, and milestone dates — not swept under the rug.
 
 ---
 
-## Monitoring & Troubleshooting
+## RAG Pipeline
 
-### Health Checks
-
-```bash
-# Basic health
-curl http://localhost:8000/health
-
-# LLM provider
-curl http://localhost:8000/api/health/llm
-
-# RAG system
-curl http://localhost:8000/api/health/rag
-
-# Full debug state
-curl http://localhost:8000/api/debug/state
+```
+rag-pipeline/00-new-rag-data/      → Drop new source documents here
+rag-pipeline/02-prepared-rag-data/ → Chunked + sanitized (prepare_data.py)
+rag-pipeline/03-ingest-rag-data/   → Embedded + stored in ChromaDB (ingest_data.py)
+rag-pipeline/04-processed-rag-data/→ Archived originals
 ```
 
-### Common Issues
-
-**Chat not responding**
+**Run the pipeline** (requires Ollama running locally with nomic-embed-text):
 ```bash
-# Check API logs
-docker-compose logs api
-
-# Verify ChromaDB
-curl http://localhost:8001/api/v1/heartbeat
-
-# Check LLM API key
-docker-compose exec api env | grep LLM_API_KEY
+cd rag-pipeline
+python run_pipeline.py         # full: prep → ingest → archive
+python run_pipeline.py status  # show collection stats
 ```
 
-**UI not loading**
+**Knowledge base**: 251 chunks, 30 source documents, 768-dim vectors, `portfolio_knowledge` collection.
+
+**Sync to production** (after local pipeline run):
 ```bash
-# Check UI logs
-docker-compose logs ui
+# Reset old collection on cluster
+CHROMA_URL=http://localhost:8001 python reset_collection.py
 
-# Rebuild
-cd ui && npm run build
-
-# Check CORS
-curl -H "Origin: http://localhost:5173" http://localhost:8000/health -v
-```
-
-**RAG returning no results**
-```bash
-# Check ChromaDB collections
-curl http://localhost:8001/api/v1/collections
-
-# Rebuild index
-cd rag-pipeline && python ingestion_engine.py
+# Run pipeline against cluster ChromaDB
+CHROMA_URL=http://localhost:8001 python run_pipeline.py
 ```
 
 ---
 
-## Contributing
+## Deployment
 
-### Development Setup
+### Production (ArgoCD GitOps)
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests (`pytest` for backend, `npm test` for frontend)
-5. Commit with conventional commits (`git commit -m 'feat: add amazing feature'`)
-6. Push to branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+Push to `main` → GitHub Actions builds + tags images → auto-commits tag to `values.yaml` → ArgoCD detects + syncs → rolling update.
 
-### Code Standards
+Image tags: `main-<short-sha>` at `ghcr.io/jimjrxieb/portfolio-{api,ui}`.
 
-- **Python**: Black formatting, type hints, docstrings
-- **TypeScript**: ESLint + Prettier, strict mode
-- **Commits**: Conventional Commits specification
-- **Tests**: Required for new features
+```bash
+# Check ArgoCD sync status
+kubectl get application portfolio -n argocd
+
+# Force refresh
+kubectl annotate application portfolio -n argocd argocd.argoproj.io/refresh=normal
+```
+
+**Hard rule**: ArgoCD-managed resources are fixed in git only. Never `kubectl patch` them directly.
+
+### Local Development (Docker Compose)
+
+```bash
+cp .env.example .env          # add CLAUDE_API_KEY + OLLAMA_URL
+docker-compose up --build -d
+docker-compose logs -f api
+```
+
+Access: UI → http://localhost:3000 · API → http://localhost:8000 · ChromaDB → http://localhost:8001
+
+### Kubernetes (3 methods)
+
+```bash
+# Method 1 — kubectl manifests (learning)
+kubectl apply -f infrastructure/method1-simple-kubectl/
+
+# Method 2 — Terraform + LocalStack (IaC practice)
+cd infrastructure/method2-terraform-localstack && terraform apply
+
+# Method 3 — Helm + ArgoCD (production)
+helm upgrade --install portfolio infrastructure/charts/portfolio/ \
+  --namespace portfolio --create-namespace \
+  -f infrastructure/charts/portfolio/values.yaml
+```
+
+```bash
+# Makefile shortcuts
+make deploy-kind       # build + deploy to kind
+make deploy-minikube   # build + deploy to minikube
+make security-scan     # Trivy image scan + SBOM
+make helm-security     # Helm lint + Conftest policy check
+```
 
 ---
 
-## License
+## Configuration
 
-This project is proprietary. All rights reserved.
+### Required Environment Variables
 
----
+```bash
+# Primary LLM
+LLM_PROVIDER=claude
+CLAUDE_API_KEY=sk-ant-...
 
-## Contact & Support
+# Embeddings (local Ollama)
+OLLAMA_URL=http://host.docker.internal:11434
 
-**Project Owner**: Jimmie Coleman
-**Live Demo**: [https://linksmlm.com](https://linksmlm.com)
-**Repository**: [https://github.com/jimjrxieb/Portfolio](https://github.com/jimjrxieb/Portfolio)
+# Vector DB
+CHROMA_URL=http://chromadb:8000
 
-For questions or support, please open an issue on GitHub.
+# App
+ENVIRONMENT=production
+CORS_ORIGINS=https://linksmlm.com
+```
 
----
-
-## Acknowledgments
-
-- **OpenAI**: GPT-4o mini LLM
-- **ChromaDB**: Vector database
-- **ElevenLabs**: Professional TTS
-- **Three.js**: 3D rendering
-- **FastAPI**: Modern Python web framework
-- **React**: UI framework
+See [`.env.example`](.env.example) for the full template.
 
 ---
 
-Built with care by [Jimmie Coleman](https://linksmlm.com) - DevSecOps Engineer & AI/ML Specialist
+## Build Commands
+
+```bash
+# UI
+cd ui && npm run dev        # Vite dev server :5173
+cd ui && npm run build      # production build
+cd ui && npm run lint        # ESLint
+
+# API
+cd api && uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Tests
+cd ui && npx playwright test                   # all e2e
+cd ui && npx playwright test tests/api.spec.ts # single file
+
+# OPA policy tests
+conftest verify --policy GP-copilot/02-package/conftest-policies/
+```
+
+---
+
+## Path Routing (Production)
+
+Traefik `strip-api` middleware removes `/api` prefix before forwarding to FastAPI:
+
+- Browser calls `/api/chat` → Traefik strips to `/chat` → FastAPI handles `/chat`
+- `VITE_API_BASE_URL=/api` baked at Docker build time
+- **Never hardcode `/api` in fetch calls** — use `${API_BASE}/endpoint`
+
+---
+
+## Common Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| 502 from `/api/` | API pod down or rolling update in progress | `kubectl get pods -n portfolio`; wait for `1/1 Running` |
+| 502 persistent | Cloudflare tunnel half-open connections | `sudo systemctl restart cloudflared` |
+| Chat "Unknown error" | 502 hitting fetch during rollout | Same as above; transient |
+| Site loads, API dead | Tunnel issue not K8s | Check `sudo systemctl status cloudflared` |
+| White page after deploy | Stale browser cache | Ctrl+Shift+R force refresh |
+| RAG returns no results | ChromaDB collection empty or wrong CHROMA_URL | Run `python run_pipeline.py status` |
+
+---
+
+## Repository Layout
+
+```
+Portfolio-Prod/
+├── api/                   FastAPI app (main.py, routes/, sheyla_security/)
+├── backend/               Shared engines (rag_engine, llm_interface, settings)
+├── ui/                    React + Vite frontend
+├── infrastructure/
+│   ├── charts/portfolio/  Helm chart (production, ArgoCD managed)
+│   ├── method1-simple-kubectl/
+│   ├── method2-terraform-localstack/
+│   └── method3-helm-argocd/
+├── rag-pipeline/          RAG ingestion pipeline
+├── data/chroma/           Local ChromaDB (sync to server PVC)
+├── CBBP/                  Security assessment artifacts (COMPLY/BUILD/BREAK/PROVE)
+└── .github/workflows/     CI/CD (main.yml — 9 parallel security scanners)
+```
+
+---
+
+Built by [Jimmie Coleman](https://linksmlm.com) — DevSecOps + AI Security Engineering

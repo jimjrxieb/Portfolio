@@ -5,7 +5,7 @@
 set -e
 
 NAMESPACE="${1:-linkops-portfolio}"
-SECRET_NAME="portfolio-api-secrets"
+SECRET_NAME="portfolio-api-secrets"  # pragma: allowlist secret
 
 echo "Creating development secrets in namespace: $NAMESPACE"
 

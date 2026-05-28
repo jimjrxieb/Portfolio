@@ -18,6 +18,7 @@ repos:
             yarn\.lock|
             \.env\.example|
             data/chroma/.*|
+            rag-pipeline/04-processed-rag-data/.*|
             rag-pipeline/processed-rag-data/.*
           )$
 

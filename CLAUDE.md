@@ -131,8 +131,8 @@ Image tags follow pattern: `main-<short-sha>`.
 
 ### Server
 
-- **Host**: `ssh jimmie@100.116.11.56` (Tailnet IP, `portfolioserver`)
-- **OS**: Ubuntu, WiFi interface `wlp2s0`, LAN IP `192.168.1.110`
+- **Host**: private tailnet host, connect using your local SSH alias or approved inventory record
+- **OS**: Private Linux host; management network details are redacted from public documentation
 - **K8s**: k3s single-node cluster with Traefik ingress controller
 
 ### How Traffic Reaches the App
@@ -140,20 +140,20 @@ Image tags follow pattern: `main-<short-sha>`.
 ```text
 Internet → Cloudflare Edge (DNS: linksmlm.com)
          → Cloudflare Tunnel (http2 protocol, NOT quic)
-         → cloudflared on portfolioserver → http://192.168.1.110:80
+         → cloudflared on private host → internal Traefik service
          → Traefik ingress (Host: linksmlm.com)
          → K8s services (UI on /, API on /api)
 ```
 
 ### Cloudflare Tunnel Setup
 
-- **Tunnel ID**: `17334a76-6f89-43ef-bbae-9dfb19aa5815`
-- **Credentials**: `/home/jimmie/.cloudflared/credentials.json`
-- **Local config**: `/home/jimmie/.cloudflared/config.yml` (overridden by remote-managed config from Zero Trust dashboard)
+- **Tunnel ID**: redacted from public documentation
+- **Credentials**: stored outside the repo; do not commit tunnel credentials
+- **Local config**: stored outside the repo; remote-managed config lives in the Zero Trust dashboard
 - **Systemd service**: `/etc/systemd/system/cloudflared.service`
 - **Protocol**: Must use `--protocol http2` (QUIC is blocked/dropped by the network)
 - **Dashboard config** (Zero Trust > Networks > Tunnels > Portfolio):
-  - Hostname: `linksmlm.com` → `http://192.168.1.110:80`
+  - Hostname: `linksmlm.com` → internal Traefik service
   - HTTP Host Header: `linksmlm.com` (required — without this, Traefik returns 404)
 - **DNS** (Cloudflare dashboard): CNAME `linksmlm.com` → tunnel (type "Tunnel", proxied)
 - **Also routed**: `argocd.linksmlm.com` → ArgoCD service (noTLSVerify)
@@ -205,7 +205,7 @@ Traefik `strip-api` middleware removes `/api` prefix before forwarding to FastAP
 
 - **502 from linksmlm.com/api/**: API pod is likely down. Check `kubectl get pods -n portfolio` and `kubectl logs -n portfolio -l app=api`. If UI loads but API returns 502, it's the API service not Cloudflare. For tunnel-level 502s, check `sudo systemctl status cloudflared` — restart if QUIC errors in logs. Verify `httpHostHeader: linksmlm.com` is set in Zero Trust dashboard.
 - **Tunnel not proxying**: Confirm protocol is http2 (`journalctl -u cloudflared | grep protocol`). QUIC does not work on this network.
-- **Pods healthy but site down**: Tunnel issue, not K8s. Test locally: `curl -H 'Host: linksmlm.com' http://192.168.1.110:80`
+- **Pods healthy but site down**: Tunnel issue, not K8s. Test from the approved private network using the internal Traefik endpoint.
 - **Chat not working**: Verify fetch URLs use `/api/chat` prefix (not `/chat`). Test: `curl https://linksmlm.com/api/chat/health`
 - **Restart tunnel**: `sudo systemctl restart cloudflared`
 - **Check tunnel metrics**: `curl http://127.0.0.1:20241/metrics`
@@ -216,5 +216,5 @@ Traefik `strip-api` middleware removes `/api` prefix before forwarding to FastAP
 - **Python**: Black formatting, type hints
 - **TypeScript/JSX**: ESLint strict mode (no-eval, eqeqeq), single quotes, 2-space indent, Prettier
 - **UI path alias**: `@/*` maps to `./src/*` (tsconfig paths)
-- **Unused routes**: Deprecated API routes live in `api/routes/_unused/` — not mounted
+- **Archived routes**: Deprecated API routes live in `api/routes/archive/` — not mounted
 - **Container images**: Non-root (`appuser` UID 1000), multi-stage builds, distroless where possible

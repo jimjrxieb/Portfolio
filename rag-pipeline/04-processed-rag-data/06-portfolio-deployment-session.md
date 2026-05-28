@@ -134,7 +134,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /home/jimmie/linkops-industries/Portfolio/data/chroma
+    path: <repo-root>/data/chroma
     type: DirectoryOrCreate
   persistentVolumeReclaimPolicy: Retain
 ```
@@ -181,7 +181,7 @@ volumes:
 ## 3. ChromaDB Vector Database Setup
 
 ### Database Location
-- **Host Path:** `/home/jimmie/linkops-industries/Portfolio/data/chroma/chroma.sqlite3`
+- **Host Path:** `<repo-root>/data/chroma/chroma.sqlite3`
 - **Size:** 2.0MB
 - **Collection:** `portfolio_knowledge`
 
@@ -341,10 +341,10 @@ curl http://localhost:8090/ -H "Host: linksmlm.com"
 
 ### Cloudflare Tunnel Configuration
 
-**Config File:** `/home/jimmie/.cloudflared/config.yml`
+**Config File:** private Cloudflare tunnel config path redacted
 ```yaml
-tunnel: 17334a76-6f89-43ef-bbae-9dfb19aa5815
-credentials-file: /home/jimmie/.cloudflared/credentials.json
+tunnel: <redacted-tunnel-id>
+credentials-file: <redacted-credentials-path>
 
 ingress:
   - hostname: linksmlm.com
@@ -360,7 +360,7 @@ ingress:
 - Tunnel automatically received new configuration (version 2)
 
 **Tunnel Status:**
-- **Tunnel ID:** 17334a76-6f89-43ef-bbae-9dfb19aa5815
+- **Tunnel ID:** redacted from public documentation
 - **Status:** HEALTHY
 - **Connections:** 4 active connections to Cloudflare edge (MIA data centers)
 - **Website:** ✅ https://linksmlm.com/ (HTTP 200)
@@ -383,8 +383,8 @@ Requires=docker.service
 
 [Service]
 Type=simple
-User=jimmie
-Environment="KUBECONFIG=/home/jimmie/.kube/config"
+User=<service-user>
+Environment="KUBECONFIG=<kubeconfig-path>"
 ExecStart=/usr/local/bin/kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8090:80
 Restart=always
 RestartSec=10
@@ -402,9 +402,9 @@ Wants=portfolio-ingress-forward.service
 
 [Service]
 Type=simple
-User=jimmie
-WorkingDirectory=/home/jimmie
-ExecStart=/home/jimmie/.local/bin/cloudflared tunnel --config /home/jimmie/.cloudflared/config.yml run 17334a76-6f89-43ef-bbae-9dfb19aa5815
+User=<service-user>
+WorkingDirectory=<redacted-home-directory>
+ExecStart=cloudflared tunnel --config <redacted-config-path> run <redacted-tunnel-id>
 Restart=always
 RestartSec=10
 
@@ -499,14 +499,14 @@ Kubernetes ingress-nginx-controller
     │                                                    ↓
     │                                           ChromaDB (29 embeddings)
     │                                                    ↓
-    │                                           PV: /home/jimmie/.../chroma/
+    │                                           PV: <host-path>/chroma/
     └─ /* → portfolio-ui:80 (React)
             ↓
         portfolio-ui pod (Nginx serving React SPA)
 ```
 
 ### Data Persistence
-- **ChromaDB:** PersistentVolume at `/home/jimmie/linkops-industries/Portfolio/data/chroma/`
+- **ChromaDB:** PersistentVolume at `<repo-root>/data/chroma/`
 - **Embeddings:** 29 chunks from 5 markdown documents (2.0MB SQLite database)
 - **Systemd Services:** Auto-start on boot, survive reboots
 
@@ -678,7 +678,7 @@ backend/engines/rag_engine.py                           # Updated import path
 backend/settings.py                                      # Updated personality loader import
 infrastructure/method1-simple-kubectl/05-api-deployment.yaml  # Fixed image, CHROMA_URL, removed PVC mount
 infrastructure/method1-simple-kubectl/03-chroma-pv-local.yaml # Recreated (deleted/reapplied)
-~/.cloudflared/config.yml                               # Changed port 8080 → 8090
+<cloudflared-config-dir>/config.yml                               # Changed port 8080 → 8090
 ```
 
 ### Created Files

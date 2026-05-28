@@ -171,7 +171,7 @@ kubectl port-forward -n localstack svc/localstack 4566:4566
 
 #### 2. Navigate to Method 2 Directory
 ```bash
-cd /home/jimmie/linkops-industries/Portfolio/infrastructure/method2-terraform-localstack
+cd <repo-root>/infrastructure/method2-terraform-localstack
 ```
 
 #### 3. Verify terraform.tfvars Exists

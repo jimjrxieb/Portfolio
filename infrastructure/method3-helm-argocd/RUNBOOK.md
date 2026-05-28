@@ -7,7 +7,7 @@ Bare server to production deployment at linksmlm.com. This is the runbook for th
 ## 1. Clone the Repository
 
 ```bash
-ssh jimmie@your-server
+ssh user@your-server
 git clone https://github.com/jimjrxieb/Portfolio.git
 cd Portfolio
 ```
@@ -72,7 +72,7 @@ helm version
 Run the consulting package for CIS benchmark compliance:
 
 ```bash
-cd /home/jimmie/linkops-industries/GP-copilot/GP-CONSULTING/02-CLUSTER-HARDENING/
+cd ../GP-CONSULTING/02-CLUSTER-HARDENING/
 
 # Run cluster audit (CIS Kubernetes Benchmark)
 bash tools/run-cluster-audit.sh
@@ -211,7 +211,7 @@ sudo dpkg -i cloudflared.deb
 2. Create a tunnel (or use existing), copy the tunnel token
 3. Add a public hostname:
    - **Hostname:** `linksmlm.com`
-   - **Service:** `http://192.168.1.110:80` (your server's LAN IP + Traefik port)
+   - **Service:** internal Traefik endpoint on the approved private network
    - **HTTP Host Header:** `linksmlm.com` (required — without this, Traefik returns 404)
 4. Optionally add `argocd.linksmlm.com` → ArgoCD service (with noTLSVerify)
 
@@ -296,7 +296,7 @@ New UI image built but browser cached old asset hashes. Force refresh (Ctrl+Shif
 Confirm protocol is http2: `journalctl -u cloudflared | grep protocol`. QUIC does not work on this network. Check sysctl tuning (step 4).
 
 **Pods healthy but site down:**
-Tunnel issue, not K8s. Test locally: `curl -H 'Host: linksmlm.com' http://192.168.1.110:80`.
+Tunnel issue, not K8s. Test from the approved private network using the internal Traefik endpoint.
 
 **Chat not working:**
 Verify fetch URLs use `/api/chat` prefix. Test: `curl https://linksmlm.com/api/chat/health`.
