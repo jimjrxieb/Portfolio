@@ -48,12 +48,12 @@ export default {
           900: '#831843',
           DEFAULT: '#f472b6',
         },
-        ink: '#0a0a0f',           // Deeper black, almost void
-        card: '#12121a',          // Subtle purple undertone
-        snow: '#12121a',          // Card backgrounds
+        ink: '#0a0a0f', // Deeper black, almost void
+        card: '#12121a', // Subtle purple undertone
+        snow: '#12121a', // Card backgrounds
         'text-primary': '#e2e8f0', // Soft white
         'text-secondary': '#94a3b8', // Lighter slate
-        'text-muted': '#64748b',   // Slate gray
+        'text-muted': '#64748b', // Slate gray
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

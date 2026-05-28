@@ -42,7 +42,7 @@
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx}": [
-      "eslint --max-warnings 0 --fix",
+      "eslint --max-warnings 0 --fix --no-warn-ignored",
       "prettier --write"
     ],
     "tests/**/*.{ts,tsx}": [

@@ -7,8 +7,7 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Copy package files for better layer caching
 COPY ui/package*.json ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --prefer-offline --no-audit
+RUN npm ci --no-audit
 
 # Copy source files and build
 COPY ui/ .

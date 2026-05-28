@@ -26,19 +26,20 @@ export default function Landing() {
 
             {/* Paragraph 1 — Who I am */}
             <p className="text-text-secondary text-sm leading-relaxed mb-4">
-              I&apos;m a cybersecurity professional focused on{' '}
+              I&apos;m a cybersecurity professional transitioning from GRC and
+              compliance engineering into hands-on{' '}
               <span className="text-white font-medium">
-                vulnerability management
+                IT security and compliance
               </span>{' '}
-              and{' '}
-              <span className="text-white font-medium">security controls</span>.
-              I implement NIST 800-53 controls mapped to OSI layers and the
-              DevOps pipeline in a home lab — and the application I&apos;m
-              breaking is this one. This portfolio runs through a staging
-              environment where I deliberately introduce failures, validate that
-              my detective controls catch them, remediate the findings, and then
-              promote to production with packaged evidence. I hold a{' '}
-              <span className="text-crystal-400 font-medium">CKA</span>,{' '}
+              —{' '}
+              <span className="text-crystal-400 font-medium">Claude Code</span>{' '}
+              and <span className="text-crystal-400 font-medium">Codex</span>{' '}
+              made it possible by encoding the manual work into agents and
+              runbooks. I implement NIST 800-53 controls using the{' '}
+              <span className="text-white font-medium">CBBP methodology</span> —
+              Comply, Build, Break, Prove — across OSI layers and the DevOps
+              pipeline, and the application I&apos;m breaking is this one. I
+              hold a <span className="text-crystal-400 font-medium">CKA</span>,{' '}
               <span className="text-crystal-400 font-medium">AWS SAA</span>,{' '}
               <span className="text-crystal-400 font-medium">Security+</span>,
               and an{' '}
@@ -49,12 +50,11 @@ export default function Landing() {
               under the guidance of{' '}
               <span className="text-white font-medium">Constant Young</span>, my
               mentor — his influence shapes how I approach every engagement and
-              every decision. I&apos;m currently using the lab to study for and
-              pass my{' '}
+              every decision. I&apos;m currently studying for my{' '}
               <span className="text-crystal-400 font-medium">
                 CompTIA CySA+
-              </span>
-              .
+              </span>{' '}
+              to formalize the analyst work I&apos;ve been doing in the lab.
             </p>
 
             {/* Paragraph 2 — Open-source philosophy */}

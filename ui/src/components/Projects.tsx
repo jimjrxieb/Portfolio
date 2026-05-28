@@ -30,7 +30,8 @@ type CategoryKey = 'languages' | 'aiml' | 'cloud' | 'security' | 'devops';
 const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
   gpcopilot: {
     title: 'GP-Copilot - DevSecOps Automation Platform',
-    description: '70% auto-fix rate on security findings—runs 24/7 in production Kubernetes',
+    description:
+      '70% auto-fix rate on security findings—runs 24/7 in production Kubernetes',
     status: 'Production',
     icon: '🔒',
     repoUrl: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot',
@@ -46,15 +47,28 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
   },
   anthra: {
     title: 'Anthra-FedRAMP — Security Compliance Platform',
-    description: 'FedRAMP Moderate authorization engagement — 323 NIST 800-53 controls, real scan data, GitOps deployment',
+    description:
+      'FedRAMP Moderate authorization engagement — 323 NIST 800-53 controls, real scan data, GitOps deployment',
     status: 'Production',
     icon: '🏛️',
     repoUrl: 'https://github.com/jimjrxieb/Anthra-FedRAMP',
     screenshots: [
-      { src: '/projects/anthra-compliance.jpeg', alt: 'FedRAMP Compliance Dashboard — 14 NIST control families with real scan data' },
-      { src: '/projects/anthra-findings.jpeg', alt: 'Security Findings — industry standard vs GP-Copilot scanners' },
-      { src: '/projects/anthra-ssp.jpeg', alt: 'System Security Plan — SSP best practices and 3PAO guidance' },
-      { src: '/projects/anthra-poam.jpeg', alt: 'POA&M — 21 tracked items with severity and milestones' },
+      {
+        src: '/projects/anthra-compliance.jpeg',
+        alt: 'FedRAMP Compliance Dashboard — 14 NIST control families with real scan data',
+      },
+      {
+        src: '/projects/anthra-findings.jpeg',
+        alt: 'Security Findings — industry standard vs GP-Copilot scanners',
+      },
+      {
+        src: '/projects/anthra-ssp.jpeg',
+        alt: 'System Security Plan — SSP best practices and 3PAO guidance',
+      },
+      {
+        src: '/projects/anthra-poam.jpeg',
+        alt: 'POA&M — 21 tracked items with severity and milestones',
+      },
     ],
     highlights: [
       '🎯 Impact: FedRAMP Moderate readiness for federal agency sales (DHS, VA, GSA)',
@@ -69,7 +83,8 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
   },
   interview: {
     title: 'AI-Powered Interview Platform',
-    description: 'Enterprise-grade cloud architecture demonstrating AWS security best practices',
+    description:
+      'Enterprise-grade cloud architecture demonstrating AWS security best practices',
     status: 'Deployed',
     icon: '🚀',
     repoUrl: 'https://github.com/jimjrxieb/ai-powered-project',
@@ -84,7 +99,8 @@ const FEATURED_PROJECTS: Record<ProjectKey, Project> = {
   },
   jade: {
     title: 'Sheyla - Secure AI Chatbot',
-    description: 'Production RAG with defense-in-depth LLM security—try it below',
+    description:
+      'Production RAG with defense-in-depth LLM security—try it below',
     status: 'Live',
     icon: '🤖',
     repoUrl: 'https://github.com/jimjrxieb/Portfolio',
@@ -104,58 +120,169 @@ const TOOL_CATEGORIES: Record<CategoryKey, ToolCategory> = {
     title: 'Cloud & Infrastructure (IaC)',
     icon: '☁️',
     tools: [
-      { name: 'Kubernetes (CKA Certified)', description: '3 deployment methods: kubectl → Terraform → Helm+ArgoCD', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
-      { name: 'Terraform + LocalStack', description: 'IaC with AWS service simulation (cost-conscious)', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method2-terraform-localstack' },
-      { name: 'Terraform Projects', description: 'Modular, multi-environment infrastructure provisioning', link: 'https://github.com/jimjrxieb/Terraform_project' },
-      { name: 'Docker Multi-Stage Builds', description: 'Non-root containers, security contexts, optimization', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'Helm Charts', description: 'Kubernetes package manager for production deployments', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd' },
-      { name: 'AWS (S3/KMS/Secrets Manager)', description: 'Cloud services, encryption, secrets management', link: 'https://github.com/jimjrxieb/ai-powered-project' },
+      {
+        name: 'Kubernetes (CKA Certified)',
+        description: '3 deployment methods: kubectl → Terraform → Helm+ArgoCD',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl',
+      },
+      {
+        name: 'Terraform + LocalStack',
+        description: 'IaC with AWS service simulation (cost-conscious)',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method2-terraform-localstack',
+      },
+      {
+        name: 'Terraform Projects',
+        description: 'Modular, multi-environment infrastructure provisioning',
+        link: 'https://github.com/jimjrxieb/Terraform_project',
+      },
+      {
+        name: 'Docker Multi-Stage Builds',
+        description: 'Non-root containers, security contexts, optimization',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api',
+      },
+      {
+        name: 'Helm Charts',
+        description: 'Kubernetes package manager for production deployments',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd',
+      },
+      {
+        name: 'AWS (S3/KMS/Secrets Manager)',
+        description: 'Cloud services, encryption, secrets management',
+        link: 'https://github.com/jimjrxieb/ai-powered-project',
+      },
     ],
   },
   devops: {
     title: 'CI/CD & Automation',
     icon: '⚙️',
     tools: [
-      { name: 'GitHub Actions', description: '6-tool parallel security scanning pipeline', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml' },
-      { name: 'ArgoCD GitOps', description: 'Automated pull-based deployments with sync policies', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd' },
-      { name: 'Python Automation', description: 'FastAPI, async/await, RAG pipelines, CLI tools', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'Bash/Shell Scripting', description: 'Infrastructure automation and provisioning scripts', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
-      { name: 'Pre-commit Hooks', description: 'Local secrets detection and security validation', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.pre-commit-config.yaml' },
+      {
+        name: 'GitHub Actions',
+        description: '6-tool parallel security scanning pipeline',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml',
+      },
+      {
+        name: 'ArgoCD GitOps',
+        description: 'Automated pull-based deployments with sync policies',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd',
+      },
+      {
+        name: 'Python Automation',
+        description: 'FastAPI, async/await, RAG pipelines, CLI tools',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api',
+      },
+      {
+        name: 'Bash/Shell Scripting',
+        description: 'Infrastructure automation and provisioning scripts',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl',
+      },
+      {
+        name: 'Pre-commit Hooks',
+        description: 'Local secrets detection and security validation',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.pre-commit-config.yaml',
+      },
     ],
   },
   security: {
     title: 'Security & Compliance (DevSecOps)',
     icon: '🛡️',
     tools: [
-      { name: 'OPA/Conftest Policies', description: '13 policies, 11 automated tests in CI pipeline', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies' },
-      { name: 'Gatekeeper Admission Control', description: 'Runtime Kubernetes policy enforcement', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure' },
-      { name: 'CompTIA Security+ Certified', description: 'Security hardening, compliance, vulnerability mgmt' },
-      { name: '6-Tool Security Pipeline', description: 'detect-secrets, Semgrep, Trivy, Bandit, Safety, npm', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml' },
-      { name: 'Network Policies + RBAC', description: 'Zero-trust networking, least-privilege access', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl' },
-      { name: 'Secrets Management', description: 'Never commit credentials, Kubernetes secrets automation', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/infrastructure/method1-simple-kubectl/create-secrets-from-env.sh' },
+      {
+        name: 'OPA/Conftest Policies',
+        description: '13 policies, 11 automated tests in CI pipeline',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies',
+      },
+      {
+        name: 'Gatekeeper Admission Control',
+        description: 'Runtime Kubernetes policy enforcement',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure',
+      },
+      {
+        name: 'CompTIA Security+ Certified',
+        description: 'Security hardening, compliance, vulnerability mgmt',
+      },
+      {
+        name: '6-Tool Security Pipeline',
+        description: 'detect-secrets, Semgrep, Trivy, Bandit, Safety, npm',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml',
+      },
+      {
+        name: 'Network Policies + RBAC',
+        description: 'Zero-trust networking, least-privilege access',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl',
+      },
+      {
+        name: 'Secrets Management',
+        description: 'Never commit credentials, Kubernetes secrets automation',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/infrastructure/method1-simple-kubectl/create-secrets-from-env.sh',
+      },
     ],
   },
   aiml: {
     title: 'AI/ML Security',
     icon: '🧠',
     tools: [
-      { name: 'Secure RAG Pipeline', description: '118 vectors with semantic search', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/data/README.md' },
-      { name: 'Prompt Injection Defense', description: 'Regex patterns block override attempts', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L42' },
-      { name: 'Input/Output Sanitization', description: 'XSS filtering, delimiter stripping', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L117' },
-      { name: 'LLM Rate Limiting', description: '10 req/min per IP to prevent abuse', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L196' },
-      { name: 'Audit Logging', description: 'Hashed IPs, query tracking, compliance', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L249' },
-      { name: 'Hardened System Prompt', description: 'Role boundaries, fail-safe responses', link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/prompts.py' },
+      {
+        name: 'Secure RAG Pipeline',
+        description: '118 vectors with semantic search',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/data/README.md',
+      },
+      {
+        name: 'Prompt Injection Defense',
+        description: 'Regex patterns block override attempts',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L42',
+      },
+      {
+        name: 'Input/Output Sanitization',
+        description: 'XSS filtering, delimiter stripping',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L117',
+      },
+      {
+        name: 'LLM Rate Limiting',
+        description: '10 req/min per IP to prevent abuse',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L196',
+      },
+      {
+        name: 'Audit Logging',
+        description: 'Hashed IPs, query tracking, compliance',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/llm_security.py#L249',
+      },
+      {
+        name: 'Hardened System Prompt',
+        description: 'Role boundaries, fail-safe responses',
+        link: 'https://github.com/jimjrxieb/Portfolio/blob/main/api/security/prompts.py',
+      },
     ],
   },
   languages: {
     title: 'Languages & Scripting',
     icon: '💻',
     tools: [
-      { name: 'Python', description: 'FastAPI, async, automation, AI/ML pipelines', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api' },
-      { name: 'TypeScript', description: 'React, type-safe production frontends', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/ui' },
-      { name: 'Rego (OPA)', description: 'Policy-as-Code for compliance automation', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies' },
-      { name: 'Bash/Shell', description: 'Infrastructure automation and provisioning', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/scripts' },
-      { name: 'YAML/JSON', description: 'Configuration, IaC, Kubernetes manifests', link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure' },
+      {
+        name: 'Python',
+        description: 'FastAPI, async, automation, AI/ML pipelines',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/api',
+      },
+      {
+        name: 'TypeScript',
+        description: 'React, type-safe production frontends',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/ui',
+      },
+      {
+        name: 'Rego (OPA)',
+        description: 'Policy-as-Code for compliance automation',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/conftest-policies',
+      },
+      {
+        name: 'Bash/Shell',
+        description: 'Infrastructure automation and provisioning',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/scripts',
+      },
+      {
+        name: 'YAML/JSON',
+        description: 'Configuration, IaC, Kubernetes manifests',
+        link: 'https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure',
+      },
     ],
   },
 } as const;
@@ -179,9 +306,7 @@ const ProjectCard: React.FC<{
       <div className="flex items-center gap-3">
         <span className="text-xl">{project.icon}</span>
         <div>
-          <div className="text-white font-medium text-sm">
-            {project.title}
-          </div>
+          <div className="text-white font-medium text-sm">{project.title}</div>
           <div className="text-text-secondary text-xs">
             {project.description}
           </div>
@@ -211,14 +336,21 @@ const ProjectCard: React.FC<{
           <div className="mt-3 pt-3 border-t border-white/10">
             <div className="grid grid-cols-2 gap-2">
               {project.screenshots.map((ss, i) => (
-                <a key={i} href={ss.src} target="_blank" rel="noopener noreferrer">
+                <a
+                  key={i}
+                  href={ss.src}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <img
                     src={ss.src}
                     alt={ss.alt}
                     className="rounded border border-white/10 hover:border-crystal-500/50 transition-colors w-full"
                     loading="lazy"
                   />
-                  <span className="text-text-secondary text-[10px] mt-0.5 block">{ss.alt}</span>
+                  <span className="text-text-secondary text-[10px] mt-0.5 block">
+                    {ss.alt}
+                  </span>
                 </a>
               ))}
             </div>
@@ -278,9 +410,7 @@ const CategorySection: React.FC<{
         <div className="flex items-center gap-3">
           <span className="text-2xl">{category.icon}</span>
           <div>
-            <h3 className="text-white font-semibold">
-              {category.title}
-            </h3>
+            <h3 className="text-white font-semibold">{category.title}</h3>
             <p className="text-text-secondary text-sm">
               {category.tools.length} tools • Click to expand
             </p>
@@ -327,18 +457,23 @@ export default function Projects() {
           <span>🎓</span> Certifications
         </h4>
         <div className="text-sm space-y-1">
-          <div className="text-white">✅ CKA (Certified Kubernetes Administrator)</div>
+          <div className="text-white">
+            ✅ CKA (Certified Kubernetes Administrator)
+          </div>
           <div className="text-white">✅ CompTIA Security+</div>
-          <div className="text-white">✅ AWS Certified Solutions Architect – Associate</div>
-          <div className="text-crystal-400">🔄 Certified Cloud Native Platform Engineering Associate – CNPA (In Progress)</div>
+          <div className="text-white">
+            ✅ AWS Certified Solutions Architect – Associate
+          </div>
+          <div className="text-crystal-400">
+            🔄 Certified Cloud Native Platform Engineering Associate – CNPA (In
+            Progress)
+          </div>
         </div>
       </div>
 
       {/* Project Selector */}
       <div className="bg-snow/10 border border-white/10 rounded-lg p-4">
-        <h4 className="text-white font-semibold mb-3">
-          Featured Projects
-        </h4>
+        <h4 className="text-white font-semibold mb-3">Featured Projects</h4>
         <div className="space-y-2">
           {(Object.entries(FEATURED_PROJECTS) as [ProjectKey, Project][]).map(
             ([key, project]) => (
@@ -368,7 +503,6 @@ export default function Projects() {
           )
         )}
       </div>
-
     </div>
   );
 }

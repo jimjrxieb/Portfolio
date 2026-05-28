@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ChromaDB Vector Database Service
   chromadb:
@@ -28,6 +26,8 @@ services:
     build:
       context: .
       dockerfile: ./api/Dockerfile
+    secrets:
+    - claude_api_key
     ports:
     - "8000:8000"
     environment:
@@ -36,13 +36,11 @@ services:
     - DATA_DIR=/app/data
       # LLM Configuration (Claude)
     - LLM_PROVIDER=claude
-    - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
+    - CLAUDE_API_KEY_FILE=/run/secrets/claude_api_key
     - LLM_MODEL=claude-3-haiku-20240307
       # Ollama Embeddings
     - OLLAMA_URL=http://host.docker.internal:11434
     - EMBED_MODEL=nomic-embed-text
-      # Fallback (OpenAI)
-    - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     - PYTHONPATH=/app
     volumes:
     - ./data:/app/data/
@@ -98,3 +96,7 @@ volumes:
 networks:
   default:
     name: portfolio-network
+
+secrets:
+  claude_api_key:
+    environment: CLAUDE_API_KEY

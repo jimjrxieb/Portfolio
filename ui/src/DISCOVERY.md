@@ -63,59 +63,66 @@ Portfolio/
 ## GitHub Links for Skills
 
 ### AI/ML Architecture
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| RAG Pipeline | `rag-pipeline/` | https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline |
-| ChromaDB Vectors | `rag-pipeline/03-ingest-rag-data/` | https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline/03-ingest-rag-data |
-| Ollama Embeddings | `rag-pipeline/` | https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline |
-| Claude API | `api/main.py` | https://github.com/jimjrxieb/Portfolio/blob/main/api/main.py |
-| Sheyla AI | `ui/src/components/ChatBoxFixed.tsx` | https://github.com/jimjrxieb/Portfolio/blob/main/ui/src/components/ChatBoxFixed.tsx |
+
+| Skill             | Path                                 | GitHub URL                                                                          |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------------------------- |
+| RAG Pipeline      | `rag-pipeline/`                      | https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline                       |
+| ChromaDB Vectors  | `rag-pipeline/03-ingest-rag-data/`   | https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline/03-ingest-rag-data    |
+| Ollama Embeddings | `rag-pipeline/`                      | https://github.com/jimjrxieb/Portfolio/tree/main/rag-pipeline                       |
+| Claude API        | `api/main.py`                        | https://github.com/jimjrxieb/Portfolio/blob/main/api/main.py                        |
+| Sheyla AI         | `ui/src/components/ChatBoxFixed.tsx` | https://github.com/jimjrxieb/Portfolio/blob/main/ui/src/components/ChatBoxFixed.tsx |
 
 ### Security Scanning
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| Trivy | `.github/workflows/main.yml#L310` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L310 |
-| Semgrep | `.github/workflows/main.yml#L60` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L60 |
+
+| Skill          | Path                              | GitHub URL                                                                       |
+| -------------- | --------------------------------- | -------------------------------------------------------------------------------- |
+| Trivy          | `.github/workflows/main.yml#L310` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L310 |
+| Semgrep        | `.github/workflows/main.yml#L60`  | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L60  |
 | detect-secrets | `.github/workflows/main.yml#L131` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L131 |
-| Bandit | `.github/workflows/main.yml#L104` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L104 |
-| Safety | `.github/workflows/main.yml#L110` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L110 |
+| Bandit         | `.github/workflows/main.yml#L104` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L104 |
+| Safety         | `.github/workflows/main.yml#L110` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L110 |
 
 ### Policy-as-Code
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| OPA/Conftest | `GP-copilot/02-package/conftest-policies/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/02-package/conftest-policies |
-| Gatekeeper | `GP-copilot/02-package/gatekeeper-constraints/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/02-package/gatekeeper-constraints |
-| Policy Tests | `.github/workflows/main.yml#L369` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L369 |
+
+| Skill        | Path                                            | GitHub URL                                                                                    |
+| ------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| OPA/Conftest | `GP-copilot/02-package/conftest-policies/`      | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/02-package/conftest-policies      |
+| Gatekeeper   | `GP-copilot/02-package/gatekeeper-constraints/` | https://github.com/jimjrxieb/Portfolio/tree/main/GP-copilot/02-package/gatekeeper-constraints |
+| Policy Tests | `.github/workflows/main.yml#L369`               | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L369              |
 
 ### Deployment Methods
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| kubectl Manifests | `infrastructure/method1-simple-kubectl/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl |
-| Terraform | `infrastructure/method2-terraform-localstack/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method2-terraform-localstack |
-| Helm Charts | `infrastructure/method3-helm-argocd/helm-chart/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd/helm-chart |
-| ArgoCD GitOps | `infrastructure/method3-helm-argocd/argocd/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd/argocd |
+
+| Skill             | Path                                             | GitHub URL                                                                                     |
+| ----------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| kubectl Manifests | `infrastructure/method1-simple-kubectl/`         | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl         |
+| Terraform         | `infrastructure/method2-terraform-localstack/`   | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method2-terraform-localstack   |
+| Helm Charts       | `infrastructure/method3-helm-argocd/helm-chart/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd/helm-chart |
+| ArgoCD GitOps     | `infrastructure/method3-helm-argocd/argocd/`     | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method3-helm-argocd/argocd     |
 
 ### CI/CD Pipeline
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| GitHub Actions | `.github/workflows/main.yml` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml |
-| Parallel Security Scans | `.github/workflows/main.yml#L46` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L46 |
-| Multi-env Deploy | `.github/workflows/main.yml#L411` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L411 |
+
+| Skill                   | Path                              | GitHub URL                                                                       |
+| ----------------------- | --------------------------------- | -------------------------------------------------------------------------------- |
+| GitHub Actions          | `.github/workflows/main.yml`      | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml      |
+| Parallel Security Scans | `.github/workflows/main.yml#L46`  | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L46  |
+| Multi-env Deploy        | `.github/workflows/main.yml#L411` | https://github.com/jimjrxieb/Portfolio/blob/main/.github/workflows/main.yml#L411 |
 
 ### Hardening
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| NetworkPolicies | `infrastructure/method1-simple-kubectl/k8s-security/network-policies/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl/k8s-security/network-policies |
-| RBAC | `infrastructure/method1-simple-kubectl/k8s-security/rbac/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl/k8s-security/rbac |
-| Pod Security | `infrastructure/method1-simple-kubectl/k8s-security/pod-security/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl/k8s-security/pod-security |
-| Non-root Containers | `ui/Dockerfile` | https://github.com/jimjrxieb/Portfolio/blob/main/ui/Dockerfile |
+
+| Skill               | Path                                                                   | GitHub URL                                                                                                           |
+| ------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| NetworkPolicies     | `infrastructure/method1-simple-kubectl/k8s-security/network-policies/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl/k8s-security/network-policies |
+| RBAC                | `infrastructure/method1-simple-kubectl/k8s-security/rbac/`             | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl/k8s-security/rbac             |
+| Pod Security        | `infrastructure/method1-simple-kubectl/k8s-security/pod-security/`     | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure/method1-simple-kubectl/k8s-security/pod-security     |
+| Non-root Containers | `ui/Dockerfile`                                                        | https://github.com/jimjrxieb/Portfolio/blob/main/ui/Dockerfile                                                       |
 
 ### Infrastructure
-| Skill | Path | GitHub URL |
-|-------|------|------------|
-| Kubernetes | `infrastructure/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure |
-| FastAPI Backend | `api/main.py` | https://github.com/jimjrxieb/Portfolio/blob/main/api/main.py |
-| React/Vite Frontend | `ui/src/` | https://github.com/jimjrxieb/Portfolio/tree/main/ui/src |
+
+| Skill               | Path              | GitHub URL                                                      |
+| ------------------- | ----------------- | --------------------------------------------------------------- |
+| Kubernetes          | `infrastructure/` | https://github.com/jimjrxieb/Portfolio/tree/main/infrastructure |
+| FastAPI Backend     | `api/main.py`     | https://github.com/jimjrxieb/Portfolio/blob/main/api/main.py    |
+| React/Vite Frontend | `ui/src/`         | https://github.com/jimjrxieb/Portfolio/tree/main/ui/src         |
 
 ## Certifications
 

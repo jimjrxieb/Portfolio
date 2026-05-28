@@ -24,12 +24,13 @@ const ChatBoxFixed: React.FC = () => {
   // Auto-scroll to bottom when messages change (scroll container only, not page)
   useEffect(() => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
     }
   }, [messages, loading]);
 
   const quickPrompts = [
-    "How does Jimmie approach securing a Kubernetes cluster?",
+    'How does Jimmie approach securing a Kubernetes cluster?',
     'How did Jimmie secure this application?',
     'What technologies does Jimmie use?',
     'How was the CI/CD pipeline built?',
@@ -74,7 +75,10 @@ const ChatBoxFixed: React.FC = () => {
 
       const sheylaMessage: ChatMessage = {
         id: Date.now() + '-sheyla',
-        text: data.answer || data.response || "I'm having trouble responding right now.",
+        text:
+          data.answer ||
+          data.response ||
+          "I'm having trouble responding right now.",
         sender: 'sheyla',
         timestamp: new Date(),
       };
@@ -117,19 +121,26 @@ const ChatBoxFixed: React.FC = () => {
           <p className="text-crystal-400 text-xs">AI Portfolio Assistant</p>
         </div>
         <div className="ml-auto">
-          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs ${
-            loading
-              ? 'bg-gold-500/20 text-gold-400'
-              : 'bg-jade-500/20 text-jade-400'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-gold-400 animate-pulse' : 'bg-jade-400'}`}></span>
+          <span
+            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs ${
+              loading
+                ? 'bg-gold-500/20 text-gold-400'
+                : 'bg-jade-500/20 text-jade-400'
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${loading ? 'bg-gold-400 animate-pulse' : 'bg-jade-400'}`}
+            ></span>
             {loading ? 'Thinking...' : 'Online'}
           </span>
         </div>
       </div>
 
       {/* Chat Messages */}
-      <div ref={messagesContainerRef} className="space-y-3 max-h-80 overflow-y-auto pr-2">
+      <div
+        ref={messagesContainerRef}
+        className="space-y-3 max-h-80 overflow-y-auto pr-2"
+      >
         {messages.length === 0 && (
           <div className="text-center py-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-crystal-500/20 to-jade-500/20 flex items-center justify-center">
@@ -137,7 +148,8 @@ const ChatBoxFixed: React.FC = () => {
             </div>
             <p className="text-white font-medium">Hi! I'm Sheyla</p>
             <p className="text-text-secondary text-sm mt-1">
-              Ask me about Jimmie's approach to securing and optimizing infrastructure
+              Ask me about Jimmie's approach to securing and optimizing
+              infrastructure
             </p>
           </div>
         )}
@@ -154,9 +166,16 @@ const ChatBoxFixed: React.FC = () => {
                   : 'bg-snow/10 text-white border border-white/5 rounded-bl-md'
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
-              <p className={`text-xs mt-2 ${msg.sender === 'user' ? 'text-crystal-200' : 'text-text-secondary'}`}>
-                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                {msg.text}
+              </p>
+              <p
+                className={`text-xs mt-2 ${msg.sender === 'user' ? 'text-crystal-200' : 'text-text-secondary'}`}
+              >
+                {msg.timestamp.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </p>
             </div>
           </div>
@@ -167,11 +186,22 @@ const ChatBoxFixed: React.FC = () => {
             <div className="bg-snow/10 border border-white/5 px-4 py-3 rounded-2xl rounded-bl-md">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  <span
+                    className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  ></span>
+                  <span
+                    className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  ></span>
+                  <span
+                    className="w-2 h-2 bg-crystal-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  ></span>
                 </div>
-                <span className="text-text-secondary text-sm ml-1">Sheyla is typing...</span>
+                <span className="text-text-secondary text-sm ml-1">
+                  Sheyla is typing...
+                </span>
               </div>
             </div>
           </div>
