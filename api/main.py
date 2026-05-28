@@ -19,13 +19,17 @@ from routes.health import router as health_router
 # from routes.rag import router as rag_router  # UNUSED - Not called by frontend
 # from routes.validation import router as validation_router  # UNUSED - Not called by frontend
 
+ENVIRONMENT = os.getenv("ENVIRONMENT", os.getenv("APP_ENV", "development")).lower()
+IS_PRODUCTION = ENVIRONMENT == "production"
+
 # Create FastAPI app
 app = FastAPI(
     title="Portfolio API",
     description="Backend API for Jimmie's AI-powered portfolio platform",
     version="2.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
 )
 
 # Simple rate limiting (in-memory)
@@ -138,7 +142,11 @@ app.include_router(chat_router, tags=["chat"])
 @app.get("/")
 def root():
     """API root endpoint"""
-    return {"message": "Portfolio API v2.0.0", "docs": "/docs", "health": "/health"}
+    return {
+        "message": "Portfolio API v2.0.0",
+        "docs": None if IS_PRODUCTION else "/docs",
+        "health": "/health",
+    }
 
 
 if __name__ == "__main__":
