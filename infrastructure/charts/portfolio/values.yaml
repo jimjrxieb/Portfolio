@@ -22,7 +22,7 @@ api:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-api
-    tag: "main-fb334dd9"
+    tag: "main-38db08e4"
     pullPolicy: Always
 
   service:
@@ -85,7 +85,7 @@ ui:
 
   image:
     repository: ghcr.io/jimjrxieb/portfolio-ui
-    tag: "main-fb334dd9"
+    tag: "main-38db08e4"
     pullPolicy: Always
 
   service:
