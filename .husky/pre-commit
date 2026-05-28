@@ -3,8 +3,8 @@
 
 echo "🔍 Running pre-commit checks..."
 
-# Run lint-staged on staged files
-npx lint-staged
+# Run lint-staged from ui/ where the config and binaries live
+cd ui && npx lint-staged
 
 if [ $? -ne 0 ]; then
   echo "❌ Pre-commit checks failed. Please fix the issues before committing."

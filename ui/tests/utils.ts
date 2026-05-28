@@ -8,7 +8,7 @@ export async function hookConsoleAndNetwork(page: Page) {
   page.on('console', msg => {
     if (['error', 'warning'].includes(msg.type())) {
       // SECURITY: Sanitize interpolated values
-console.msg.type()}]`, msg.text());
+      console.log(`[${msg.type()}]`, msg.text());
     }
   });
   page.on('pageerror', err => {
