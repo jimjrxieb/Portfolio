@@ -26,6 +26,7 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "portfolio.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.securityContext.automountServiceAccountToken | default false }}
+      terminationGracePeriodSeconds: 30
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.pod.runAsNonRoot }}
         runAsUser: {{ .Values.securityContext.pod.runAsUser }}
@@ -37,6 +38,10 @@ spec:
         - name: api
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 5"]
           securityContext:
             runAsNonRoot: {{ .Values.securityContext.container.runAsNonRoot }}
             runAsUser: {{ .Values.securityContext.container.runAsUser }}
