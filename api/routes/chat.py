@@ -27,6 +27,7 @@ from backend.engines.llm_interface import LLMEngine
 # Import security module (renamed to avoid conflicts with pip packages)
 from sheyla_security import SheylaSecurityGuard
 from sheyla_security.prompts import SHEYLA_SYSTEM_PROMPT, GROUNDING_INSTRUCTION, FALLBACK_RESPONSES
+from routes.validation import ValidationRequest, validate_response
 
 # Import Sheyla's conversation engine
 # import sys
@@ -224,31 +225,30 @@ async def chat_with_sheyla(request: ChatRequest, http_request: Request):
             response_text = await _fallback_llm_response(processed_input, rag_results)
 
         # Step 3: Validate response for hallucinations and grounding
-        # TODO: Re-enable validation when validation module is available
-        # context_sources = [citation.source for citation in citations]
-        # try:
-        #     validation_result = await validate_response(
-        #         ValidationRequest(
-        #             response_text=response_text,
-        #             question=request.message,
-        #             context_sources=context_sources,
-        #         )
-        #     )
-        #
-        #     # If validation fails critically, use a safer fallback response
-        #     if (
-        #         not validation_result.is_valid
-        #         and validation_result.confidence_score < 0.3
-        #     ):
-        #         response_text = (
-        #             "I need to stay grounded in the information I have about Jimmie's work. "
-        #             "Could you ask me something more specific about LinkOps AI-BOX, "
-        #             "his DevSecOps experience, or the ZRS Management project?"
-        #         )
-        #
-        # except Exception as e:
-        #     print(f"Validation error: {e}")
-        #     # Continue without validation if it fails
+        context_sources = [citation.source for citation in citations]
+        try:
+            validation_result = await validate_response(
+                ValidationRequest(
+                    response_text=response_text,
+                    question=request.message,
+                    context_sources=context_sources,
+                )
+            )
+
+            # If validation fails critically, use a safer fallback response.
+            if (
+                not validation_result.is_valid
+                and validation_result.confidence_score < 0.3
+            ):
+                response_text = (
+                    "I need to stay grounded in the information I have about Jimmie's work. "
+                    "Could you ask me something more specific about his CBBP methodology, "
+                    "the Anthra-SecLAB, his certifications, or his security engineering experience?"
+                )
+
+        except Exception as e:
+            print(f"Validation error: {e}")
+            # Continue without validation if it fails.
 
         # Step 4: Get follow-up suggestions
         # TODO: Implement get_follow_up_suggestions in ConversationEngine
@@ -408,27 +408,27 @@ async def get_quick_prompts():
     """Get suggested conversation starters"""
     return {
         "quick_prompts": [
-            "Tell me about LinkOps AI-BOX and how it helps property managers",
-            "What's Jimmie's background in DevSecOps and AI?",
-            "How does the RAG system work in your projects?",
-            "What's the business impact and ROI of these solutions?",
-            "Can you walk me through a technical interview with Jimmie?",
+            "How does Jimmie approach securing a production application end to end?",
+            "What is the CBBP methodology and how does it work?",
+            "Tell me about the Anthra-SecLAB and what Jimmie validates there",
+            "What certifications does Jimmie hold and what is he studying for?",
+            "How is this portfolio site secured following NIST 800-53?",
         ],
         "categories": {
             "projects": [
-                "Tell me about LinkOps AI-BOX",
-                "What is LinkOps Afterlife?",
-                "How do these projects work together?",
+                "Tell me about the Anthra-SecLAB",
+                "What is GP-Copilot and how does it work?",
+                "How does this portfolio site work technically?",
             ],
             "technical": [
                 "What technologies does Jimmie use?",
-                "How is the system architected?",
-                "What about scalability and performance?",
+                "How does the CBBP methodology work?",
+                "How is Sheyla secured following NIST AI 600-1?",
             ],
-            "business": [
-                "What problem does this solve?",
-                "What's the ROI and business impact?",
-                "Who are the target customers?",
+            "experience": [
+                "What is Jimmie's background in cybersecurity?",
+                "What NIST 800-53 controls has Jimmie implemented?",
+                "What is Jimmie's approach to vulnerability management?",
             ],
         },
     }

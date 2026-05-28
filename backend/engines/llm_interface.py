@@ -1,8 +1,25 @@
 import os
 import logging
 from typing import AsyncGenerator
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+def read_secret(name: str) -> str:
+    """Read a secret from NAME or NAME_FILE without logging the value."""
+    value = os.getenv(name)
+    if value:
+        return value
+
+    secret_file = os.getenv(f"{name}_FILE")
+    if not secret_file:
+        return ""
+
+    try:
+        return Path(secret_file).read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
 
 
 class LLMEngine:
@@ -21,7 +38,7 @@ class LLMEngine:
                 self.model_name = "Qwen/Qwen2.5-1.5B-Instruct"
             self._load_local_model()
         elif self.provider == "claude":
-            self.claude_api_key = os.getenv("CLAUDE_API_KEY")
+            self.claude_api_key = read_secret("CLAUDE_API_KEY")
             self.claude_model = self.model_name or "claude-3-haiku-20240307"
             if not self.claude_api_key:
                 logger.error("CLAUDE_API_KEY not set! Claude provider will fail.")

@@ -8,6 +8,18 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+# FastEmbed/Hugging Face need writable cache paths. The API pod runs with a
+# read-only root filesystem, so keep model artifacts on the writable /tmp mount.
+FASTEMBED_CACHE_DIR = os.getenv("FASTEMBED_CACHE_PATH", "/tmp/fastembed_cache")
+for env_name, env_value in {
+    "XDG_CACHE_HOME": "/tmp/.cache",
+    "HF_HOME": "/tmp/huggingface",
+    "HF_HUB_CACHE": "/tmp/huggingface/hub",
+    "HF_XET_CACHE": "/tmp/huggingface/xet",
+    "HF_HUB_DISABLE_XET": "1",
+}.items():
+    os.environ.setdefault(env_name, env_value)
+
 # Lazy-loaded fastembed model (avoids import cost on every request)
 _fastembed_model = None
 
@@ -17,8 +29,12 @@ def _get_fastembed_model():
     global _fastembed_model
     if _fastembed_model is None:
         try:
+            os.makedirs(FASTEMBED_CACHE_DIR, exist_ok=True)
             from fastembed import TextEmbedding
-            _fastembed_model = TextEmbedding("nomic-ai/nomic-embed-text-v1.5")
+            _fastembed_model = TextEmbedding(
+                "nomic-ai/nomic-embed-text-v1.5",
+                cache_dir=FASTEMBED_CACHE_DIR,
+            )
             logger.info("Loaded fastembed nomic-embed-text-v1.5 (768-dim)")
         except Exception as e:
             logger.error(f"Failed to load fastembed model: {e}")

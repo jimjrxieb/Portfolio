@@ -6,6 +6,23 @@ Centralized configuration management for all services
 import os
 from pathlib import Path
 
+
+def read_secret(name: str, default: str = "") -> str:
+    """Read a secret from NAME or NAME_FILE without logging the value."""
+    value = os.getenv(name)
+    if value:
+        return value
+
+    secret_file = os.getenv(f"{name}_FILE")
+    if not secret_file:
+        return default
+
+    try:
+        return Path(secret_file).read_text(encoding="utf-8").strip()
+    except OSError:
+        return default
+
+
 # Data and storage paths
 DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
 UPLOAD_DIR = DATA_DIR / "uploads"
@@ -19,12 +36,12 @@ CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
 # LLM Configuration - SINGLE SOURCE OF TRUTH
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "claude")  # claude, openai, or local
-LLM_API_KEY = os.getenv("CLAUDE_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY", "")
+LLM_API_KEY = read_secret("CLAUDE_API_KEY") or read_secret("OPENAI_API_KEY") or read_secret("LLM_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "claude-3-haiku-20240307")  # Claude 3 Haiku for cost efficiency
 
 # Provider-specific settings
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+CLAUDE_API_KEY = read_secret("CLAUDE_API_KEY")
+OPENAI_API_KEY = read_secret("OPENAI_API_KEY")
 LLM_API_BASE = os.getenv("LLM_API_BASE", "https://api.anthropic.com")
 
 # RAG Configuration
@@ -77,10 +94,10 @@ EXPERTISE AREAS:
 - Security: OPA/Conftest policies, container security, compliance
 
 KEY PROJECTS:
-1. LinkOps AI-BOX: On-premises AI platform with Qwen2.5 1.5B + ChromaDB + RPAs
-2. Portfolio Platform: Production RAG system (ChromaDB + Claude API + Kubernetes)
-3. ZRS Management: Testing partnership - property reporting and marketing automation
-4. CI/CD Pipelines: 6-scanner security pipeline, automated deployment workflows
+1. Anthra-SecLAB: Hands-on NIST 800-53 control validation lab using CBBP methodology
+2. GP-Copilot: Open-source MSSP engagement framework — CBBP phases, 4 agents, 5 C's
+3. Portfolio Platform: Production RAG system (ChromaDB + Claude API + Kubernetes)
+4. CI/CD Pipeline: 8-scanner security pipeline, GitOps deploy via ArgoCD
 
 RESPONSE GUIDELINES:
 - Answer based on available knowledge about Jimmie's work

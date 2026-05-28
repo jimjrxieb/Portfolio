@@ -4,7 +4,13 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    XDG_CACHE_HOME=/tmp/.cache \
+    HF_HOME=/tmp/huggingface \
+    HF_HUB_CACHE=/tmp/huggingface/hub \
+    HF_XET_CACHE=/tmp/huggingface/xet \
+    FASTEMBED_CACHE_PATH=/tmp/fastembed_cache \
+    HF_HUB_DISABLE_XET=1
 
 WORKDIR /app
 
@@ -29,8 +35,8 @@ RUN useradd -m -r -u 1000 appuser && \
     chmod -R a+rX /app
 
 # Create data directories
-RUN mkdir -p /data/uploads /data/chroma && \
-    chown -R appuser:appuser /data
+RUN mkdir -p /data/uploads /data/chroma /tmp/.cache /tmp/huggingface /tmp/fastembed_cache && \
+    chown -R appuser:appuser /data /tmp/.cache /tmp/huggingface /tmp/fastembed_cache
 
 # Switch to non-root user
 USER appuser
