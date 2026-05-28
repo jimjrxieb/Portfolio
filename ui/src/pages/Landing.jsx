@@ -92,12 +92,9 @@ export default function Landing() {
               managed as code. Below, you can talk to{' '}
               <span className="text-crystal-400 font-medium">Sheyla</span>, my
               AI portfolio assistant — ask her anything about my experience,
-              projects, or certifications. She&apos;s secured following{' '}
-              <span className="text-crystal-400 font-medium">
-                NIST AI 600-1
-              </span>{' '}
-              with prompt injection detection, input sanitization, output
-              filtering, rate limiting, and a full audit trail — mapped to{' '}
+              projects, or certifications. Her security stack — prompt injection
+              detection, input sanitization, output filtering, rate limiting,
+              and a full audit trail — is mapped to{' '}
               <span className="text-crystal-400 font-medium">
                 OWASP LLM Top 10
               </span>{' '}
