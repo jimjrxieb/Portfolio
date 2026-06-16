@@ -19,7 +19,7 @@ ftfy>=6.1.0
 chardet>=5.2.0
 
 # Sentence tokenization for semantic boundaries
-nltk>=3.8.0
+nltk>=3.9
 
 # ===========================================
 # Stage 2: Ingestion (ingest_data.py)
@@ -40,3 +40,5 @@ requests>=2.31.0
 # python-magic>=0.4.27
 # pdf2image>=1.16.0
 # pytesseract>=0.3.10
+urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
